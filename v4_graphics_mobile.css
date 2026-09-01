@@ -1,15 +1,49 @@
-/* V4 BUILD 414 — visual polish and control modes */
+/* V4 BUILD 416 — Android/mobile hardening + visual polish */
+.v4-mobile-device{--v4-vh:100dvh;--v4-vw:100vw}
 .v4-arrows .mobile-stick{display:none!important}
-.v4-arrows .touch-controls>button[data-key="up"]{display:block;position:fixed;left:86px;bottom:132px;width:54px;height:54px;background:#30251d;color:#efd28c;border:2px solid #8f7042;box-shadow:3px 3px 0 #17110d;pointer-events:auto}
-.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick){display:flex!important;position:fixed;left:24px;bottom:22px;gap:5px;pointer-events:auto}
-.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick) button{display:block;width:54px;height:54px;background:#30251d;color:#efd28c;border:2px solid #8f7042;box-shadow:3px 3px 0 #17110d;pointer-events:auto}
-.v4-arrows .touch-controls #interact{right:18px}
+.v4-arrows .touch-controls>button[data-key="up"]{display:block;position:fixed;left:86px;bottom:calc(132px + env(safe-area-inset-bottom));width:58px;height:58px;background:#30251d;color:#efd28c;border:2px solid #8f7042;box-shadow:3px 3px 0 #17110d;pointer-events:auto}
+.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick){display:flex!important;position:fixed;left:max(24px,env(safe-area-inset-left));bottom:calc(22px + env(safe-area-inset-bottom));gap:6px;pointer-events:auto}
+.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick) button{display:block;width:58px;height:58px;background:#30251d;color:#efd28c;border:2px solid #8f7042;box-shadow:3px 3px 0 #17110d;pointer-events:auto}
+.v4-arrows .touch-controls #interact{right:max(18px,env(safe-area-inset-right))}
 .v4-joystick .touch-controls>button[data-key="up"],.v4-joystick .touch-controls>div:not(.mobile-actions):not(.mobile-stick){display:none!important}
-/* Pixel-art atmosphere without touching the canvas motor. */
-#world{image-rendering:pixelated;filter:saturate(1.08) contrast(1.06);}
+#world{image-rendering:pixelated;image-rendering:crisp-edges;filter:saturate(1.08) contrast(1.06)}
 .screen:before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(circle at 50% 45%,transparent 48%,rgba(18,13,9,.18) 100%)}
-.title-card{image-rendering:pixelated}
-#hud{backdrop-filter:none}
-.v4MenuCard,.v4p-panel{image-rendering:pixelated}
-.v4MenuCard button,.v4p-panel button{border-radius:0!important;box-shadow:3px 3px 0 #15100c}
-@media(max-width:700px){.v4-arrows .touch-controls>button[data-key="up"]{left:82px;bottom:128px}.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick){left:20px;bottom:18px}.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick) button{width:50px;height:50px}.v4MenuCard{max-width:96vw}.v4MenuRow{padding:10px 0}}
+.title-card,.v4MenuCard,.v4p-panel{image-rendering:pixelated}
+#hud{backdrop-filter:none;padding-top:max(7px,env(safe-area-inset-top))}
+.v4MenuCard button,.v4p-panel button{border-radius:0!important;box-shadow:3px 3px 0 #15100c;min-height:44px;touch-action:manipulation}
+button,a{touch-action:manipulation}
+.mobile-stick,.mobile-stick-ring,.mobile-actions,#interact{touch-action:none!important}
+.mobile-stick{bottom:calc(16px + env(safe-area-inset-bottom));left:max(14px,env(safe-area-inset-left))}
+.mobile-actions{right:max(18px,env(safe-area-inset-right));bottom:calc(110px + env(safe-area-inset-bottom))}
+.touch-controls #interact{bottom:calc(22px + env(safe-area-inset-bottom));right:max(18px,env(safe-area-inset-right))}
+.dialogue{padding-bottom:max(18px,calc(18px + env(safe-area-inset-bottom)))}
+@media(max-width:800px){
+ html,body{width:100%;height:100%;height:100dvh}
+ .screen,#game{width:100vw;height:100dvh;height:var(--v4-vh);min-height:0}
+ .touch-controls{z-index:500}
+ .v4MenuCard{width:min(94vw,560px);max-height:calc(var(--v4-vh) - 24px);overflow:auto}
+ .v4p-panel{max-width:94vw;max-height:calc(var(--v4-vh) - 24px);overflow:auto}
+ .quest-panel{top:calc(66px + env(safe-area-inset-top))}
+ .save{top:calc(66px + env(safe-area-inset-top))}
+ .dialogue{bottom:calc(10px + env(safe-area-inset-bottom));max-height:48dvh;overflow:auto}
+}
+@media(max-width:430px){
+ .hud-top .stat:nth-child(3){display:none}.hud-top .stat{font-size:8px;padding:5px}
+ .quest-panel{max-width:calc(100vw - 92px)}
+ .mobile-stick{width:136px;height:136px}.mobile-stick-knob{width:56px;height:56px;margin:-28px}
+ .touch-controls #interact{width:72px;height:72px}
+ .mobile-actions{bottom:calc(104px + env(safe-area-inset-bottom));gap:6px}
+ .mobile-actions button{min-width:72px;min-height:44px;font-size:9px;padding:7px 8px}
+ .mobile-tip{font-size:12px;padding:15px}
+}
+@media(orientation:landscape) and (max-height:520px){
+ .mobile-stick{width:116px;height:116px}.mobile-stick-knob{width:50px;height:50px;margin:-25px}
+ .touch-controls #interact{width:64px;height:64px;bottom:calc(12px + env(safe-area-inset-bottom))}
+ .mobile-actions{bottom:calc(82px + env(safe-area-inset-bottom));gap:4px}.mobile-actions button{min-height:36px}
+ .quest-panel{top:calc(60px + env(safe-area-inset-top));max-height:24vh;overflow:hidden}.save{top:calc(60px + env(safe-area-inset-top))}
+ .dialogue{bottom:calc(6px + env(safe-area-inset-bottom));padding:9px 12px;max-height:42vh}
+}
+@media(orientation:portrait) and (max-width:800px){
+ #game:after{content:'GIRÁ EL CELULAR';position:absolute;z-index:350;left:50%;top:50%;transform:translate(-50%,-50%);padding:14px 18px;background:#241b14;color:#f0dfb0;border:3px solid #c59b51;box-shadow:5px 5px 0 #120d09;font:800 13px monospace;letter-spacing:1px;pointer-events:none}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
