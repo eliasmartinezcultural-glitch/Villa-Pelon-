@@ -1,0 +1,15 @@
+/* V4 BUILD 414 — visual polish and control modes */
+.v4-arrows .mobile-stick{display:none!important}
+.v4-arrows .touch-controls>button[data-key="up"]{display:block;position:fixed;left:86px;bottom:132px;width:54px;height:54px;background:#30251d;color:#efd28c;border:2px solid #8f7042;box-shadow:3px 3px 0 #17110d;pointer-events:auto}
+.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick){display:flex!important;position:fixed;left:24px;bottom:22px;gap:5px;pointer-events:auto}
+.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick) button{display:block;width:54px;height:54px;background:#30251d;color:#efd28c;border:2px solid #8f7042;box-shadow:3px 3px 0 #17110d;pointer-events:auto}
+.v4-arrows .touch-controls #interact{right:18px}
+.v4-joystick .touch-controls>button[data-key="up"],.v4-joystick .touch-controls>div:not(.mobile-actions):not(.mobile-stick){display:none!important}
+/* Pixel-art atmosphere without touching the canvas motor. */
+#world{image-rendering:pixelated;filter:saturate(1.08) contrast(1.06);}
+.screen:before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(circle at 50% 45%,transparent 48%,rgba(18,13,9,.18) 100%)}
+.title-card{image-rendering:pixelated}
+#hud{backdrop-filter:none}
+.v4MenuCard,.v4p-panel{image-rendering:pixelated}
+.v4MenuCard button,.v4p-panel button{border-radius:0!important;box-shadow:3px 3px 0 #15100c}
+@media(max-width:700px){.v4-arrows .touch-controls>button[data-key="up"]{left:82px;bottom:128px}.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick){left:20px;bottom:18px}.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick) button{width:50px;height:50px}.v4MenuCard{max-width:96vw}.v4MenuRow{padding:10px 0}}
