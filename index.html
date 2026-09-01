@@ -13,22 +13,22 @@
 <div class="title-card">
 <div class="eyebrow">PUEBLO RURAL PATAGÓNICO</div>
 <h1>VILLA PELÓN</h1>
-<p>Un pueblo vivo para recorrer, descubrir y aprender.</p>
+<p>Una aventura de vida cotidiana, trabajo, memoria y territorio.</p>
 <button id="startBtn">ENTRAR AL PUEBLO</button>
-<small style="display:block;margin-top:18px;color:#bdae91;font:11px monospace">VERSIÓN 2 · MUNDO VIVO · MOVIMIENTO · CLIMA</small>
+<small style="display:block;margin-top:18px;color:#bdae91;font:11px monospace">VERSIÓN 2 · MUNDO VIVO · HISTORIA · MISIONES</small>
 </div>
 </section>
 <section id="game" class="hidden">
 <header class="hud"><strong>VILLA PELÓN · V2</strong><span>🕐 <b id="clock">08:00</b></span><span>📅 Día <b id="day">1</b></span><span>🌦️ <b id="weather">Despejado</b></span><span>💰 $<b id="money">10000</b></span><span>⚡ <b id="energy">100</b></span></header>
 <canvas id="world"></canvas>
-<div class="quest"><b>MUNDO VIVO · V2</b><span id="questText">Explorá el pueblo. El mundo continúa aunque te quedes quieto.</span></div>
-<div id="dialogue" class="dialogue hidden"><div id="speaker"></div><div id="dialogueText"></div><button id="dialogueNext">CONTINUAR</button></div>
+<div class="quest"><b id="questTitle">MISIÓN · V2</b><span id="questText">Conocé el pueblo y encontrá a alguien que pueda ayudarte.</span></div>
+<div id="dialogue" class="dialogue hidden"><div id="speaker"></div><div id="dialogueText"></div><a id="sourceLink" class="hidden" target="_blank" rel="noopener">FUENTE HISTÓRICA</a><button id="dialogueNext">CONTINUAR</button></div>
 <div class="touch"><button data-key="up">▲</button><div><button data-key="left">◀</button><button data-key="down">▼</button><button data-key="right">▶</button></div><button id="interact">E</button></div>
 <button id="save" class="save">GUARDAR</button>
 </section>
 </main>
-<!-- Los tres módulos se cargan diferidos y en orden. Esto evita que game.js/life.js se ejecuten antes de village_data.js. -->
 <script src="./village_data.js?v=2" defer></script>
+<script src="./history.js?v=2" defer></script>
 <script src="./life.js?v=2" defer></script>
 <script src="./game.js?v=2" defer></script>
 </body>
