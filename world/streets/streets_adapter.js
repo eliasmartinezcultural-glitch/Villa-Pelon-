@@ -1,5 +1,7 @@
-/* Villa Pelón V4 — PUENTE DE CALLES
-   Conecta la infraestructura de calles con el render existente sin modificar el motor principal.
+/* Villa Pelón V4 — PUENTE DE INFRAESTRUCTURA
+   No repinta la calzada ni modifica el motor. Solo añade elementos que
+   pertenecen por encima de la geometría vial: veredas, cordones, cruces,
+   señalización y semáforos.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
@@ -9,18 +11,23 @@ function install(){
  const base=e.render.bind(e);
  e.render=function(){
    base();
-   const ctx=arguments[0]||e.ctx||document.getElementById('world')?.getContext('2d');
+   const ctx=e.ctx||document.getElementById('world')?.getContext('2d');
    if(!ctx)return;
-   V.streetSystem?.render?.(ctx);
+   V.streetSystem?.renderInfrastructure?.(ctx);
    V.streetDetails?.render?.(ctx);
    const p=V.trafficLights?.state?.();
-   if(p){V.trafficLights.render(ctx,1120,650,false);V.trafficLights.render(ctx,1460,900,false);V.trafficLights.render(ctx,1210,620,true);V.trafficLights.render(ctx,1380,880,true)}
+   if(p){
+     V.trafficLights.render(ctx,1120,650,false);
+     V.trafficLights.render(ctx,1460,900,false);
+     V.trafficLights.render(ctx,1210,620,true);
+     V.trafficLights.render(ctx,1380,880,true);
+   }
  };
  e.__v4StreetsInstalled=true;
+ V.v4?.register?.('streetsAdapter',{version:4,install,layer:'infrastructure-overlay'});
  return true;
 }
-const wait=()=>install()||setTimeout(wait,80);wait();
-const nativeSetInterval=window.setInterval;
-nativeSetInterval(()=>V.trafficLights?.update?.(.25),250);
-V.v4?.register?.('streetsAdapter',{version:4,install});
+const wait=()=>install()||setTimeout(wait,100);wait();
+const update=()=>V.trafficLights?.update?.(.25);
+setInterval(update,250);
 })();
