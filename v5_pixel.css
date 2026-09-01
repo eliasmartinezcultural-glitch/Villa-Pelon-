@@ -1,0 +1,27 @@
+/* VILLA PELÓN V5 — PIXEL ART INTEGRAL */
+/* La prioridad es que ningún control táctil ocupe simultáneamente el lugar del otro. */
+.platform-touch.v5-joystick .touch-controls>button[data-key],
+.platform-touch.v4-joystick .touch-controls>button[data-key],
+.platform-touch.v5-joystick .touch-controls>div:not(#interact):not(.mobile-actions),
+.platform-touch.v4-joystick .touch-controls>div:not(#interact):not(.mobile-actions){display:none!important}
+.platform-touch.v5-arrows .mobile-stick,
+.platform-touch.v4-arrows .mobile-stick{display:none!important}
+.platform-touch.v5-arrows .touch-controls>button[data-key],
+.platform-touch.v4-arrows .touch-controls>button[data-key]{display:flex!important;align-items:center;justify-content:center}
+/* El modo predeterminado en celular es joystick. Las flechas quedan completamente fuera del layout. */
+@media (pointer:coarse),(max-width:800px){
+ .platform-touch:not(.v5-arrows) .touch-controls>button[data-key],
+ .platform-touch:not(.v4-arrows) .touch-controls>button[data-key]{display:none!important}
+ .platform-touch:not(.v5-arrows) .touch-controls>div:not(#interact):not(.mobile-actions){display:none!important}
+ .platform-touch:not(.v5-arrows) .mobile-stick{display:block!important}
+ .v5-credit{font-size:10px;letter-spacing:1.5px;margin-top:18px;color:#bfa978}
+}
+/* Pixel art: bordes duros, sin blur, sin degradados en la interfaz. */
+*,button{border-radius:0!important}
+#world{image-rendering:pixelated;image-rendering:crisp-edges;filter:none!important}
+.screen:after{background:none!important}
+.screen:before{background:none!important}
+.title-card{box-shadow:8px 8px 0 #17110d!important}
+.title-card h1{text-shadow:4px 4px 0 #59432d!important}
+.v5-pixel-grid{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:.12;background-image:linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:4px 4px}
+@media(prefers-reduced-motion:reduce){.v5-pixel-grid{display:none}}
