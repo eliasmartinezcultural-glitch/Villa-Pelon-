@@ -1,150 +1,74 @@
-/* Villa Pelón — motor principal. Canvas 2D, responsive, PC + móvil. */
-(() => {
-  'use strict';
-  const canvas=document.getElementById('world'),ctx=canvas.getContext('2d',{alpha:false});
-  const V=window.VillaPelon||(window.VillaPelon={});
-  const world=V.world||{w:3200,h:2000}; V.world=world;
-  const data=V.villageData||{};
-  const state={started:false,x:960,y:650,speed:205,money:10000,energy:100,minutes:480,day:1,quest:0,dialogue:false,saved:false,inventory:[],walk:0};
-  const input={up:false,down:false,left:false,right:false};
-  let vw=innerWidth,vh=innerHeight,camX=0,camY=0,last=performance.now(),near=null;
-  const ZOOM=.78;
-
-  const npcs=[
-    {x:650,y:570,name:'Marta',color:'#b95e4e',role:'comercio',home:{x:760,y:450},work:{x:1750,y:610},lines:['Buen día. Soy Marta. En un pueblo chico siempre hay alguien para ayudar.','El almacén es un buen lugar para enterarse de lo que pasa.']},
-    {x:1720,y:590,name:'Raúl',color:'#557ca8',role:'trabajo',home:{x:1450,y:790},work:{x:2140,y:1000},lines:['Trabajo en una chacra. Las temporadas marcan el ritmo de muchas familias.','Si querés, podés buscar una changa rural en el galpón.']},
-    {x:530,y:1010,name:'Lucía',color:'#a55e8f',role:'plaza',home:{x:760,y:450},work:{x:1160,y:390},lines:['La escuela guarda recuerdos que pueden ayudarnos a reconstruir la historia local.','Una fotografía también puede ser una pista.']},
-    {x:1810,y:1010,name:'Pedro',color:'#bd8249',role:'trabajo',home:{x:1450,y:790},work:{x:2050,y:1130},lines:['En la chacra siempre aparece algo para hacer.','El trabajo rural también es parte de la vida cotidiana del pueblo.']},
-    {x:1190,y:390,name:'Nico',color:'#5d8d59',role:'radio',home:{x:1450,y:790},work:{x:1200,y:1190},lines:['La plaza es el corazón del pueblo. Desde acá podés empezar a recorrerlo.','A veces una charla en la radio termina conectando a todo el pueblo.']}
-  ];
-  V.npcs=npcs;
-  const buildings=[
-    {x:350,y:330,w:360,h:210,label:'ESCUELA',type:'school'},
-    {x:1570,y:330,w:360,h:210,label:'ALMACÉN',type:'shop'},
-    {x:1010,y:1120,w:380,h:210,label:'RADIO OASIS',type:'radio'},
-    {x:760,y:370,w:210,h:155,label:'VIVIENDA',type:'home'},
-    {x:1450,y:720,w:250,h:170,label:'VIVIENDA',type:'home'},
-    {x:2150,y:370,w:300,h:180,label:'GALPÓN',type:'rural'},
-    {x:2600,y:850,w:300,h:190,label:'BODEGA',type:'rural'}
-  ];
-  const clue={x:2040,y:430};
-  const jobSpot={x:2200,y:700};
-
-  function resize(){vw=innerWidth;vh=innerHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.floor(vw*d));canvas.height=Math.max(1,Math.floor(vh*d));canvas.style.width=vw+'px';canvas.style.height=vh+'px';ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false}
-  addEventListener('resize',resize,{passive:true});resize();
-
-  function bind(){
-    addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['arrowup','w'].includes(k))input.up=true;if(['arrowdown','s'].includes(k))input.down=true;if(['arrowleft','a'].includes(k))input.left=true;if(['arrowright','d'].includes(k))input.right=true;if(k==='e'||k===' '){e.preventDefault();interact()}});
-    addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(['arrowup','w'].includes(k))input.up=false;if(['arrowdown','s'].includes(k))input.down=false;if(['arrowleft','a'].includes(k))input.left=false;if(['arrowright','d'].includes(k))input.right=false});
-    document.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key;const on=e=>{e.preventDefault();input[k]=true};const off=()=>input[k]=false;b.addEventListener('pointerdown',on);['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,off))});
-    document.getElementById('interact').addEventListener('pointerdown',e=>{e.preventDefault();interact()});
-  } bind();
-  document.getElementById('startBtn').onclick=()=>{state.started=true;document.getElementById('start').classList.add('hidden');document.getElementById('game').classList.remove('hidden');load();last=performance.now();ui()};
-  document.getElementById('save').onclick=save; document.getElementById('dialogueNext').onclick=closeDialogue;
-
-  function blocked(x,y){if(x<55||y<135||x>world.w-55||y>world.h-55)return true;return buildings.some(b=>x>b.x-18&&x<b.x+b.w+18&&y>b.y-18&&y<b.y+b.h+18)}
-  function advanceTime(dt,moving){state.minutes+=dt*(moving?3.5:0.05);if(state.minutes>=1440){state.minutes-=1440;state.day++;state.energy=100;if(V.life)V.life.nextWeather()}if(state.energy<=0)state.speed=105;else state.speed=205}
-  function update(dt){
-    if(!state.started||state.dialogue)return;
-    let dx=(input.right?1:0)-(input.left?1:0),dy=(input.down?1:0)-(input.up?1:0),moving=!!(dx||dy);
-    if(moving){const l=Math.hypot(dx,dy);dx/=l;dy/=l;const nx=state.x+dx*state.speed*dt,ny=state.y+dy*state.speed*dt;if(!blocked(nx,state.y))state.x=nx;if(!blocked(state.x,ny))state.y=ny;state.energy=Math.max(0,state.energy-dt*.62);state.walk+=dt*11;}
-    advanceTime(dt,moving);
-    near=getNearby();
-    const targetX=state.x-vw/(2*ZOOM),targetY=state.y-vh/(2*ZOOM);camX=Math.max(0,Math.min(world.w-vw/ZOOM,targetX));camY=Math.max(55,Math.min(world.h-vh/ZOOM,targetY));
-    if(V.life)V.life.update(dt,state.minutes); ui();
-  }
-
-  function distance(o){return Math.hypot(state.x-o.x,state.y-o.y)}
-  function getNearby(){
-    let best=null,bd=Infinity;
-    npcs.forEach(n=>{const d=distance(n);if(d<88&&d<bd){best=n;bd=d}});
-    [clue,jobSpot].forEach(o=>{const d=distance(o);if(d<92&&d<bd){best=o;bd=d}});
-    buildings.forEach(b=>{const d=Math.hypot(state.x-(b.x+b.w/2),state.y-(b.y+b.h+35));if(d<105&&d<bd) {best=b;bd=d}});
-    return best;
-  }
-  function interact(){
-    if(!state.started)return;if(state.dialogue){closeDialogue();return}
-    const n=getNearby();if(!n)return;
-    if(n===clue){if(state.quest<2){state.quest=2;state.money+=2500;addItem('Pista histórica');openDialogue('ARCHIVO DE MEMORIA',['Encontraste una pista histórica.','En la versión educativa, los datos reales se incorporarán únicamente con fuente verificable.','Recompensa: $2.500.']);}else openDialogue('ARCHIVO DE MEMORIA',['Esta pista ya fue descubierta.']);return}
-    if(n===jobSpot){if(state.energy<20){openDialogue('CHANGA RURAL',['Estás demasiado cansado. Descansá y volvé después.']);return}state.energy=Math.max(0,state.energy-18);state.money+=850;addItem('Cajón de cosecha');openDialogue('CHANGA RURAL',['Ayudaste con una tarea de carga y cosecha.','Cobraste $850 y aprendiste algo del trabajo de la chacra.']);return}
-    if(n.type==='shop'){buyShop();return}
-    if(n.type==='radio'){openDialogue('RADIO OASIS',['La radio acompaña la vida cotidiana del pueblo.','Podés volver durante el día para encontrar nuevas conversaciones.']);return}
-    if(n.type==='school'){openDialogue('ESCUELA',['Este edificio será una puerta para historias, fotos y memoria local.']);return}
-    if(n.type==='rural'){openDialogue('GALPÓN RURAL',['Acá se guardan herramientas y aparecen trabajos de temporada.']);return}
-    if(n.type==='home'){state.energy=Math.min(100,state.energy+25);state.minutes+=30;openDialogue('CASA',['Descansaste un rato. Recuperaste energía.']);return}
-    if(state.quest===0)state.quest=1;openDialogue(n.name,n.lines);
-  }
-  function addItem(item){if(!state.inventory.includes(item))state.inventory.push(item)}
-  function buyShop(){
-    const products=(data.commerces&&data.commerces[0]&&data.commerces[0].products)||[['pan',120],['yerba',900],['azucar',700]];
-    const p=products[state.inventory.filter(x=>x.startsWith('Compra:')).length%products.length];
-    if(state.money<p[1]){openDialogue('ALMACÉN EL ENCUENTRO',['No te alcanza para comprar '+p[0]+'.']);return}
-    state.money-=p[1];if(p[0]==='pan')state.energy=Math.min(100,state.energy+12);addItem('Compra: '+p[0]);openDialogue('ALMACÉN EL ENCUENTRO',['Compraste '+p[0]+' por $'+p[1]+'.','La compra quedó registrada en tu inventario.']);
-  }
-  function openDialogue(s,lines){state.dialogue=true;const b=document.getElementById('dialogue');b.classList.remove('hidden');b.dataset.lines=JSON.stringify(lines);b.dataset.index='0';document.getElementById('speaker').textContent=s;document.getElementById('dialogueText').textContent=lines[0]}
-  function closeDialogue(){const b=document.getElementById('dialogue');if(!state.dialogue)return;let a=[];try{a=JSON.parse(b.dataset.lines||'[]')}catch(_){}const i=Number(b.dataset.index||0)+1;if(i<a.length){b.dataset.index=i;document.getElementById('dialogueText').textContent=a[i];return}state.dialogue=false;b.classList.add('hidden')}
-  function save(){localStorage.setItem('villa_pelon_save',JSON.stringify({...state,dialogue:false,saved:false}));state.saved=true;ui();setTimeout(()=>{state.saved=false;ui()},1600)}
-  function load(){try{const s=JSON.parse(localStorage.getItem('villa_pelon_save'));if(s)Object.assign(state,s)}catch(_){}state.dialogue=false}
-  function ui(){const h=Math.floor(state.minutes/60)%24,m=Math.floor(state.minutes%60);document.getElementById('clock').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');document.getElementById('day').textContent=state.day;document.getElementById('money').textContent=Math.round(state.money);document.getElementById('energy').textContent=Math.round(state.energy);const life=V.life;document.getElementById('weather').textContent=life?(life.weather[0].toUpperCase()+life.weather.slice(1)):'Despejado';document.getElementById('questText').textContent=state.saved?'Partida guardada ✓':state.quest===0?'Conocé a un vecino.':state.quest===1?'Buscá la primera pista histórica.':'Primer descubrimiento completado.'}
-
-  function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
-  function shadow(x,y,w=24){ctx.fillStyle='rgba(35,28,20,.20)';ctx.beginPath();ctx.ellipse(x,y,w,7,0,0,Math.PI*2);ctx.fill()}
-  function draw(){
-    ctx.clearRect(0,0,vw,vh);ctx.save();ctx.translate(vw/2,vh/2);ctx.scale(ZOOM,ZOOM);ctx.translate(-state.x,-state.y);
-    rect(0,0,world.w,world.h,'#a69a73');
-    drawTerrain();drawRoads();drawPlaza();drawCanals();drawFields();drawFences();drawStreetFurniture();
-    buildings.forEach(drawBuilding);
-    if(V.life&&V.life.drawWorld)V.life.drawWorld(ctx);
-    npcs.forEach(drawNPC);drawClue();drawJob();drawPlayer();drawLights();
-    ctx.restore();if(V.life&&V.life.drawOverlay)V.life.drawOverlay(ctx,vw,vh);
-  }
-  function drawTerrain(){
-    rect(0,0,world.w,world.h,'#a99b72');
-    for(let i=0;i<260;i++){const x=(i*173+41)%world.w,y=(i*113+87)%world.h;const s=8+(i%6)*5;ctx.fillStyle=i%3?'rgba(93,80,54,.09)':'rgba(220,202,155,.12)';ctx.fillRect(x,y,s,s/2)}
-    // horizonte serrano
-    ctx.fillStyle='#7c8067';ctx.beginPath();ctx.moveTo(0,180);ctx.lineTo(350,80);ctx.lineTo(650,165);ctx.lineTo(980,55);ctx.lineTo(1250,150);ctx.lineTo(1580,70);ctx.lineTo(1930,175);ctx.lineTo(2300,90);ctx.lineTo(2650,155);ctx.lineTo(3200,60);ctx.lineTo(3200,0);ctx.lineTo(0,0);ctx.closePath();ctx.fill();
-    ctx.fillStyle='rgba(238,220,171,.16)';ctx.fillRect(0,180,world.w,30);
-  }
-  function drawRoads(){
-    rect(0,600,world.w,190,'#c8b27f');rect(1070,0,190,world.h,'#c8b27f');
-    rect(0,666,world.w,56,'#ddd0a4');rect(1137,0,56,world.h,'#ddd0a4');
-    ctx.strokeStyle='#8f7959';ctx.lineWidth=3;ctx.setLineDash([22,18]);ctx.beginPath();ctx.moveTo(0,694);ctx.lineTo(world.w,694);ctx.moveTo(1165,0);ctx.lineTo(1165,world.h);ctx.stroke();ctx.setLineDash([]);
-    // calles secundarias
-    rect(300,880,760,42,'#c3aa78');rect(1380,880,850,42,'#c3aa78');rect(2320,545,45,510,'#c3aa78');
-  }
-  function drawPlaza(){rect(900,220,520,350,'#71875c');rect(935,255,450,280,'#a7b688');ctx.strokeStyle='#60734f';ctx.lineWidth=5;ctx.strokeRect(935,255,450,280);rect(1148,265,34,260,'#d8c491');rect(945,380,430,32,'#d8c491');
-    [[1010,320],[1330,320],[1010,480],[1330,480]].forEach(p=>tree(p[0],p[1],1.05));rect(1110,340,100,20,'#77674e');rect(1118,350,84,8,'#5f5444');
-  }
-  function drawCanals(){ctx.fillStyle='#6e8d91';ctx.fillRect(70,820,2850,22);ctx.fillStyle='#9aa8a0';ctx.fillRect(70,820,2850,4);ctx.fillStyle='#6f7c5a';for(let x=90;x<2900;x+=75){ctx.fillRect(x,814,5,34)}}
-  function drawFields(){
-    // viñedo
-    rect(2380,1100,650,520,'#7e9159');for(let x=2405;x<3010;x+=42){ctx.strokeStyle='#b2a45e';ctx.lineWidth=3;for(let y=1130;y<1590;y+=55){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+8,y+34);ctx.stroke()}}
-    // frutales
-    rect(1820,1420,430,390,'#8a985e');for(let x=1850;x<2220;x+=55)for(let y=1450;y<1780;y+=65)tree(x,y,.62);
-  }
-  function drawFences(){ctx.strokeStyle='#6e563d';ctx.lineWidth=5;for(let x=1780;x<2330;x+=38){ctx.beginPath();ctx.moveTo(x,720);ctx.lineTo(x,1360);ctx.stroke()}ctx.beginPath();ctx.moveTo(1780,720);ctx.lineTo(2330,720);ctx.moveTo(1780,1360);ctx.lineTo(2330,1360);ctx.stroke();
-    ctx.lineWidth=3;for(let x=2600;x<3030;x+=40){ctx.beginPath();ctx.moveTo(x,1080);ctx.lineTo(x,1630);ctx.stroke()}
-  }
-  function drawStreetFurniture(){
-    for(let x=150;x<3100;x+=260){pole(x,570);pole(x,820)}
-    [[870,650],[1430,650],[2050,650],[2700,650],[1550,950],[2350,950]].forEach(p=>{rect(p[0]-3,p[1]-3,6,6,'#493c31');ctx.strokeStyle='#5c4c3a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0],p[1]-38);ctx.stroke()});
-  }
-  function pole(x,y){ctx.fillStyle='#5d4c3c';ctx.fillRect(x-3,y-48,6,48);ctx.fillRect(x-18,y-49,36,4);ctx.fillStyle='#e1cf9a';ctx.fillRect(x-5,y-55,10,7)}
-  function tree(x,y,s){const sway=Math.sin(performance.now()/900+x*.01)*1.5*s;shadow(x,y+31*s,20*s);ctx.fillStyle='#6b5039';ctx.fillRect(x-5*s,y+8*s,10*s,27*s);ctx.fillStyle='#4f7049';ctx.beginPath();ctx.arc(x+sway,y,24*s,0,Math.PI*2);ctx.fill();ctx.fillStyle='#678858';ctx.beginPath();ctx.arc(x-13*s+sway,y-9*s,14*s,0,Math.PI*2);ctx.arc(x+13*s+sway,y-6*s,15*s,0,Math.PI*2);ctx.fill();}
-  function drawBuilding(b){
-    shadow(b.x+b.w/2,b.y+b.h+15,b.w*.42);rect(b.x-10,b.y-8,b.w+20,b.h+18,'#674a37');let wall=b.type==='school'?'#d9c59d':b.type==='shop'?'#d0ae76':b.type==='radio'?'#b9856e':b.type==='rural'?'#a77e58':'#c5a783';rect(b.x,b.y,b.w,b.h,wall);
-    ctx.fillStyle=b.type==='rural'?'#5e4c3b':'#78503b';ctx.beginPath();ctx.moveTo(b.x-18,b.y);ctx.lineTo(b.x+b.w/2,b.y-58);ctx.lineTo(b.x+b.w+18,b.y);ctx.closePath();ctx.fill();
-    rect(b.x+b.w*.43,b.y+b.h*.55,b.w*.14,b.h*.45,'#624331');rect(b.x+28,b.y+34,48,34,'#7899a4');rect(b.x+b.w-76,b.y+34,48,34,'#7899a4');
-    ctx.fillStyle='#3d3028';ctx.font='bold 20px monospace';ctx.textAlign='center';ctx.fillText(b.label,b.x+b.w/2,b.y-70);
-    if(b.type==='shop'){rect(b.x+80,b.y+92,b.w-160,30,'#b94f3e');ctx.fillStyle='#fff4dc';ctx.font='bold 14px monospace';ctx.fillText('PAN · YERBA · COMESTIBLES',b.x+b.w/2,b.y+113)}
-    if(b.type==='radio'){ctx.strokeStyle='#45392e';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(b.x+b.w/2,b.y-58);ctx.lineTo(b.x+b.w/2,b.y-105);ctx.stroke();ctx.beginPath();ctx.arc(b.x+b.w/2,b.y-105,16,0,Math.PI*2);ctx.stroke()}
-  }
-  function drawNPC(n){shadow(n.x,n.y+26,20);const bob=n.moving?Math.sin(performance.now()/110+n.x)*2:0;ctx.fillStyle=n.color;ctx.fillRect(n.x-12,n.y-2+bob,24,27);ctx.fillStyle='#dfb18c';ctx.beginPath();ctx.arc(n.x,n.y-13+bob,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#3b302a';ctx.fillRect(n.x-12,n.y-26+bob,24,7);ctx.fillStyle='#263025';ctx.font='13px monospace';ctx.textAlign='center';ctx.fillText(n.name,n.x,n.y-36+bob)}
-  function drawPlayer(){shadow(state.x,state.y+28,22);const bob=(input.up||input.down||input.left||input.right)?Math.sin(state.walk)*3:0;ctx.fillStyle='#315a9b';ctx.fillRect(state.x-13,state.y-2+bob,26,29);ctx.fillStyle='#d9a47e';ctx.beginPath();ctx.arc(state.x,state.y-14+bob,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#3a302b';ctx.fillRect(state.x-12,state.y-27+bob,24,7);if(near&&!state.dialogue){ctx.fillStyle='rgba(23,32,25,.93)';ctx.fillRect(state.x-74,state.y-66+bob,148,29);ctx.fillStyle='#fff';ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillText('E · INTERACTUAR',state.x,state.y-46+bob)}}
-  function drawClue(){ctx.fillStyle='#d9b44e';ctx.beginPath();ctx.arc(clue.x,clue.y,18,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 20px monospace';ctx.textAlign='center';ctx.fillText('?',clue.x,clue.y+7);ctx.fillStyle='#403629';ctx.font='12px monospace';ctx.fillText('PISTA',clue.x,clue.y+42)}
-  function drawJob(){ctx.fillStyle='#7a5b39';ctx.fillRect(jobSpot.x-22,jobSpot.y-14,44,28);ctx.fillStyle='#d6b06d';ctx.fillRect(jobSpot.x-15,jobSpot.y-10,30,18);ctx.fillStyle='#443629';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText('CHANGA',jobSpot.x,jobSpot.y-25)}
-  function drawLights(){if(!V.life||!V.life.isNight)return;[[1570,330],[350,330],[1010,1120],[2150,370],[2600,850]].forEach(p=>{const x=p[0]+150,y=p[1]+20;ctx.fillStyle='rgba(255,214,128,.18)';ctx.beginPath();ctx.arc(x,y,70,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f6d57d';ctx.fillRect(x-5,y-5,10,10)})}
-
-  function loop(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt);draw();requestAnimationFrame(loop)}
-  requestAnimationFrame(loop);
+/* Villa Pelón V2 — motor integrado: juego, misiones, NPC, economía, memoria e interacción. */
+(()=>{
+'use strict';
+const canvas=document.getElementById('world'),ctx=canvas.getContext('2d',{alpha:false});
+const V=window.VillaPelon||(window.VillaPelon={}),data=V.villageData||{},world={w:3600,h:2300};V.world=world;
+const state={started:false,x:1080,y:690,speed:210,money:10000,energy:100,minutes:480,day:1,mission:0,inventory:[],dialogue:false,saved:false,walk:0,history:[],relationships:{}};
+const input={up:false,down:false,left:false,right:false};
+let vw=innerWidth,vh=innerHeight,camX=0,camY=0,last=performance.now(),near=null;
+const ZOOM=.78;
+const missions=[
+ {title:'PRIMEROS PASOS',text:'Conocé a Marta en el almacén.',goal:'marta'},
+ {title:'LA VIDA DEL PUEBLO',text:'Visitá la plaza y hablá con Lucía.',goal:'lucia'},
+ {title:'EL AGUA CAMBIÓ TODO',text:'Encontrá la memoria sobre el riego.',goal:'riego'},
+ {title:'UNA CHANGA',text:'Ayudá en el galpón rural.',goal:'job'},
+ {title:'MEMORIA DEL CHANAR',text:'Descubrí otra historia documentada.',goal:'history2'},
+ {title:'LA RADIO',text:'Visitá Radio Oasis y escuchá las noticias del pueblo.',goal:'radio'},
+ {title:'DE LA TIERRA AL MERCADO',text:'Comprá pan y llevá un cajón de cosecha al almacén.',goal:'delivery'},
+ {title:'VECINO DEL PUEBLO',text:'Completá el recorrido y seguí explorando Villa Pelón.',goal:'finish'}
+];
+const npcs=[
+ {id:'marta',x:700,y:620,name:'Marta',color:'#b95e4e',home:{x:780,y:470},work:{x:1760,y:610},role:'comercio',lines:['Buen día. Soy Marta. En un pueblo chico siempre hay alguien para ayudar.','El almacén es donde muchas veces empiezan las conversaciones.']},
+ {id:'raul',x:1750,y:650,name:'Raúl',color:'#557ca8',home:{x:1480,y:820},work:{x:2190,y:1030},role:'rural',lines:['Trabajo en una chacra. Acá el calendario de la tierra manda.','Si buscás una changa, preguntá en el galpón.']},
+ {id:'lucia',x:1040,y:420,name:'Lucía',color:'#a55e8f',home:{x:780,y:470},work:{x:1120,y:330},role:'escuela',lines:['La escuela guarda recuerdos de muchas familias.','Hay historias que se entienden mejor caminando el pueblo.']},
+ {id:'pedro',x:1880,y:1030,name:'Pedro',color:'#bd8249',home:{x:1480,y:820},work:{x:2100,y:1130},role:'rural',lines:['En la chacra siempre aparece algo para hacer.','Cargar, regar, podar: cada tarea tiene su momento.']},
+ {id:'nico',x:1220,y:1190,name:'Nico',color:'#5d8d59',home:{x:1480,y:820},work:{x:1200,y:1190},role:'radio',lines:['La radio conecta a los vecinos.','A veces una noticia cambia el día de todo el pueblo.']}
+];
+V.npcs=npcs;
+const buildings=[
+{x:330,y:330,w:390,h:220,label:'ESCUELA',type:'school'},
+{x:1580,y:330,w:390,h:220,label:'ALMACÉN EL ENCUENTRO',type:'shop'},
+{x:1010,y:1120,w:390,h:220,label:'RADIO OASIS',type:'radio'},
+{x:760,y:400,w:210,h:160,label:'VIVIENDA',type:'home'},
+{x:1450,y:720,w:260,h:175,label:'VIVIENDA',type:'home'},
+{x:2140,y:360,w:330,h:190,label:'GALPÓN RURAL',type:'rural'},
+{x:2620,y:850,w:320,h:195,label:'BODEGA',type:'rural'}];
+const historySpots=[{x:2020,y:430,id:'origen'},{x:2360,y:1230,id:'riego'},{x:2760,y:1120,id:'vinos'}];
+const job={x:2240,y:700};
+function resize(){vw=innerWidth;vh=innerHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,vw*d);canvas.height=Math.max(1,vh*d);canvas.style.width=vw+'px';canvas.style.height=vh+'px';ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false}addEventListener('resize',resize);resize();
+function bind(){addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['arrowup','w'].includes(k))input.up=true;if(['arrowdown','s'].includes(k))input.down=true;if(['arrowleft','a'].includes(k))input.left=true;if(['arrowright','d'].includes(k))input.right=true;if(k==='e'||k===' '){e.preventDefault();interact()}});addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(['arrowup','w'].includes(k))input.up=false;if(['arrowdown','s'].includes(k))input.down=false;if(['arrowleft','a'].includes(k))input.left=false;if(['arrowright','d'].includes(k))input.right=false});document.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key,on=e=>{e.preventDefault();input[k]=true},off=()=>input[k]=false;b.addEventListener('pointerdown',on);['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,off))});document.getElementById('interact').onpointerdown=e=>{e.preventDefault();interact()}}bind();
+document.getElementById('startBtn').onclick=()=>{state.started=true;document.getElementById('start').classList.add('hidden');document.getElementById('game').classList.remove('hidden');load();last=performance.now();ui()};document.getElementById('save').onclick=save;document.getElementById('dialogueNext').onclick=nextDialogue;
+function blocked(x,y){if(x<60||y<150||x>world.w-60||y>world.h-60)return true;return buildings.some(b=>x>b.x-16&&x<b.x+b.w+16&&y>b.y-16&&y<b.y+b.h+16)}
+function advanceTime(dt,moving){state.minutes+=dt*(moving?3.2:.08);if(state.minutes>=1440){state.minutes-=1440;state.day++;state.energy=100;if(V.life)V.life.nextWeather()}}
+function routine(n,dt){const h=state.minutes/60;let target=n.home;if(n.role==='comercio')target=h>=8&&h<19?n.work:n.home;else if(n.role==='escuela')target=h>=8&&h<14?n.work:n.home;else if(n.role==='radio')target=h>=10&&h<18?n.work:n.home;else target=h>=7&&h<18?n.work:n.home;const d=Math.hypot(target.x-n.x,target.y-n.y);if(d>8){n.x+=(target.x-n.x)/d*18*dt;n.y+=(target.y-n.y)/d*18*dt;n.moving=true}else n.moving=false;n.routineTarget=target}
+function update(dt){if(!state.started||state.dialogue)return;let dx=(input.right?1:0)-(input.left?1:0),dy=(input.down?1:0)-(input.up?1:0),moving=!!(dx||dy);if(moving){const l=Math.hypot(dx,dy);dx/=l;dy/=l;const nx=state.x+dx*state.speed*dt,ny=state.y+dy*state.speed*dt;if(!blocked(nx,state.y))state.x=nx;if(!blocked(state.x,ny))state.y=ny;state.energy=Math.max(0,state.energy-dt*.55);state.walk+=dt*11}else state.energy=Math.min(100,state.energy+dt*.015);advanceTime(dt,moving);npcs.forEach(n=>routine(n,dt));if(V.life)V.life.update(dt,state.minutes);near=getNearby();const tx=state.x-vw/(2*ZOOM),ty=state.y-vh/(2*ZOOM);camX=Math.max(0,Math.min(world.w-vw/ZOOM,tx));camY=Math.max(50,Math.min(world.h-vh/ZOOM,ty));ui()}
+function dist(o){return Math.hypot(state.x-o.x,state.y-o.y)}
+function getNearby(){let best=null,bd=Infinity;const all=[...npcs,...buildings,...historySpots,job];all.forEach(o=>{let x=o.x,y=o.y;if(o.w){x=o.x+o.w/2;y=o.y+o.h+25}const d=Math.hypot(state.x-x,state.y-y);if(d<(o.w?110:100)&&d<bd){best=o;bd=d}});return best}
+function complete(id){if(missions[state.mission]?.goal===id){state.mission=Math.min(missions.length-1,state.mission+1);return true}return false}
+function openDialogue(s,lines,source){state.dialogue=true;const b=document.getElementById('dialogue');b.classList.remove('hidden');b.dataset.lines=JSON.stringify(lines);b.dataset.index='0';document.getElementById('speaker').textContent=s;document.getElementById('dialogueText').textContent=lines[0];const a=document.getElementById('sourceLink');if(source){a.href=source;a.classList.remove('hidden')}else a.classList.add('hidden')}
+function nextDialogue(){const b=document.getElementById('dialogue');if(!state.dialogue)return;let a=[];try{a=JSON.parse(b.dataset.lines||'[]')}catch(_){}const i=Number(b.dataset.index||0)+1;if(i<a.length){b.dataset.index=i;document.getElementById('dialogueText').textContent=a[i];return}state.dialogue=false;b.classList.add('hidden')}
+function interact(){if(!state.started)return;if(state.dialogue){nextDialogue();return}const n=getNearby();if(!n)return;
+ if(n.id){if(n.id==='marta'){complete('marta');openDialogue(n.name,n.lines);return}if(n.id==='lucia'){complete('lucia');openDialogue(n.name,n.lines);return}if(n.id==='nico'){complete('radio');openDialogue(n.name,n.lines);return}openDialogue(n.name,n.lines);return}
+ if(n.id&&V.history){};
+ if(n.id&&historySpots.includes(n))return historyInteract(n);
+ if(n===job){if(state.energy<20){openDialogue('CHANGA RURAL',['Estás cansado. Descansá en una vivienda y volvé.']);return}state.energy-=20;state.money+=850;addItem('Cajón de cosecha');complete('job');openDialogue('CHANGA RURAL',['Ayudaste con carga y cosecha.','Cobraste $850.']);return}
+ if(n.type==='shop'){shop();return}if(n.type==='home'){state.energy=Math.min(100,state.energy+35);state.minutes+=30;openDialogue('CASA',['Descansaste. Recuperaste energía y dejaste que el pueblo siguiera su ritmo.']);return}if(n.type==='school'){openDialogue('ESCUELA',['Acá comienza una parte de la memoria local. Buscá las pistas amarillas para conocer hechos documentados.']);return}if(n.type==='radio'){complete('radio');openDialogue('RADIO OASIS',['La radio acompaña la vida cotidiana del pueblo.']);return}if(n.type==='rural'){openDialogue('GALPÓN RURAL',['Herramientas, cajones y trabajos de temporada.']);return}}
+function historyInteract(n){const h=(V.history||[]).find(x=>x.id===n.id);if(!h)return;state.history.push(h.id);if(h.id==='riego')complete('riego');else if(state.mission===4)complete('history2');openDialogue('MEMORIA · '+h.title,[h.text,'Este dato está marcado como DOCUMENTADO. La ficción del juego se mantiene separada de la fuente.'],h.url)}
+function addItem(i){if(!state.inventory.includes(i))state.inventory.push(i)}
+function shop(){const hasCrate=state.inventory.includes('Cajón de cosecha');if(state.mission===6&&!state.inventory.includes('Compra: pan')){if(state.money<120){openDialogue('ALMACÉN',['No te alcanza para el pan.']);return}state.money-=120;addItem('Compra: pan');openDialogue('ALMACÉN EL ENCUENTRO',['Compraste pan por $120.','Ahora llevá el cajón de cosecha al almacén para completar la misión.']);return}if(state.mission===6&&hasCrate&&state.inventory.includes('Compra: pan')){state.money+=450;state.inventory=state.inventory.filter(x=>x!=='Cajón de cosecha');complete('delivery');openDialogue('ALMACÉN EL ENCUENTRO',['Entregaste el cajón de cosecha.','Cobraste $450 por la entrega.']);return}openDialogue('ALMACÉN EL ENCUENTRO',['Pan, yerba y comestibles.','En un pueblo chico, comprar también es encontrarse con otros.'])}
+function save(){localStorage.setItem('villa_pelon_v2_save',JSON.stringify({...state,dialogue:false,saved:false}));state.saved=true;ui();setTimeout(()=>{state.saved=false;ui()},1500)}function load(){try{const s=JSON.parse(localStorage.getItem('villa_pelon_v2_save'));if(s)Object.assign(state,s)}catch(_){}state.dialogue=false}
+function ui(){const h=Math.floor(state.minutes/60)%24,m=Math.floor(state.minutes%60);document.getElementById('clock').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');document.getElementById('day').textContent=state.day;document.getElementById('money').textContent=Math.round(state.money);document.getElementById('energy').textContent=Math.round(state.energy);document.getElementById('weather').textContent=V.life?V.life.weather.replace(/^./,x=>x.toUpperCase()):'Despejado';const q=missions[state.mission]||missions[missions.length-1];document.getElementById('questTitle').textContent='MISIÓN · '+q.title;document.getElementById('questText').textContent=state.saved?'Partida guardada ✓':q.text}
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}function shadow(x,y,w=24){ctx.fillStyle='rgba(35,28,20,.22)';ctx.beginPath();ctx.ellipse(x,y,w,7,0,0,Math.PI*2);ctx.fill()}
+function tree(x,y,s=1){const sway=Math.sin(performance.now()/900+x*.01)*1.4*s;shadow(x,y+30*s,18*s);rect(x-5*s,y+8*s,10*s,25*s,'#684d37');ctx.fillStyle='#4f7049';ctx.beginPath();ctx.arc(x+sway,y,25*s,0,Math.PI*2);ctx.arc(x-13*s+sway,y-8*s,15*s,0,Math.PI*2);ctx.arc(x+13*s+sway,y-6*s,16*s,0,Math.PI*2);ctx.fill()}
+function drawTerrain(){rect(0,0,world.w,world.h,'#a99b72');for(let i=0;i<330;i++){const x=(i*173+41)%world.w,y=(i*113+87)%world.h,s=7+(i%6)*5;ctx.fillStyle=i%3?'rgba(93,80,54,.09)':'rgba(220,202,155,.12)';ctx.fillRect(x,y,s,s/2)}ctx.fillStyle='#7c8067';ctx.beginPath();ctx.moveTo(0,190);for(let x=0;x<=3600;x+=300)ctx.lineTo(x,90+Math.sin(x*.008)*55);ctx.lineTo(3600,0);ctx.lineTo(0,0);ctx.closePath();ctx.fill()}
+function drawRoads(){rect(0,610,world.w,190,'#c8b27f');rect(1080,0,190,world.h,'#c8b27f');rect(0,675,world.w,55,'#ddd0a4');rect(1148,0,55,world.h,'#ddd0a4');ctx.strokeStyle='#8f7959';ctx.lineWidth=3;ctx.setLineDash([22,18]);ctx.beginPath();ctx.moveTo(0,702);ctx.lineTo(world.w,702);ctx.moveTo(1175,0);ctx.lineTo(1175,world.h);ctx.stroke();ctx.setLineDash([]);rect(300,900,760,42,'#c3aa78');rect(1380,900,850,42,'#c3aa78');rect(300,900,760,3,'#967b56')}
+function drawPlaza(){rect(850,220,570,360,'#71875c');rect(885,255,500,290,'#a7b688');ctx.strokeStyle='#60734f';ctx.lineWidth=5;ctx.strokeRect(885,255,500,290);rect(1120,265,34,270,'#d8c491');rect(895,382,480,32,'#d8c491');[[960,320],[1320,320],[960,485],[1320,485]].forEach(p=>tree(p[0],p[1],1.05));rect(1080,342,140,20,'#77674e')}
+function drawFields(){ctx.fillStyle='#6f8954';ctx.fillRect(2400,1100,900,650);for(let x=2420;x<3270;x+=45){ctx.strokeStyle='#b2a45e';for(let y=1130;y<1680;y+=55){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+8,y+34);ctx.stroke()}}ctx.fillStyle='#89975d';ctx.fillRect(1770,1430,500,420);for(let x=1800;x<2240;x+=58)for(let y=1460;y<1810;y+=65)tree(x,y,.6);ctx.fillStyle='#6e8d91';ctx.fillRect(70,840,2900,22);ctx.fillStyle='#9aa8a0';ctx.fillRect(70,840,2900,4)}
+function drawFences(){ctx.strokeStyle='#6e563d';ctx.lineWidth=5;for(let x=1780;x<2330;x+=38){ctx.beginPath();ctx.moveTo(x,720);ctx.lineTo(x,1370);ctx.stroke()}ctx.beginPath();ctx.moveTo(1780,720);ctx.lineTo(2330,720);ctx.moveTo(1780,1370);ctx.lineTo(2330,1370);ctx.stroke()}
+function drawBuilding(b){shadow(b.x+b.w/2,b.y+b.h+15,b.w*.42);rect(b.x-10,b.y-8,b.w+20,b.h+18,'#674a37');const wall=b.type==='school'?'#d9c59d':b.type==='shop'?'#d0ae76':b.type==='radio'?'#b9856e':b.type==='rural'?'#a77e58':'#c5a783';rect(b.x,b.y,b.w,b.h,wall);ctx.fillStyle=b.type==='rural'?'#5e4c3b':'#78503b';ctx.beginPath();ctx.moveTo(b.x-18,b.y);ctx.lineTo(b.x+b.w/2,b.y-58);ctx.lineTo(b.x+b.w+18,b.y);ctx.closePath();ctx.fill();rect(b.x+b.w*.43,b.y+b.h*.55,b.w*.14,b.h*.45,'#624331');rect(b.x+28,b.y+34,48,34,'#7899a4');rect(b.x+b.w-76,b.y+34,48,34,'#7899a4');ctx.fillStyle='#3d3028';ctx.font='bold 18px monospace';ctx.textAlign='center';ctx.fillText(b.label,b.x+b.w/2,b.y-70);if(b.type==='shop'){rect(b.x+80,b.y+92,b.w-160,30,'#b94f3e');ctx.fillStyle='#fff4dc';ctx.font='bold 13px monospace';ctx.fillText('PAN · YERBA · COMESTIBLES',b.x+b.w/2,b.y+113)}}
+function drawNPC(n){shadow(n.x,n.y+27,20);const bob=n.moving?Math.sin(performance.now()/110+n.x)*2:0;rect(n.x-12,n.y-2+bob,24,27,n.color);ctx.fillStyle='#dfb18c';ctx.beginPath();ctx.arc(n.x,n.y-13+bob,13,0,Math.PI*2);ctx.fill();rect(n.x-12,n.y-26+bob,24,7,'#3b302a');ctx.fillStyle='#263025';ctx.font='13px monospace';ctx.textAlign='center';ctx.fillText(n.name,n.x,n.y-36+bob)}
+function drawPlayer(){shadow(state.x,state.y+29,22);const bob=(input.up||input.down||input.left||input.right)?Math.sin(state.walk)*3:0;rect(state.x-13,state.y-2+bob,26,29,'#315a9b');ctx.fillStyle='#d9a47e';ctx.beginPath();ctx.arc(state.x,state.y-14+bob,13,0,Math.PI*2);ctx.fill();rect(state.x-12,state.y-27+bob,24,7,'#3a302b');if(near&&!state.dialogue){rect(state.x-78,state.y-66+bob,156,29,'rgba(23,32,25,.93)');ctx.fillStyle='#fff';ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillText('E · INTERACTUAR',state.x,state.y-46+bob)}}
+function drawMarkers(){historySpots.forEach(h=>{if(state.history.includes(h.id))return;ctx.fillStyle='#d9b44e';ctx.beginPath();ctx.arc(h.x,h.y,17+Math.sin(performance.now()/300)*2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 18px monospace';ctx.textAlign='center';ctx.fillText('?',h.x,h.y+6)});rect(job.x-20,job.y-13,40,25,'#7a5b39');ctx.fillStyle='#d6b06d';ctx.fillRect(job.x-13,job.y-9,26,17);ctx.fillStyle='#443629';ctx.font='11px monospace';ctx.fillText('CHANGA',job.x,job.y-24)}
+function draw(){ctx.clearRect(0,0,vw,vh);ctx.save();ctx.translate(vw/2,vh/2);ctx.scale(ZOOM,ZOOM);ctx.translate(-state.x,-state.y);drawTerrain();drawRoads();drawPlaza();drawFields();drawFences();buildings.forEach(drawBuilding);if(V.life?.drawWorld)V.life.drawWorld(ctx);npcs.forEach(drawNPC);drawMarkers();drawPlayer();if(V.life?.isNight){ctx.fillStyle='rgba(12,20,38,.42)';ctx.fillRect(0,0,world.w,world.h)}ctx.restore();if(V.life?.drawOverlay)V.life.drawOverlay(ctx,vw,vh)}
+function loop(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
 })();
