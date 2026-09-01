@@ -1,78 +1,45 @@
-/* Villa Pelón — mundo vivo: clima, tráfico, animales, rutinas y ambientación. */
-(() => {
-  'use strict';
-  const V = window.VillaPelon || (window.VillaPelon = {});
-  const world = {w:3200,h:2000};
-  V.world = V.world || world;
-  V.life = V.life || {};
-  Object.assign(V.life,{weather:'despejado',temperature:18,traffic:[],animals:[],isNight:false,shops:[],tools:[],items:{mate:false,pan:0}});
-
-  const roadH={x:0,y:610,w:3200,h:180}, roadV={x:1070,y:0,w:180,h:2000};
-  const weather=['despejado','nublado','viento','lluvia'];
-  let weatherTimer=0, weatherPhase=0;
-
-  function seed(){
-    V.life.traffic=[
-      {x:180,y:685,vx:58,vy:0,type:'auto',lane:0},
-      {x:1540,y:735,vx:-46,vy:0,type:'camioneta',lane:1},
-      {x:1158,y:150,vx:0,vy:44,type:'tractor',lane:0},
-      {x:1200,y:1680,vx:0,vy:-34,type:'camion',lane:1},
-      {x:720,y:650,vx:36,vy:0,type:'bicicleta',lane:0}
-    ];
-    V.life.animals=[
-      {x:2450,y:720,vx:10,vy:0,type:'vaca'},{x:2520,y:770,vx:-7,vy:2,type:'vaca'},
-      {x:2700,y:1170,vx:5,vy:-2,type:'caballo'},{x:2780,y:1210,vx:-4,vy:2,type:'caballo'},
-      {x:2050,y:1160,vx:7,vy:0,type:'gallina'},{x:2110,y:1190,vx:-5,vy:2,type:'gallina'}
-    ];
-    V.life.shops=[
-      {x:1570,y:330,w:360,h:210,name:'Almacén El Encuentro',kind:'shop'},
-      {x:1010,y:1120,w:380,h:210,name:'Radio Oasis',kind:'radio'},
-      {x:2150,y:370,w:300,h:180,name:'Galpón rural',kind:'job'}
-    ];
-    V.life.tools=['pala','azada','tijera de podar','cajón de cosecha','llave inglesa'];
-  }
-  seed();
-
-  function wrap(t){ if(t.x>world.w+90)t.x=-90; if(t.x<-90)t.x=world.w+90; if(t.y>world.h+90)t.y=-90; if(t.y<-90)t.y=world.h+90; }
-  function moveNpc(n,minutes,dt){
-    if(!n.home)return;
-    const hour=minutes/60;
-    let tx=n.home.x,ty=n.home.y;
-    if(n.role==='trabajo' && hour>=8 && hour<17){tx=n.work.x;ty=n.work.y;}
-    else if(n.role==='plaza' && hour>=10 && hour<18){tx=1160;ty=390;}
-    else if(n.role==='comercio' && hour>=9 && hour<19){tx=1750;ty=610;}
-    else if(n.role==='radio' && hour>=10 && hour<15){tx=1200;ty=1190;}
-    const dx=tx-n.x,dy=ty-n.y,d=Math.hypot(dx,dy);
-    if(d>8){const s=Math.min(55,d*1.4);n.x+=dx/d*s*dt;n.y+=dy/d*s*dt;n.moving=true;}else n.moving=false;
-  }
-
-  V.life.update=(dt,minutes)=>{
-    V.life.traffic.forEach(t=>{t.x+=t.vx*dt;t.y+=t.vy*dt;wrap(t)});
-    V.life.animals.forEach(a=>{a.x+=a.vx*dt;a.y+=a.vy*dt;if(a.x<1880||a.x>3020)a.vx*=-1;if(a.y<690||a.y>1360)a.vy*=-1});
-    const npcs=V.npcs||[]; npcs.forEach(n=>moveNpc(n,minutes,dt));
-    const hour=minutes/60; V.life.isNight=hour<7||hour>=20;
-    weatherTimer+=dt;
-    if(weatherTimer>42){weatherTimer=0;V.life.nextWeather();}
-    weatherPhase+=dt;
-  };
-  V.life.nextWeather=()=>{V.life.weather=weather[Math.floor(Math.random()*weather.length)];V.life.temperature=Math.round(10+Math.random()*18);return V.life.weather};
-
-  function shadow(ctx,x,y,w,h){ctx.fillStyle='rgba(42,31,20,.18)';ctx.beginPath();ctx.ellipse(x,y,w,h,0,0,Math.PI*2);ctx.fill()}
-  function vehicle(ctx,t){ctx.save();ctx.translate(t.x,t.y);if(Math.abs(t.vy)>0)ctx.rotate(Math.PI/2);const scale=t.type==='tractor'?1.15:t.type==='camion'?1.35:t.type==='bicicleta'?.65:1;ctx.scale(scale,scale);shadow(ctx,0,13,25,6);ctx.fillStyle=t.type==='tractor'?'#55713b':t.type==='camion'?'#80664d':t.type==='bicicleta'?'#3d5361':'#596167';ctx.fillRect(-23,-10,46,20);if(t.type==='camion')ctx.fillRect(10,-15,18,25);if(t.type==='tractor'){ctx.fillRect(8,-16,15,12);ctx.fillStyle='#26251f';ctx.fillRect(-18,8,12,9);ctx.fillRect(10,8,12,9)}else{ctx.fillStyle='#24231f';ctx.fillRect(-17,9,10,7);ctx.fillRect(9,9,10,7)}ctx.fillStyle='#8ea4a9';ctx.fillRect(-13,-7,14,8);ctx.restore()}
-  function animal(ctx,a){ctx.save();ctx.translate(a.x,a.y);shadow(ctx,0,13,a.type==='caballo'?25:18,5);if(a.type==='vaca'){ctx.fillStyle='#e7dfcd';ctx.fillRect(-23,-10,46,20);ctx.fillStyle='#51483d';ctx.fillRect(-11,-9,9,8);ctx.fillRect(9,0,8,8);ctx.fillStyle='#3e352d';ctx.fillRect(-16,9,6,13);ctx.fillRect(10,9,6,13);ctx.fillRect(21,-7,8,9)}else if(a.type==='caballo'){ctx.fillStyle='#8a5d3d';ctx.fillRect(-24,-9,43,18);ctx.fillRect(14,-20,13,18);ctx.fillStyle='#493528';ctx.fillRect(-16,8,6,15);ctx.fillRect(9,8,6,15)}else{ctx.fillStyle='#ddd2b7';ctx.fillRect(-8,-6,16,12);ctx.fillStyle='#bd4e40';ctx.fillRect(5,-10,7,7)}ctx.restore()}
-
-  V.life.drawWorld=(ctx)=>{
-    V.life.traffic.forEach(t=>vehicle(ctx,t));
-    V.life.animals.forEach(a=>animal(ctx,a));
-  };
-  V.life.drawOverlay=(ctx,vw,vh)=>{
-    if(V.life.weather==='lluvia'){
-      ctx.save();ctx.strokeStyle='rgba(214,231,240,.52)';ctx.lineWidth=1;
-      for(let i=0;i<180;i++){const x=(i*83+weatherPhase*220)%vw,y=(i*47+weatherPhase*390)%vh;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-5,y+13);ctx.stroke()}ctx.restore();
-    }
-    if(V.life.weather==='viento'){
-      ctx.save();ctx.strokeStyle='rgba(245,232,198,.18)';for(let i=0;i<18;i++){const y=70+i*42,x=(i*97+weatherPhase*120)%vw;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+35,y-8,x+70,y);ctx.stroke()}ctx.restore();
-    }
-    if(V.life.isNight){ctx.save();ctx.fillStyle='rgba(15,23,40,.48)';ctx.fillRect(0,0,vw,vh);ctx.restore();}
-  };
+/* Villa Pelón V31 — primer concepto real de mundo vivo.
+   Todo se actualiza aunque el jugador permanezca quieto: hora, clima, tránsito,
+   peatones, animales y actividad visible alrededor del punto inicial. */
+(()=>{'use strict';
+const V=window.VillaPelon||(window.VillaPelon={});
+const life=V.life={weather:'despejado',temperature:19,isNight:false,phase:0,weatherTimer:0,traffic:[],animals:[],ambient:[]};
+const W=3200,H=2000, kinds=['despejado','nublado','viento','lluvia'];
+function reset(){
+ life.traffic=[
+  {x:500,y:685,vx:72,vy:0,type:'auto'}, {x:2050,y:735,vx:-58,vy:0,type:'camioneta'},
+  {x:1158,y:260,vx:0,vy:52,type:'tractor'}, {x:1200,y:1480,vx:0,vy:-42,type:'camion'},
+  {x:820,y:650,vx:38,vy:0,type:'bicicleta'}
+ ];
+ life.animals=[
+  {x:1500,y:840,vx:9,vy:3,type:'vaca'},{x:1570,y:875,vx:-7,vy:2,type:'vaca'},
+  {x:2050,y:1080,vx:6,vy:-3,type:'caballo'},{x:2110,y:1140,vx:-5,vy:3,type:'caballo'},
+  {x:940,y:560,vx:14,vy:7,type:'gallina'},{x:980,y:575,vx:-10,vy:5,type:'gallina'},{x:1350,y:550,vx:9,vy:-6,type:'gallina'}
+ ];
+ life.ambient=[
+  {x:880,y:700,vx:18,vy:0,color:'#a65d4b'}, {x:1420,y:700,vx:-14,vy:0,color:'#4e79a4'},
+  {x:1160,y:520,vx:0,vy:16,color:'#8a5b92'}, {x:1160,y:860,vx:0,vy:-15,color:'#5d8a57'}
+ ];
+}
+reset();
+life.nextWeather=()=>{const i=(kinds.indexOf(life.weather)+1+Math.floor(Math.random()*2))%kinds.length;life.weather=kinds[i];life.temperature=life.weather==='lluvia'?12:life.weather==='nublado'?16:life.weather==='viento'?14:23;return life.weather};
+function wrap(o){if(o.x>W+80)o.x=-80;if(o.x<-80)o.x=W+80;if(o.y>H+80)o.y=-80;if(o.y<-80)o.y=H+80}
+life.update=(dt,minutes)=>{
+ life.phase+=dt; life.weatherTimer+=dt;
+ // ciclo de clima claramente perceptible para pruebas
+ if(life.weatherTimer>18){life.weatherTimer=0;life.nextWeather()}
+ const hour=(minutes||480)/60; life.isNight=hour<7||hour>=20;
+ life.traffic.forEach(o=>{o.x+=o.vx*dt;o.y+=o.vy*dt;wrap(o)});
+ life.ambient.forEach((o,i)=>{if(i<2){o.x+=o.vx*dt;if(o.x<820||o.x>1500)o.vx*=-1}else{o.y+=o.vy*dt;if(o.y<300||o.y>900)o.vy*=-1}});
+ life.animals.forEach((o,i)=>{o.x+=o.vx*dt;o.y+=o.vy*dt;if(o.type==='gallina'){if(o.x<880||o.x>1450)o.vx*=-1;if(o.y<500||o.y>650)o.vy*=-1}else{if(o.x<1350||o.x>2250)o.vx*=-1;if(o.y<800||o.y>1400)o.vy*=-1}});
+};
+function sh(c,x,y,w){c.fillStyle='rgba(25,20,15,.22)';c.beginPath();c.ellipse(x,y,w,5,0,0,Math.PI*2);c.fill()}
+function vehicle(c,o){c.save();c.translate(o.x,o.y);if(o.vy)c.rotate(Math.PI/2);sh(c,0,13,o.type==='camion'?28:21);c.fillStyle=o.type==='tractor'?'#54733b':o.type==='camion'?'#80624b':o.type==='bicicleta'?'#344c59':o.type==='camioneta'?'#7c704f':'#4d6270';c.fillRect(-22,-10,44,20);if(o.type==='tractor'){c.fillRect(7,-18,16,15);c.fillStyle='#20231e';c.fillRect(-18,8,12,9);c.fillRect(9,8,14,10)}else if(o.type==='camion')c.fillRect(8,-16,24,28);else {c.fillStyle='#222';c.fillRect(-16,9,9,7);c.fillRect(8,9,9,7)}c.restore()}
+function animal(c,o){c.save();c.translate(o.x,o.y);sh(c,0,13,o.type==='caballo'?25:17);if(o.type==='vaca'){c.fillStyle='#e8dfc9';c.fillRect(-20,-10,40,20);c.fillStyle='#5b4b3c';c.fillRect(-10,-9,8,7);c.fillRect(7,1,8,8);c.fillStyle='#3b332b';c.fillRect(-14,9,5,12);c.fillRect(10,9,5,12);c.fillRect(18,-7,8,9)}else if(o.type==='caballo'){c.fillStyle='#8b5c3c';c.fillRect(-23,-9,42,18);c.fillRect(14,-20,13,18);c.fillStyle='#493326';c.fillRect(-15,8,5,15);c.fillRect(9,8,5,15)}else{c.fillStyle='#e2d5b8';c.fillRect(-7,-5,14,11);c.fillStyle='#bd4d3e';c.fillRect(4,-10,7,7)}c.restore()}
+function person(c,o){c.save();c.translate(o.x,o.y);sh(c,0,17,16);c.fillStyle=o.color;c.fillRect(-10,-2,20,25);c.fillStyle='#e0ad88';c.beginPath();c.arc(0,-13,11,0,Math.PI*2);c.fill();c.fillStyle='#342c28';c.fillRect(-10,-24,20,6);c.restore()}
+life.drawWorld=c=>{life.traffic.forEach(o=>vehicle(c,o));life.ambient.forEach(o=>person(c,o));life.animals.forEach(o=>animal(c,o));
+ // bandada animada: señal visual permanente de que el mundo está vivo
+ c.fillStyle='#29342d';for(let i=0;i<7;i++){const x=700+i*55+Math.sin(life.phase*2+i)*18,y=250+Math.cos(life.phase*2+i)*10;c.beginPath();c.arc(x,y,3,0,Math.PI*2);c.fill()}
+};
+life.drawOverlay=(c,vw,vh)=>{if(life.weather==='nublado'){c.fillStyle='rgba(110,120,130,.16)';c.fillRect(0,0,vw,vh)}if(life.weather==='lluvia'){c.strokeStyle='rgba(210,230,240,.62)';c.lineWidth=2;for(let i=0;i<120;i++){const x=(i*79+life.phase*180)%vw,y=(i*47+life.phase*260)%vh;c.beginPath();c.moveTo(x,y);c.lineTo(x-7,y+18);c.stroke()}}if(life.weather==='viento'){c.strokeStyle='rgba(245,232,198,.30)';for(let i=0;i<12;i++){const y=100+i*48,x=(life.phase*100+i*91)%vw;c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+35,y-10,x+75,y);c.stroke()}}if(life.isNight){c.fillStyle='rgba(12,20,38,.50)';c.fillRect(0,0,vw,vh)}};
 })();
