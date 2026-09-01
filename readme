@@ -1,1 +1,31 @@
-villa pelon
+VILLA PELÓN — V0.1 JUGABLE
+
+RPG 2D educativo para PC y celulares, inspirado en San Patricio del Chañar.
+
+ESTADO
+- Mapa rural/pueblo de prototipo.
+- Personaje 2D con movimiento de 8 direcciones.
+- 5 NPC con diálogos.
+- Primera misión de investigación.
+- Dinero y energía.
+- Reloj y ciclo de días.
+- Archivo histórico.
+- Guardado/carga básica.
+- Controles táctiles.
+
+CONTROLES PC
+- WASD o flechas: caminar.
+- E / ESPACIO: interactuar.
+- F5: guardar.
+- F9: cargar.
+
+OBJETIVO DEL MVP
+Encontrar la primera pista histórica, hablar con vecinos y recorrer el pueblo.
+
+IMPORTANTE
+La primera pista es deliberadamente ficticia en esta versión técnica. No se presenta ningún dato histórico como real sin fuente. La siguiente etapa reemplazará el objeto de prueba por material histórico documentado.
+
+MOTOR
+Godot 4.x.
+
+Para ejecutar: abrir el proyecto en Godot y ejecutar la escena principal.
