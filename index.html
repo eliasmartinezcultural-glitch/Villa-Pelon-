@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#241a14">
-<title>Villa Pelón · V2 · Mundo Vivo</title>
+<title>Villa Pelón · V3 · Pueblo Vivo</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="stylesheet" href="./style.css?v=5">
 </head>
 <body>
 <div id="start" class="screen start-screen">
   <div class="title-card">
-    <div class="eyebrow">V2 · MUNDO VIVO · HISTORIA · DIÁLOGOS · AVENTURAS</div>
+    <div class="eyebrow">V3 · PUEBLO VIVO · HISTORIA · DIÁLOGOS · AVENTURAS</div>
     <h1>VILLA PELÓN</h1>
     <p>Un pueblo para caminar, trabajar, conocer gente y descubrir historias.</p>
     <button id="startBtn">ENTRAR AL PUEBLO</button>
@@ -21,19 +21,12 @@
   <canvas id="world"></canvas>
   <div id="hud">
     <div class="hud-top">
-      <div class="stat">DÍA <b id="day">1</b></div>
-      <div class="stat">HORA <b id="clock">08:00</b></div>
-      <div class="stat">$ <b id="money">10000</b></div>
-      <div class="stat">ENERGÍA <b id="energy">100</b></div>
-      <div class="stat">CLIMA <b id="weather">Despejado</b></div>
+      <div class="stat">DÍA <b id="day">1</b></div><div class="stat">HORA <b id="clock">08:00</b></div><div class="stat">$ <b id="money">10000</b></div><div class="stat">ENERGÍA <b id="energy">100</b></div><div class="stat">CLIMA <b id="weather">Despejado</b></div>
     </div>
     <div id="quest" class="quest-panel"><strong id="questTitle">MISIÓN</strong><span id="questText">Explorá el pueblo.</span></div>
     <button id="save" class="save">GUARDAR</button>
   </div>
-  <div id="touch" class="touch-controls">
-    <button data-key="up">▲</button><div><button data-key="left">◀</button><button data-key="down">▼</button><button data-key="right">▶</button></div>
-    <button id="interact">E</button>
-  </div>
+  <div id="touch" class="touch-controls"><button data-key="up">▲</button><div><button data-key="left">◀</button><button data-key="down">▼</button><button data-key="right">▶</button></div><button id="interact">E</button></div>
   <div id="dialogue" class="dialogue hidden"><div id="speaker"></div><div id="dialogueText"></div><button id="dialogueNext">SEGUIR</button><a id="sourceLink" class="hidden" target="_blank" rel="noopener">FUENTE</a></div>
 </div>
 <script src="./village_data.js?v=5" defer></script>
@@ -41,5 +34,6 @@
 <script src="./life.js?v=5" defer></script>
 <script src="./game.js?v=5" defer></script>
 <script src="./story.js?v=2" defer></script>
+<script src="./v3.js?v=1" defer></script>
 </body>
 </html>
