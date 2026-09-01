@@ -1,6 +1,4 @@
-; Villa Pelón — Godot 4 project
-; Mobile-first educational exploration game
-
+; Villa Pelón — Godot 4
 config_version=5
 
 [application]
@@ -17,11 +15,3 @@ window/stretch/mode="canvas_items"
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-textures/default_filters/use_nearest_mipmap_filter=false
-
-[input]
-move_left={"deadzone":0.5,"events":[Object(InputEventKey,"physical_keycode":65),Object(InputEventKey,"physical_keycode":4194311)]}
-move_right={"deadzone":0.5,"events":[Object(InputEventKey,"physical_keycode":68),Object(InputEventKey,"physical_keycode":4194313)]}
-move_forward={"deadzone":0.5,"events":[Object(InputEventKey,"physical_keycode":87),Object(InputEventKey,"physical_keycode":4194320)]}
-move_back={"deadzone":0.5,"events":[Object(InputEventKey,"physical_keycode":83),Object(InputEventKey,"physical_keycode":4194322)]}
-interact={"deadzone":0.5,"events":[Object(InputEventKey,"physical_keycode":69),Object(InputEventKey,"physical_keycode":32)]}
