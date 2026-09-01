@@ -7,8 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Villa Pelón · V4 · Pueblo Vivo</title>
-<link rel="manifest" href="./manifest.webmanifest?v=414">
-<link rel="stylesheet" href="./style.css?v=414">
+<link rel="manifest" href="./manifest.webmanifest?v=415">
+<link rel="stylesheet" href="./style.css?v=415">
+<link rel="stylesheet" href="./v4_graphics_mobile.css?v=415">
 </head>
 <body data-villa-version="4">
 <div id="start" class="screen start-screen">
@@ -23,32 +24,33 @@
   <div id="dialogue" class="dialogue hidden"><div id="speaker"></div><div id="dialogueText"></div><button id="dialogueNext" type="button">SEGUIR</button><a id="sourceLink" class="hidden" target="_blank" rel="noopener">FUENTE</a></div>
 </div>
 <div id="bootError" class="hidden" style="position:fixed;inset:0;z-index:99999;background:#211a15;color:#ead8a6;display:none;align-items:center;justify-content:center;padding:24px;font:16px monospace;text-align:center"><div><h2>VILLA PELÓN</h2><p id="bootErrorText">No se pudo iniciar el motor.</p><button type="button" onclick="location.reload()">REINTENTAR</button></div></div>
-<!-- V4 BUILD 414 · AUDIO · MENU · SETTINGS · LANGUAGE · MOBILE -->
-<script src="./village_data.js?v=414" defer></script>
-<script src="./history.js?v=414" defer></script>
-<script src="./life.js?v=414" defer></script>
-<script src="./v4_pixel_runtime.js?v=414" defer></script>
-<script src="./v4_engine.js?v=414" defer></script>
-<script src="./game.js?v=414" defer></script>
-<script src="./story.js?v=414" defer></script>
-<script src="./v4_world.js?v=414" defer></script>
-<script src="./v4_compat.js?v=414" defer></script>
-<script src="./v4_visual.js?v=414" defer></script>
-<script src="./v4_structure.js?v=414" defer></script>
-<script src="./characters/character_profiles.js?v=414" defer></script>
-<script src="./v4_characters.js?v=414" defer></script>
-<script src="./world/streets/streets.js?v=414" defer></script>
-<script src="./world/streets/traffic_lights.js?v=414" defer></script>
-<script src="./world/streets/street_details.js?v=414" defer></script>
-<script src="./world/streets/streets_adapter.js?v=414" defer></script>
-<script src="./v4_story_adapter.js?v=414" defer></script>
-<script src="./v4_gameplay.js?v=414" defer></script>
-<script src="./v4_playability.js?v=414" defer></script>
-<script src="./v4_pixelart.js?v=414" defer></script>
-<script src="./v4_integrity.js?v=414" defer></script>
-<script src="./v4_boot_audit.js?v=414" defer></script>
-<script src="./v4_mobile.js?v=414" defer></script>
-<script src="./v4_ui_audio.js?v=414" defer></script>
+<!-- V4 BUILD 415 · AUDIO · MENU · SETTINGS · LANGUAGE · GRAPHICS · MOBILE -->
+<script src="./village_data.js?v=415" defer></script>
+<script src="./history.js?v=415" defer></script>
+<script src="./life.js?v=415" defer></script>
+<script src="./v4_pixel_runtime.js?v=415" defer></script>
+<script src="./v4_engine.js?v=415" defer></script>
+<script src="./game.js?v=415" defer></script>
+<script src="./story.js?v=415" defer></script>
+<script src="./v4_world.js?v=415" defer></script>
+<script src="./v4_compat.js?v=415" defer></script>
+<script src="./v4_visual.js?v=415" defer></script>
+<script src="./v4_structure.js?v=415" defer></script>
+<script src="./characters/character_profiles.js?v=415" defer></script>
+<script src="./v4_characters.js?v=415" defer></script>
+<script src="./world/streets/streets.js?v=415" defer></script>
+<script src="./world/streets/traffic_lights.js?v=415" defer></script>
+<script src="./world/streets/street_details.js?v=415" defer></script>
+<script src="./world/streets/streets_adapter.js?v=415" defer></script>
+<script src="./v4_story_adapter.js?v=415" defer></script>
+<script src="./v4_gameplay.js?v=415" defer></script>
+<script src="./v4_playability.js?v=415" defer></script>
+<script src="./v4_pixelart.js?v=415" defer></script>
+<script src="./v4_integrity.js?v=415" defer></script>
+<script src="./v4_boot_audit.js?v=415" defer></script>
+<script src="./v4_mobile.js?v=415" defer></script>
+<script src="./v4_ui_audio.js?v=415" defer></script>
+<script src="./v4_language_bridge.js?v=415" defer></script>
 <script>
 window.addEventListener('error',function(e){const box=document.getElementById('bootError'),msg=document.getElementById('bootErrorText');if(!box||!msg)return;if(e.filename&&/game|v4_|life|story|world|character|street/.test(e.filename)){msg.textContent='Error de arranque: '+(e.message||'motor no disponible');box.style.display='flex'}});
 window.addEventListener('unhandledrejection',function(e){const box=document.getElementById('bootError'),msg=document.getElementById('bootErrorText');if(box&&msg&&e.reason){msg.textContent='Error de arranque: '+(e.reason.message||e.reason);box.style.display='flex'}});
