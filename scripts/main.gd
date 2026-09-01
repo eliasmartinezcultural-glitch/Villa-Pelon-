@@ -78,10 +78,10 @@ func close_dialogue() -> void:
 	_update_nearest()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("interact"):
-		interact()
-	elif event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_F5:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_E or event.keycode == KEY_SPACE:
+			interact()
+		elif event.keycode == KEY_F5:
 			save_game()
 			$UI/Message.text = "Partida guardada."
 		elif event.keycode == KEY_F9:
