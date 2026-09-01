@@ -1,17 +1,10 @@
-/* Villa Pelón V4 — REGLAS TERRITORIALES + PROFUNDIDAD
-   Esta capa NO dibuja personas. Los personajes pertenecen exclusivamente a
-   v4_characters.js para evitar clones/dobles renders.
+/* Villa Pelón V4 — REGLAS TERRITORIALES
+   No renderiza: evita duplicaciones. El motor V4 es el único renderizador.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 const R={h:{y1:700,y2:930},v:{x1:1180,x2:1400}},pad=18;
-const roadHit=(x,y,w=0,h=0)=>((y+h>R.h.y1-pad&&y<R.h.y2+pad)||(x+w>R.v.x1-pad&&x<R.v.x2+pad));
-const roadPoint=(x,y)=>((y>R.h.y1&&y<R.h.y2)||(x>R.v.x1&&x<R.v.x2));
-function enforce(){const bs=V.buildings||[];let home=0;const safe=[{x:1740,y:380},{x:1480,y:1320},{x:3150,y:420},{x:1600,y:1040}];let si=0;for(const b of bs){if(!b||b.x==null)continue;if(b.label==='CASA'){if(home++===1){b.x=1480;b.y=1010}continue}if(roadHit(b.x,b.y,b.w||120,b.h||80)){const q=safe[si++%safe.length];b.x=q.x;b.y=q.y}}V.v4WorldRule={version:4,rule:'CALZADA_LIBRE',roadBounds:R,valid:bs.every(b=>!roadHit(b.x,b.y,b.w||120,b.h||80))}}
-function transform(ctx,e){const d=Math.min(devicePixelRatio||1,2);ctx.save();ctx.setTransform(d,0,0,d,0,0);ctx.translate(innerWidth/2,innerHeight/2);ctx.scale(e.camera.zoom,e.camera.zoom);ctx.translate(-e.camera.x,-e.camera.y);return()=>ctx.restore()}
-function roads(ctx,e){const end=transform(ctx,e);ctx.fillStyle='#bfa873';ctx.fillRect(0,R.h.y1,e.world.w,R.h.y2-R.h.y1);ctx.fillStyle='#e0d0a0';ctx.fillRect(0,782,e.world.w,66);ctx.fillStyle='#bfa873';ctx.fillRect(R.v.x1,0,R.v.x2-R.v.x1,e.world.h);ctx.fillStyle='#e0d0a0';ctx.fillRect(1256,0,68,e.world.h);ctx.strokeStyle='#806b50';ctx.lineWidth=4;ctx.setLineDash([28,22]);ctx.beginPath();ctx.moveTo(0,815);ctx.lineTo(e.world.w,815);ctx.moveTo(1290,0);ctx.lineTo(1290,e.world.h);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle='rgba(255,245,210,.65)';ctx.lineWidth=3;for(let x=80;x<e.world.w;x+=170){ctx.beginPath();ctx.moveTo(x,820);ctx.lineTo(x+55,820);ctx.stroke()}end()}
-function tree(ctx,t){ctx.save();ctx.translate(t.x,t.y);const s=t.s||1;ctx.fillStyle='rgba(35,26,19,.22)';ctx.beginPath();ctx.ellipse(0,35*s,22*s,7*s,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#5c4735';ctx.fillRect(-5,2,10,34);ctx.fillStyle=['#506b49','#5e744b','#6d7e4c'][Math.abs(Math.round(t.x))%3];ctx.beginPath();ctx.arc(0,0,28*s,0,Math.PI*2);ctx.arc(-18,6,18*s,0,Math.PI*2);ctx.arc(19,7,19*s,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(225,238,190,.17)';ctx.beginPath();ctx.arc(-8,-10,10*s,0,Math.PI*2);ctx.fill();ctx.restore()}
-function details(ctx,e){const end=transform(ctx,e);const trees=[...Array(22)].map((_,i)=>({x:90+i*190,y:300+(i%5)*115,s:1+(i%3)*.1})).filter(t=>!roadPoint(t.x,t.y));trees.forEach(t=>tree(ctx,t));for(const v of (V.v3Traffic||[])){if(v.x==null)continue;ctx.save();ctx.translate(v.x,v.y);const ang=v.dir==='N'?-Math.PI/2:v.dir==='S'?Math.PI/2:0;ctx.rotate(ang);ctx.fillStyle='rgba(25,20,16,.3)';ctx.beginPath();ctx.ellipse(0,14,29,7,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=v.color||'#657065';ctx.strokeStyle='#2b2824';ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect(-26,-11,52,22,5);ctx.fill();ctx.stroke();ctx.fillStyle='#293a40';ctx.fillRect(-15,-9,24,8);ctx.fillStyle='#20211f';ctx.fillRect(-19,8,10,7);ctx.fillRect(9,8,10,7);ctx.fillStyle='rgba(255,255,220,.55)';ctx.fillRect(20,-5,4,4);ctx.restore()}end()}
-function install(){if(!V.engine||V.engine.__v4Structure)return false;V.engine.__v4Structure=true;enforce();const base=V.engine.render;V.engine.render=()=>{base();roads(V.engine.ctx,V.engine);details(V.engine.ctx,V.engine)};return true}
-V.v4Structure={version:4,enforce,rule:'ruta libre de construcciones',install};const wait=()=>install()||requestAnimationFrame(wait);wait();
+const intersectsRoad=o=>{if(!o||o.x==null||o.y==null)return false;return(o.y+(o.h||1)>R.h.y1-pad&&o.y<R.h.y2+pad)||(o.x+(o.w||1)>R.v.x1-pad&&o.x<R.v.x2+pad)};
+function audit(){const bad=(V.buildings||[]).filter(intersectsRoad);V.v4WorldRule={version:4,rule:'CALZADA_LIBRE',roadBounds:R,valid:bad.length===0,buildingsOnRoad:bad.map(b=>b.label)};return V.v4WorldRule}
+V.v4Structure={version:4,roadRule:'SOLO_CIRCULACION',intersectsRoad,audit};audit();setInterval(audit,1000);
 })();
