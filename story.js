@@ -42,7 +42,7 @@ const say=(name,lines,choices)=>{
 function rel(id,n=1){story.rel[id]=(story.rel[id]||0)+n}
 function flag(k,v=true){story.flags[k]=v}
 function storyData(){return{main:story.main,side:story.side,flags:story.flags,rel:story.rel}}
-function save(){try{const data=storyData();localStorage.setItem('villa_pelon_v2_story',JSON.stringify(data));const old=JSON.parse(localStorage.getItem('villa_pelon_v2_save')||'{}');old.story=data;localStorage.setItem('villa_pelon_v2_save',JSON.stringify(old))}catch(_){} }
+function save(){try{const data=storyData();localStorage.setItem('villa_pelon_v2_story',JSON.stringify(data));const old=JSON.parse(localStorage.getItem('villa_pelon_v2_save')||'{}');const st={...old,...S(),dialogue:false,saved:false,story:data};localStorage.setItem('villa_pelon_v2_save',JSON.stringify(st))}catch(_){} }
 function load(){try{const a=JSON.parse(localStorage.getItem('villa_pelon_v2_story')||'null');const b=JSON.parse(localStorage.getItem('villa_pelon_v2_save')||'null');const x=a||b?.story;if(x){story.main=Math.max(0,Math.min(Number(x.main)||0,story.missions.length-1));story.side=x.side||{};story.flags=x.flags||{};story.rel=x.rel||{}}}catch(_){} }
 load();
 function refresh(){const q=story.missions[story.main]||story.missions.at(-1);const title=document.getElementById('questTitle'),text=document.getElementById('questText');if(title)title.textContent=story.main===story.missions.length-1?'MUNDO ABIERTO':'MISIÓN · '+q.title;if(text)text.textContent=q.text;if(S())S().mission=story.main;if(typeof window.__v2StoryRefresh==='function')window.__v2StoryRefresh()}
@@ -89,5 +89,5 @@ function intercept(e){const k=(e.key||'').toLowerCase();if(k==='e'||k===' '){e.p
 addEventListener('keydown',intercept,true);
 const ib=document.getElementById('interact');if(ib)ib.addEventListener('pointerdown',e=>{e.preventDefault();e.stopImmediatePropagation();if(story.active){const b=document.querySelector('#v2dialog button');if(b)b.click()}else interact()},true);
 const sb=document.getElementById('save');if(sb)sb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopImmediatePropagation();save();S().saved=true;setTimeout(()=>{S().saved=false;refresh()},1400)},true);
-setInterval(refresh,250);refresh();
+const sync=()=>{refresh();requestAnimationFrame(sync)};sync();
 })();
