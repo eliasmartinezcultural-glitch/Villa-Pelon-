@@ -1,5 +1,8 @@
 extends Node2D
 
+const MOBILE_CONTROLS := preload("res://scenes/mobile_controls.tscn")
+const SAVE_PATH := "user://villa_pelon_save.json"
+
 var mission_step := 0
 var money := 10000
 var energy := 100
@@ -10,6 +13,12 @@ var nearest_npc: Node2D = null
 var nearest_clue: Node2D = null
 
 func _ready() -> void:
+	var mobile_controls := MOBILE_CONTROLS.instantiate()
+	$UI.add_child(mobile_controls)
+	$Player/Camera2D.limit_left = 0
+	$Player/Camera2D.limit_top = 0
+	$Player/Camera2D.limit_right = 2400
+	$Player/Camera2D.limit_bottom = 1400
 	_update_hud()
 	$ClockTimer.start()
 
@@ -57,6 +66,7 @@ func interact() -> void:
 		money += 2500
 		show_dialogue("Archivo de Villa Pelón", "Encontraste la primera pista. Por ahora es un objeto ficticio de prototipo. En la próxima etapa lo reemplazaremos por una fotografía o documento histórico real, con fuente y contexto.\n\nRecompensa: $2.500")
 		_update_hud()
+		save_game()
 
 func show_dialogue(speaker: String, text: String) -> void:
 	$UI/Dialogue.visible = true
@@ -70,6 +80,13 @@ func close_dialogue() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact"):
 		interact()
+	elif event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F5:
+			save_game()
+			$UI/Message.text = "Partida guardada."
+		elif event.keycode == KEY_F9:
+			load_game()
+			$UI/Message.text = "Partida cargada."
 
 func _on_clock_timer_timeout() -> void:
 	hour += 0.25
@@ -77,6 +94,8 @@ func _on_clock_timer_timeout() -> void:
 		hour = 0.0
 		day += 1
 		energy = 100
+	elif int(hour * 4.0) % 4 == 0:
+		energy = maxi(0, energy - 5)
 	_update_hud()
 
 func _update_hud() -> void:
@@ -88,3 +107,37 @@ func _update_hud() -> void:
 		$UI/Mission.text = "MISIÓN 01  ·  Encontrá la primera pista · Recompensa $2.500"
 	else:
 		$UI/Mission.text = "MISIÓN 01  ✓  Primera pista encontrada · +$2.500"
+
+func save_game() -> void:
+	var data := {
+		"player_position": {"x": $Player.position.x, "y": $Player.position.y},
+		"mission_step": mission_step,
+		"money": money,
+		"energy": energy,
+		"discovered": discovered,
+		"day": day,
+		"hour": hour
+	}
+	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(data))
+
+func load_game() -> void:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return
+	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if not file:
+		return
+	var data = JSON.parse_string(file.get_as_text())
+	if typeof(data) != TYPE_DICTIONARY:
+		return
+	mission_step = int(data.get("mission_step", mission_step))
+	money = int(data.get("money", money))
+	energy = int(data.get("energy", energy))
+	discovered = int(data.get("discovered", discovered))
+	day = int(data.get("day", day))
+	hour = float(data.get("hour", hour))
+	var saved_position = data.get("player_position", {})
+	if saved_position is Dictionary:
+		$Player.position = Vector2(float(saved_position.get("x", $Player.position.x)), float(saved_position.get("y", $Player.position.y)))
+	_update_hud()
