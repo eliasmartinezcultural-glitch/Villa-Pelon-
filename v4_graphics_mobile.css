@@ -1,26 +1,34 @@
-/* V4 BUILD 416 — Android/mobile hardening + visual polish */
+/* V4 BUILD 417 — Android controls fixed + mobile render profile */
 .v4-mobile-device{--v4-vh:100dvh;--v4-vw:100vw}
-.v4-arrows .mobile-stick{display:none!important}
-.v4-arrows .touch-controls>button[data-key="up"]{display:block;position:fixed;left:86px;bottom:calc(132px + env(safe-area-inset-bottom));width:58px;height:58px;background:#30251d;color:#efd28c;border:2px solid #8f7042;box-shadow:3px 3px 0 #17110d;pointer-events:auto}
-.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick){display:flex!important;position:fixed;left:max(24px,env(safe-area-inset-left));bottom:calc(22px + env(safe-area-inset-bottom));gap:6px;pointer-events:auto}
-.v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick) button{display:block;width:58px;height:58px;background:#30251d;color:#efd28c;border:2px solid #8f7042;box-shadow:3px 3px 0 #17110d;pointer-events:auto}
-.v4-arrows .touch-controls #interact{right:max(18px,env(safe-area-inset-right))}
-.v4-joystick .touch-controls>button[data-key="up"],.v4-joystick .touch-controls>div:not(.mobile-actions):not(.mobile-stick){display:none!important}
-#world{image-rendering:pixelated;image-rendering:crisp-edges;filter:saturate(1.08) contrast(1.06)}
-.screen:before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(circle at 50% 45%,transparent 48%,rgba(18,13,9,.18) 100%)}
+/* Controls are visible by default on touch devices. Settings only switches the movement scheme. */
+@media (pointer:coarse),(max-width:800px){
+ .touch-controls{display:block!important;z-index:900!important;pointer-events:none!important}
+ .mobile-stick{display:block!important;position:fixed!important;z-index:901!important;pointer-events:auto!important;visibility:visible!important;opacity:1!important}
+ .mobile-stick-ring{display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+ .mobile-stick-knob{display:block!important;visibility:visible!important;opacity:1!important}
+ .mobile-actions{display:flex!important;visibility:visible!important;opacity:1!important;z-index:902!important;pointer-events:auto!important}
+ .touch-controls #interact{display:flex!important;visibility:visible!important;opacity:1!important;z-index:903!important;pointer-events:auto!important;align-items:center;justify-content:center}
+ .v4-joystick .touch-controls>button[data-key="up"],.v4-joystick .touch-controls>div:not(.mobile-actions):not(.mobile-stick){display:none!important}
+ .v4-arrows .mobile-stick{display:none!important}
+ .v4-arrows .touch-controls>button[data-key="up"]{display:flex!important;align-items:center;justify-content:center;position:fixed;left:max(82px,calc(82px + env(safe-area-inset-left)));bottom:calc(128px + env(safe-area-inset-bottom));width:58px;height:58px;background:#30251d;color:#efd28c;border:2px solid #8f7042;box-shadow:3px 3px 0 #17110d;pointer-events:auto!important;z-index:901}
+ .v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick){display:flex!important;position:fixed;left:max(18px,env(safe-area-inset-left));bottom:calc(18px + env(safe-area-inset-bottom));gap:6px;pointer-events:auto!important;z-index:901}
+ .v4-arrows .touch-controls>div:not(.mobile-actions):not(.mobile-stick) button{display:flex!important;align-items:center;justify-content:center;width:58px;height:58px;background:#30251d;color:#efd28c;border:2px solid #8f7042;box-shadow:3px 3px 0 #17110d;pointer-events:auto!important}
+}
+#world{image-rendering:pixelated;image-rendering:crisp-edges;filter:saturate(1.06) contrast(1.04);touch-action:none}
+.screen:before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(circle at 50% 45%,transparent 50%,rgba(18,13,9,.16) 100%)}
 .title-card,.v4MenuCard,.v4p-panel{image-rendering:pixelated}
 #hud{backdrop-filter:none;padding-top:max(7px,env(safe-area-inset-top))}
 .v4MenuCard button,.v4p-panel button{border-radius:0!important;box-shadow:3px 3px 0 #15100c;min-height:44px;touch-action:manipulation}
 button,a{touch-action:manipulation}
-.mobile-stick,.mobile-stick-ring,.mobile-actions,#interact{touch-action:none!important}
+.mobile-stick,.mobile-stick-ring,.mobile-actions,#interact{touch-action:none!important;-webkit-user-select:none;user-select:none}
 .mobile-stick{bottom:calc(16px + env(safe-area-inset-bottom));left:max(14px,env(safe-area-inset-left))}
 .mobile-actions{right:max(18px,env(safe-area-inset-right));bottom:calc(110px + env(safe-area-inset-bottom))}
 .touch-controls #interact{bottom:calc(22px + env(safe-area-inset-bottom));right:max(18px,env(safe-area-inset-right))}
 .dialogue{padding-bottom:max(18px,calc(18px + env(safe-area-inset-bottom)))}
+.v4-lowquality #world{filter:saturate(.98) contrast(1.01)}
 @media(max-width:800px){
  html,body{width:100%;height:100%;height:100dvh}
  .screen,#game{width:100vw;height:100dvh;height:var(--v4-vh);min-height:0}
- .touch-controls{z-index:500}
  .v4MenuCard{width:min(94vw,560px);max-height:calc(var(--v4-vh) - 24px);overflow:auto}
  .v4p-panel{max-width:94vw;max-height:calc(var(--v4-vh) - 24px);overflow:auto}
  .quest-panel{top:calc(66px + env(safe-area-inset-top))}
@@ -34,7 +42,6 @@ button,a{touch-action:manipulation}
  .touch-controls #interact{width:72px;height:72px}
  .mobile-actions{bottom:calc(104px + env(safe-area-inset-bottom));gap:6px}
  .mobile-actions button{min-width:72px;min-height:44px;font-size:9px;padding:7px 8px}
- .mobile-tip{font-size:12px;padding:15px}
 }
 @media(orientation:landscape) and (max-height:520px){
  .mobile-stick{width:116px;height:116px}.mobile-stick-knob{width:50px;height:50px;margin:-25px}
