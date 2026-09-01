@@ -1,87 +1,58 @@
-/* Villa Pelón V4 — MOBILE FIRST
-   Controles táctiles sin segundo motor ni RAF.
-   El motor principal sigue siendo game.js.
-   BUILD 413: interacción directa + paneles V4 + multitouch seguro.
+/* Villa Pelón V4 — MOBILE INPUT 417
+   Un único input compartido con game.js. Pointer Events + joystick + flechas.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 const input=V.input;
 const touch=document.getElementById('touch');
 if(!input||!touch)return;
-
-const prevent=e=>{e.preventDefault();e.stopPropagation()};
-
-// El auditor V4 ya conecta el botón E con V.engine.interact().
-// No simulamos teclado aquí: eso provocaba doble interacción en móviles.
-const action=document.getElementById('interact');
-if(action){
-  action.setAttribute('aria-label','Interactuar / hablar / usar');
-  action.addEventListener('pointerdown',prevent,{passive:false});
+const KEY='villa_pelon_v4_settings';
+let controls='joystick';
+try{controls=JSON.parse(localStorage.getItem(KEY)||'{}').controls||'joystick'}catch(_){}
+function applyMode(){
+  controls=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}').controls||'joystick'}catch(_){return 'joystick'}})();
+  document.body.classList.toggle('v4-arrows',controls==='arrows');
+  document.body.classList.toggle('v4-joystick',controls!=='arrows');
+  touch.dataset.controlMode=controls;
 }
+applyMode();
 
-// Joystick virtual analógico: movimiento continuo y diagonales naturales.
-touch.querySelector('.mobile-stick')?.remove();
-const pad=document.createElement('div');
-pad.className='mobile-stick';
-pad.setAttribute('aria-label','Joystick virtual');
+const padOld=touch.querySelector('.mobile-stick');if(padOld)padOld.remove();
+const pad=document.createElement('div');pad.className='mobile-stick';pad.setAttribute('role','application');pad.setAttribute('aria-label','Joystick virtual');
 pad.innerHTML='<div class="mobile-stick-ring"><div class="mobile-stick-knob"></div></div>';
 touch.insertBefore(pad,touch.firstChild);
-const ring=pad.querySelector('.mobile-stick-ring');
-const knob=pad.querySelector('.mobile-stick-knob');
+const ring=pad.querySelector('.mobile-stick-ring'),knob=pad.querySelector('.mobile-stick-knob');
 let pointerId=null;
-function center(){return {x:ring.clientWidth/2,y:ring.clientHeight/2,r:ring.clientWidth*.34}}
-function reset(){input.up=input.down=input.left=input.right=false;knob.style.transform='translate(0,0)'}
-function move(e){
-  if(pointerId!==e.pointerId)return;
-  prevent(e);
-  const rect=ring.getBoundingClientRect(),c=center();
-  let x=e.clientX-rect.left-c.x,y=e.clientY-rect.top-c.y;
-  const d=Math.hypot(x,y),r=c.r;if(d>r&&d>0){x=x/d*r;y=y/d*r}
-  knob.style.transform=`translate(${x}px,${y}px)`;
-  const dead=.16,px=x/r,py=y/r;
-  input.left=px < -dead; input.right=px > dead;
-  input.up=py < -dead; input.down=py > dead;
-}
-function release(e){
-  if(pointerId!==e.pointerId)return;
-  prevent(e);pointerId=null;reset();
-  try{ring.releasePointerCapture(e.pointerId)}catch(_){}
-}
-ring.addEventListener('pointerdown',e=>{prevent(e);pointerId=e.pointerId;try{ring.setPointerCapture(pointerId)}catch(_){}move(e)},{passive:false});
-ring.addEventListener('pointermove',move,{passive:false});
-ring.addEventListener('pointerup',release,{passive:false});
-ring.addEventListener('pointercancel',release,{passive:false});
-ring.addEventListener('lostpointercapture',reset);
+function reset(){input.up=input.down=input.left=input.right=false;knob.style.transform='translate3d(0,0,0)'}
+function move(e){if(pointerId!==e.pointerId)return;e.preventDefault();const r=ring.getBoundingClientRect(),cx=r.width/2,cy=r.height/2,max=Math.min(r.width,r.height)*.34;let x=e.clientX-r.left-cx,y=e.clientY-r.top-cy,d=Math.hypot(x,y);if(d>max&&d>0){x=x/d*max;y=y/d*max}knob.style.transform=`translate3d(${x}px,${y}px,0)`;const dead=.12,px=x/max,py=y/max;input.left=px<-dead;input.right=px>dead;input.up=py<-dead;input.down=py>dead}
+function release(e){if(pointerId!==e.pointerId)return;e.preventDefault();pointerId=null;reset();try{ring.releasePointerCapture(e.pointerId)}catch(_){} }
+ring.addEventListener('pointerdown',e=>{e.preventDefault();pointerId=e.pointerId;try{ring.setPointerCapture(pointerId)}catch(_){}move(e)},{passive:false});
+ring.addEventListener('pointermove',move,{passive:false});ring.addEventListener('pointerup',release,{passive:false});ring.addEventListener('pointercancel',release,{passive:false});ring.addEventListener('lostpointercapture',reset);
 
-// Acciones: se conectan directamente a los botones de V4 cuando existen.
-// Esto evita depender de atajos de teclado que no todos los navegadores emulan igual.
-const actions=[['mobile-map','map','MAPA'],['mobile-missions','missions','MISIONES'],['mobile-bag','bag','MOCHILA'],['mobile-memory','memory','MEMORIA']];
-const tools=document.createElement('div');tools.className='mobile-actions';tools.setAttribute('aria-label','Acciones del juego');
-function trigger(name){
-  const target=document.querySelector(`#v4pTools [data-v4="${name}"]`);
-  if(target){target.click();return true}
-  // Si el sistema de jugabilidad todavía está montando sus controles, reintentamos una sola vez.
-  setTimeout(()=>document.querySelector(`#v4pTools [data-v4="${name}"]`)?.click(),80);
-  return false;
-}
-actions.forEach(([id,name,label])=>{
-  const b=document.createElement('button');b.id=id;b.type='button';b.textContent=label;b.setAttribute('aria-label',label);
-  b.addEventListener('pointerdown',e=>{prevent(e);trigger(name)},{passive:false});
-  tools.appendChild(b);
+// Las flechas usan exactamente el mismo V.input que teclado/joystick.
+touch.querySelectorAll('button[data-key]').forEach(b=>{
+  const k=b.dataset.key;
+  b.addEventListener('pointerdown',e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(_){};input[k]=true},{passive:false});
+  const off=e=>{if(e)e.preventDefault();input[k]=false;try{b.releasePointerCapture(e.pointerId)}catch(_){} };
+  b.addEventListener('pointerup',off,{passive:false});b.addEventListener('pointercancel',off,{passive:false});b.addEventListener('lostpointercapture',()=>input[k]=false);
 });
+
+// Botón de interacción: el boot audit ya lo conecta al motor. No bloqueamos su click.
+const action=document.getElementById('interact');if(action)action.setAttribute('aria-label','Interactuar / hablar / usar');
+
+const actions=[['mobile-map','map','MAPA'],['mobile-missions','missions','MISIONES'],['mobile-bag','bag','MOCHILA'],['mobile-memory','memory','MEMORIA']];
+let tools=touch.querySelector('.mobile-actions');if(tools)tools.remove();
+tools=document.createElement('div');tools.className='mobile-actions';tools.setAttribute('aria-label','Acciones del juego');
+function trigger(name){const target=document.querySelector(`#v4pTools [data-v4="${name}"]`);if(target){target.click();return}setTimeout(()=>document.querySelector(`#v4pTools [data-v4="${name}"]`)?.click(),100)}
+actions.forEach(([id,name,label])=>{const b=document.createElement('button');b.id=id;b.type='button';b.textContent=label;b.setAttribute('aria-label',label);b.addEventListener('click',e=>{e.preventDefault();trigger(name)},{passive:false});tools.appendChild(b)});
 touch.appendChild(tools);
 
-for(const el of [pad,ring,action,tools])if(el)el.style.touchAction='none';
+for(const el of [pad,ring,tools])el.style.touchAction='none';
+function showTip(){if(localStorage.getItem('villa_pelon_mobile_tip')==='1')return;localStorage.setItem('villa_pelon_mobile_tip','1');const d=document.createElement('div');d.className='mobile-tip';d.innerHTML='<b>CONTROLES</b><br>Joystick o flechas para caminar · E para hablar';document.body.appendChild(d);setTimeout(()=>d.classList.add('mobile-tip-hide'),3500);setTimeout(()=>d.remove(),4000)}
+document.getElementById('startBtn')?.addEventListener('click',()=>setTimeout(showTip,250),{once:true});
 
-// Mobile UX: mostrar un aviso breve solo en la primera entrada al juego.
-let tipShown=false;
-function showTip(){
-  if(tipShown||localStorage.getItem('villa_pelon_mobile_tip')==='1')return;
-  tipShown=true;localStorage.setItem('villa_pelon_mobile_tip','1');
-  const d=document.createElement('div');d.className='mobile-tip';d.innerHTML='<b>CONTROLES</b><br>Joystick para caminar · E para hablar · botones para mapa, misiones, mochila y memoria';
-  document.body.appendChild(d);setTimeout(()=>d.classList.add('mobile-tip-hide'),4200);setTimeout(()=>d.remove(),4700);
-}
-document.getElementById('startBtn')?.addEventListener('click',()=>setTimeout(showTip,300),{once:true});
-
-V.mobile={version:2,joystick:true,actions:true,directInteraction:true};
+// Si el usuario cambia joystick/flechas desde configuración, aplicarlo inmediatamente.
+setInterval(()=>{const before=controls;applyMode();if(before!==controls)reset()},600);
+window.addEventListener('blur',reset,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()},{passive:true});
+V.mobile={version:3,joystick:true,arrows:true,directInteraction:true};
 })();
