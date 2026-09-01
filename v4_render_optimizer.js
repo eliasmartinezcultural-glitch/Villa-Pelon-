@@ -1,45 +1,38 @@
-/* Villa Pelón V4 — RENDER OPTIMIZER 417
-   Reduce trabajo gráfico en Android sin crear otro motor ni otro RAF.
-   El motor original conserva física, cámara y lógica.
+/* Villa Pelón V4 — RENDER OPTIMIZER 418
+   PC + MOBILE. No second RAF. The main engine remains authoritative.
+   Optimizes render cadence, visibility and adaptive quality.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
-const mobile=matchMedia('(max-width:800px), (pointer:coarse)').matches;
-if(!mobile)return;
 function settings(){try{return JSON.parse(localStorage.getItem('villa_pelon_v4_settings')||'{}')}catch(_){return {}}}
-let lastPaint=0, frames=0, samples=0, acc=0, fps=60, hidden=document.hidden;
+const coarse=matchMedia('(pointer:coarse)').matches||innerWidth<=900;
+let hidden=document.hidden,lastPaint=0,samples=0,acc=0;
 const originalRender=V.engine?.render;
 if(!originalRender)return;
 const originalLifeUpdate=V.life?.update;
-if(originalLifeUpdate){V.life.update=function(dt,minutes){if(hidden)return;return originalLifeUpdate.call(this,dt,minutes)}}
-
+if(originalLifeUpdate&&!V.renderOptimizerLifeBound){V.renderOptimizerLifeBound=true;V.life.update=function(dt,minutes){if(hidden)return;return originalLifeUpdate.call(this,dt,minutes)}}
 document.addEventListener('visibilitychange',()=>{hidden=document.hidden;lastPaint=0},{passive:true});
 
+// Cadencia adaptativa: PC conserva la máxima fluidez; móviles moderan el render cuando corresponde.
 V.engine.render=function(){
   if(hidden)return;
-  const s=settings();
-  const low=s.quality==='low';
-  const target=low?30:45;
+  const s=settings(), low=s.quality==='low'||s.quality==='battery';
+  const target=coarse?(low?30:45):60;
   const now=performance.now();
   if(lastPaint&&now-lastPaint<1000/target)return;
   lastPaint=now;
-  frames++;
   originalRender();
-  // Telemetría ligera: no se escribe en DOM.
-  if(V.v4){samples++;acc+=V.v4.fps||0;if(samples>=30){fps=acc/samples;V.v4.renderFps=Math.round(fps);samples=0;acc=0}}
+  if(V.v4){samples++;acc+=V.v4.fps||0;if(samples>=30){V.v4.renderFps=Math.round(acc/samples);samples=0;acc=0}}
 };
 
-// Android: bajar resolución interna solo cuando la pantalla es grande/retina.
-// game.js seguirá siendo dueño del resize; este perfil solo decide el límite.
-function profile(){
-  const c=V.engine?.canvas;if(!c)return;
-  const s=settings(),low=s.quality==='low';
-  const dpr=devicePixelRatio||1;
-  const cap=low?1:1.25;
-  V.mobileGraphics={dpr:Math.min(dpr,cap),quality:low?'battery':'high',targetFps:low?30:45};
+function quality(){
+  const c=V.engine?.canvas||document.getElementById('world');
+  if(!c)return;
+  const s=settings(),low=s.quality==='low'||s.quality==='battery';
+  const cap=coarse?(low?1:1.25):2;
+  V.mobileGraphics={dpr:Math.min(devicePixelRatio||1,cap),quality:low?'battery':'high',targetFps:coarse?(low?30:45):60};
   c.style.imageRendering='pixelated';
 }
-profile();
-window.addEventListener('resize',profile,{passive:true});
-V.renderOptimizer={version:1,mobile:true,targetHigh:45,targetLow:30,hiddenPause:true};
+quality();addEventListener('resize',quality,{passive:true});
+V.renderOptimizer={version:2,pc:true,mobile:coarse,targetDesktop:60,targetHigh:45,targetLow:30,hiddenPause:true,adaptiveDpr:true};
 })();
