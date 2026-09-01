@@ -8,7 +8,9 @@ function install(){
  const baseSave=V.engine.save,baseLoad=V.engine.load;
  V.engine.save=()=>{V.state.version=4;baseSave?.();try{localStorage.setItem('villa_pelon_v4_save',JSON.stringify({...V.state,version:4}))}catch(_){} };
  V.engine.load=()=>{baseLoad?.();V.state.version=4;try{const x=JSON.parse(localStorage.getItem('villa_pelon_v4_save')||'null');if(x)Object.assign(V.state,x,{version:4})}catch(_){} };
- K.modules=K.modules||{};K.modules.compat={version:4,saveKey:'villa_pelon_v4_save',worldKey:'villa_pelon_v4_world'};return true;
+ K.modules=K.modules||{};K.modules.compat={version:4,saveKey:'villa_pelon_v4_save',worldKey:'villa_pelon_v4_world'};
+ setInterval(()=>{if(V.state)V.state.version=4;copy('villa_pelon_v3_save','villa_pelon_v4_save');copy('villa_pelon_v3_world','villa_pelon_v4_world')},1000);
+ return true;
 }
 const wait=()=>install()||requestAnimationFrame(wait);wait();
 })();
