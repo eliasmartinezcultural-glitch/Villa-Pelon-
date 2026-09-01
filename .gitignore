@@ -1,9 +1,0 @@
-# Godot 4+
-.godot/
-/export/
-.DS_Store
-Thumbs.db
-*.tmp
-*.bak
-.vscode/
-.idea/
