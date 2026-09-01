@@ -1,64 +1,51 @@
-# VILLA PELÓN — Documento base V2
+# VILLA PELÓN — DISEÑO V3
 
-## 1. Qué estamos construyendo
+## 1. Visión
 
-Villa Pelón es un videojuego educativo 2D, tipo RPG de exploración y vida cotidiana, pensado desde el inicio para celular y PC.
+Villa Pelón es un videojuego 2D de exploración, vida cotidiana, aventura e identidad rural. El jugador vive un día a día común dentro de un pueblo ficticio inspirado en el paisaje, cultura y memoria de San Patricio del Chañar.
 
-El jugador vive y recorre un pequeño pueblo rural. El mundo debe sentirse vivo incluso cuando el jugador permanece quieto: personas, vehículos, animales, clima, horarios y actividades continúan funcionando.
+El objetivo es vivir el pueblo: caminar, trabajar, comprar, conversar, descubrir lugares, conocer historias y decidir qué hacer con el día.
 
-El mundo de Villa Pelón será una representación ficticia inspirada en el paisaje, cultura e historia de San Patricio del Chañar. Cuando una misión utilice un hecho histórico real, deberá existir una fuente verificable.
+## 2. Motor
 
-## 2. V2 — Concepto inicial de mundo vivo
+V3 utiliza un único motor central. `game.js` controla el ciclo principal, entrada, movimiento, cámara, colisiones, tiempo, render y persistencia.
 
-La Versión 2 tiene un objetivo concreto: demostrar que el pueblo está vivo.
+Los módulos especializados se integran mediante `VillaPelon` y no crean bucles de juego paralelos.
 
-El jugador debe poder:
-- caminar libremente;
-- observar personas desplazándose;
-- ver vehículos y maquinaria rural en movimiento;
-- encontrar animales;
-- observar cambios de hora y luz;
-- experimentar distintos estados del clima;
-- interactuar con vecinos y lugares;
-- realizar una primera actividad/misión;
-- guardar la partida.
+## 3. Mundo vivo
 
-## 3. Bucle principal
+`v3_world.js` administra ciudadanos, rutas, vehículos, animales, horarios y eventos ambientales.
 
-EXPLORAR → OBSERVAR → HABLAR → RECIBIR PISTA → BUSCAR → DESCUBRIR → APRENDER
+Los ciudadanos tienen identidad, hogar, trabajo, horario, destino, velocidad, actividad y posición dinámica. El tránsito utiliza rutas con puntos de recorrido. Los animales se desplazan dentro de zonas rurales delimitadas.
 
-## 4. Escala del mundo
+## 4. Jugador
 
-La cámara debe mostrar una visión general del pueblo. El personaje será relativamente pequeño respecto del escenario, manteniendo una escala creíble entre viviendas, calles, vehículos, vegetación y personas.
+El jugador puede caminar, correr según energía disponible, interactuar, descansar, comprar, trabajar, conversar, descubrir historia, administrar dinero e inventario, utilizar mochila/mapa/teléfono y guardar la partida.
 
-## 5. Vida cotidiana
+## 5. Bucle de juego
 
-El pueblo debe combinar zona urbana y rural: viviendas, escuela, plaza, comercio, radio, galpones, caminos, canales de riego, chacras, frutales, viñedos y espacios productivos.
+EXPLORAR → CONOCER → HABLAR → TRABAJAR → COMPRAR → DESCUBRIR → DECIDIR → VOLVER A EXPLORAR
 
-## 6. Sistemas de V2
+## 6. Espacios
 
-- Movimiento del jugador.
-- NPC con comportamiento básico.
-- Tránsito.
-- Animales.
-- Reloj y ciclo día/noche.
-- Clima.
-- Economía inicial.
-- Inventario inicial.
-- Interacciones.
-- Primera misión.
-- Guardado local.
+El mundo combina viviendas, escuela, plaza, almacén, radio, galpón rural, bodega, caminos, canales, chacras, viñedos, zonas naturales y espacios deportivos.
 
-## 7. Historia y educación
+## 7. Narrativa
 
-La historia real se incorporará progresivamente y siempre se diferenciará de la ficción. No se afirmarán datos históricos como ciertos sin una fuente verificable.
+`story.js` administra la campaña principal, misiones secundarias, diálogos, relaciones y recompensas. La campaña conduce progresivamente desde la llegada al pueblo hacia el mundo abierto.
 
-## 8. Plataforma
+## 8. Historia y educación
 
-La versión jugable se ejecuta en navegador mediante GitHub Pages, sin necesidad de descargar un programa.
+`history.js` contiene memorias documentadas. La ficción jugable se mantiene separada de los hechos históricos y cada dato histórico debe conservar su fuente.
 
-## 9. Identificación
+## 9. Persistencia
 
-**PROYECTO: VILLA PELÓN — VERSIÓN 2**
+V3 guarda el estado del jugador y el estado dinámico del mundo en almacenamiento local. Las partidas anteriores pueden migrarse progresivamente.
 
-Todas las referencias de esta etapa deben utilizar V2. Las numeraciones de otros proyectos no forman parte de Villa Pelón.
+## 10. Plataforma
+
+El juego está diseñado para navegador y GitHub Pages, con soporte de PC y controles táctiles.
+
+## 11. Identificación
+
+**VILLA PELÓN — V3 — MOTOR CENTRAL + MUNDO VIVO**
