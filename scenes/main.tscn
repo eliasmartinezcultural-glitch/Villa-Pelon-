@@ -1,24 +1,41 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource path="res://scripts/main.gd" type="Script" id="1"]
 [ext_resource path="res://scripts/player.gd" type="Script" id="2"]
 
+[sub_resource type="StandardMaterial3D" id="GroundMat"]
+albedo_color = Color(0.28, 0.42, 0.23, 1)
+[sub_resource type="StandardMaterial3D" id="RoadMat"]
+albedo_color = Color(0.25, 0.23, 0.20, 1)
+[sub_resource type="StandardMaterial3D" id="HouseMat"]
+albedo_color = Color(0.72, 0.62, 0.46, 1)
+[sub_resource type="StandardMaterial3D" id="PlayerMat"]
+albedo_color = Color(0.12, 0.38, 0.65, 1)
+[sub_resource type="StandardMaterial3D" id="ClueMat"]
+albedo_color = Color(0.9, 0.75, 0.18, 1)
 [sub_resource type="BoxMesh" id="GroundMesh"]
 size = Vector3(50, 0.2, 50)
+material = SubResource("GroundMat")
 [sub_resource type="BoxShape3D" id="GroundShape"]
 size = Vector3(50, 0.2, 50)
+[sub_resource type="BoxMesh" id="RoadMesh"]
+size = Vector3(8, 0.05, 45)
+material = SubResource("RoadMat")
+[sub_resource type="BoxMesh" id="HouseMesh"]
+size = Vector3(5, 3, 4)
+material = SubResource("HouseMat")
+[sub_resource type="BoxShape3D" id="HouseShape"]
+size = Vector3(5, 3, 4)
 [sub_resource type="CapsuleMesh" id="PlayerMesh"]
 radius = 0.38
 height = 1.5
+material = SubResource("PlayerMat")
 [sub_resource type="CapsuleShape3D" id="PlayerShape"]
 radius = 0.38
 height = 1.5
-[sub_resource type="BoxMesh" id="HouseMesh"]
-size = Vector3(5, 3, 4)
-[sub_resource type="BoxShape3D" id="HouseShape"]
-size = Vector3(5, 3, 4)
-[sub_resource type="BoxMesh" id="RoadMesh"]
-size = Vector3(8, 0.05, 45)
+[sub_resource type="BoxMesh" id="ClueMesh"]
+size = Vector3(0.8, 0.8, 0.15)
+material = SubResource("ClueMat")
 
 [node name="VillaPelon" type="Node3D"]
 script = ExtResource("1")
@@ -44,20 +61,22 @@ position = Vector3(-9, 1.5, -8)
 mesh = SubResource("HouseMesh")
 [node name="Collision" type="CollisionShape3D" parent="HouseA"]
 shape = SubResource("HouseShape")
-
 [node name="HouseB" type="StaticBody3D" parent="."]
 position = Vector3(9, 1.5, 2)
 [node name="Mesh" type="MeshInstance3D" parent="HouseB"]
 mesh = SubResource("HouseMesh")
 [node name="Collision" type="CollisionShape3D" parent="HouseB"]
 shape = SubResource("HouseShape")
-
 [node name="HouseC" type="StaticBody3D" parent="."]
 position = Vector3(-9, 1.5, 12)
 [node name="Mesh" type="MeshInstance3D" parent="HouseC"]
 mesh = SubResource("HouseMesh")
 [node name="Collision" type="CollisionShape3D" parent="HouseC"]
 shape = SubResource("HouseShape")
+
+[node name="Clue" type="MeshInstance3D" parent="."]
+position = Vector3(3, 0.55, 8)
+mesh = SubResource("ClueMesh")
 
 [node name="Player" type="CharacterBody3D" parent="."]
 script = ExtResource("2")
@@ -75,21 +94,21 @@ current = true
 [node name="Title" type="Label" parent="UI"]
 offset_left = 32.0
 offset_top = 24.0
-offset_right = 500.0
+offset_right = 600.0
 offset_bottom = 70.0
 text = "VILLA PELÓN"
 theme_override_font_sizes/font_size = 32
 [node name="Progress" type="Label" parent="UI"]
 offset_left = 32.0
 offset_top = 70.0
-offset_right = 500.0
+offset_right = 600.0
 offset_bottom = 105.0
 text = "ARCHIVO DE MEMORIA  0 / 1"
 theme_override_font_sizes/font_size = 18
 [node name="Hint" type="Label" parent="UI"]
 offset_left = 32.0
 offset_top = 650.0
-offset_right = 1100.0
+offset_right = 1150.0
 offset_bottom = 700.0
-text = "Explorá Villa Pelón"
+text = "WASD / flechas para caminar · acercate al objeto dorado · E para investigar"
 theme_override_font_sizes/font_size = 20
