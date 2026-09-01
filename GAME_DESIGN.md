@@ -1,67 +1,64 @@
-# VILLA PELÓN — Documento base
+# VILLA PELÓN — Documento base V2
 
 ## 1. Qué estamos construyendo
 
-Villa Pelón es un videojuego educativo 2D, tipo RPG de exploración y misiones, pensado desde el inicio para celular y PC.
+Villa Pelón es un videojuego educativo 2D, tipo RPG de exploración y vida cotidiana, pensado desde el inicio para celular y PC.
 
-El jugador vive y recorre un pequeño pueblo rural. A través de conversaciones, exploración, objetos, fotografías, documentos y pequeñas misiones va reconstruyendo la historia del lugar.
+El jugador vive y recorre un pequeño pueblo rural. El mundo debe sentirse vivo incluso cuando el jugador permanece quieto: personas, vehículos, animales, clima, horarios y actividades continúan funcionando.
 
 El mundo de Villa Pelón será una representación ficticia inspirada en el paisaje, cultura e historia de San Patricio del Chañar. Cuando una misión utilice un hecho histórico real, deberá existir una fuente verificable.
 
-## 2. Bucle principal
+## 2. V2 — Concepto inicial de mundo vivo
 
-EXPLORAR → HABLAR → RECIBIR PISTA → BUSCAR → DESCUBRIR → APRENDER → REGISTRAR EN EL ARCHIVO → DESBLOQUEAR NUEVA MISIÓN
+La Versión 2 tiene un objetivo concreto: demostrar que el pueblo está vivo.
 
-La recompensa principal no será solamente dinero o puntos: será conocimiento y la reconstrucción progresiva de la memoria del pueblo.
+El jugador debe poder:
+- caminar libremente;
+- observar personas desplazándose;
+- ver vehículos y maquinaria rural en movimiento;
+- encontrar animales;
+- observar cambios de hora y luz;
+- experimentar distintos estados del clima;
+- interactuar con vecinos y lugares;
+- realizar una primera actividad/misión;
+- guardar la partida.
 
-## 3. Tipo de jugador
+## 3. Bucle principal
 
-- Caminar libremente por el pueblo.
-- Hablar con personajes.
-- Entrar en lugares habilitados.
-- Investigar objetos.
-- Recibir y completar misiones.
-- Encontrar fotografías y documentos.
-- Resolver preguntas y pequeños desafíos.
-- Construir un Archivo Histórico personal.
+EXPLORAR → OBSERVAR → HABLAR → RECIBIR PISTA → BUSCAR → DESCUBRIR → APRENDER
 
-## 4. El Archivo Histórico
+## 4. Escala del mundo
 
-Cada descubrimiento tendrá una ficha:
+La cámara debe mostrar una visión general del pueblo. El personaje será relativamente pequeño respecto del escenario, manteniendo una escala creíble entre viviendas, calles, vehículos, vegetación y personas.
 
-- Nombre
-- Fecha o período
-- Lugar
-- Tipo de material
-- Explicación sencilla
-- Fuente histórica, cuando corresponda
-- Estado: descubierto / no descubierto
+## 5. Vida cotidiana
 
-## 5. Progresión educativa
+El pueblo debe combinar zona urbana y rural: viviendas, escuela, plaza, comercio, radio, galpones, caminos, canales de riego, chacras, frutales, viñedos y espacios productivos.
 
-El juego avanzará por capítulos históricos. No se fijarán fechas o acontecimientos definitivos hasta investigar y documentar las fuentes.
+## 6. Sistemas de V2
 
-La primera versión utilizará contenido ficticio de entrenamiento para probar la mecánica. El contenido histórico real se incorporará posteriormente con sus referencias.
+- Movimiento del jugador.
+- NPC con comportamiento básico.
+- Tránsito.
+- Animales.
+- Reloj y ciclo día/noche.
+- Clima.
+- Economía inicial.
+- Inventario inicial.
+- Interacciones.
+- Primera misión.
+- Guardado local.
 
-## 6. Diseño visual
+## 7. Historia y educación
 
-2D, lectura clara, estética de pueblo rural patagónico, mapa pequeño inicialmente y crecimiento modular. Debe funcionar bien en pantallas táctiles y conservar una buena experiencia con mouse/teclado.
+La historia real se incorporará progresivamente y siempre se diferenciará de la ficción. No se afirmarán datos históricos como ciertos sin una fuente verificable.
 
-## 7. Plataformas
+## 8. Plataforma
 
-- Android como prioridad móvil.
-- PC como segunda plataforma.
-- Arquitectura preparada para ampliar posteriormente.
+La versión jugable se ejecuta en navegador mediante GitHub Pages, sin necesidad de descargar un programa.
 
-## 8. Primera versión jugable
+## 9. Identificación
 
-V0.1 debe demostrar solamente el corazón del juego:
+**PROYECTO: VILLA PELÓN — VERSIÓN 2**
 
-1. Entrar al pueblo.
-2. Mover al personaje.
-3. Llegar a una zona de investigación.
-4. Activar una pista.
-5. Completar una primera mini misión.
-6. Registrar un descubrimiento en el Archivo.
-
-Después de validar ese ciclo se agregan NPC, diálogos, fotografías reales, documentos, más mapa y capítulos históricos.
+Todas las referencias de esta etapa deben utilizar V2. Las numeraciones de otros proyectos no forman parte de Villa Pelón.
