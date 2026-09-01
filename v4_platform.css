@@ -1,0 +1,22 @@
+/* V4 PLATFORM 418 — PC + MOBILE */
+:root{--vh:100vh;--vw:100vw}
+html,body{width:100%;height:100%;min-height:var(--vh)}
+.screen{height:var(--vh);min-height:var(--vh)}
+#game{height:var(--vh);min-height:var(--vh)}
+#world{width:var(--vw)!important;height:var(--vh)!important;display:block}
+.platform-stick{display:none}
+.platform-pc .touch-controls{display:none!important}
+.platform-pc #interact{display:none!important}
+.platform-touch .touch-controls{display:block!important;pointer-events:none!important}
+.platform-touch .platform-stick{display:block;position:fixed;z-index:905;left:max(14px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom));width:148px;height:148px;touch-action:none}
+.platform-stick-ring{position:absolute;inset:0;border:3px solid #8f7042;border-radius:50%;background:rgba(42,33,26,.78);box-shadow:5px 5px 0 rgba(0,0,0,.32);touch-action:none}
+.platform-stick-knob{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px;border:3px solid #efd58f;border-radius:50%;background:#c99c50;box-shadow:3px 3px 0 #17110d;pointer-events:none}
+.platform-touch #interact{display:block!important;position:fixed;z-index:910;right:max(18px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));width:76px;height:76px}
+.platform-touch #touch [data-key]{pointer-events:auto}
+.platform-low #world{filter:saturate(.95) contrast(1.02)}
+.platform-high #world{filter:saturate(1.04) contrast(1.05)}
+#platformHint{position:fixed;z-index:50;left:50%;bottom:6px;transform:translateX(-50%);font:700 9px monospace;letter-spacing:.5px;color:rgba(239,220,173,.72);pointer-events:none;text-shadow:2px 2px #17110d;white-space:nowrap}
+@media(max-width:900px){.platform-stick{display:block}.platform-touch #platformHint{display:none}.platform-touch .touch-controls{display:block!important}.platform-touch #interact{display:block!important}}
+@media(max-width:430px){.platform-touch .platform-stick{width:132px;height:132px}.platform-stick-knob{width:54px;height:54px;margin:-27px}.platform-touch #interact{width:70px;height:70px}}
+@media(orientation:landscape) and (max-height:520px){.platform-touch .platform-stick{width:112px;height:112px}.platform-stick-knob{width:48px;height:48px;margin:-24px}.platform-touch #interact{width:62px;height:62px}}
+.v4-paused #world{filter:brightness(.72) saturate(.8)}
