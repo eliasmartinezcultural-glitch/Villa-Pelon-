@@ -1,22 +1,21 @@
-/* Villa Pelón V6.7 — ESCALA FÍSICA + MAPA EXPANDIDO */
+/* Villa Pelón V6.7 — ESCALA FÍSICA + MAPA EXPANDIDO
+   Contrato de datos compartido. El motor principal es el único renderizador.
+*/
 (()=>{'use strict';
-const V=window.VillaPelon||(window.VillaPelon={}),C=document.getElementById('world');if(!C)return;
-const S=V.worldScale=Object.assign(V.worldScale||{},{version:3,unit:'world-pixel',adultHeight:60,childHeight:47,cowHeight:67,horseHeight:69,doorHeight:78,carLength:86,truckLength:112,roadWidth:230,sidewalkWidth:34});
-const W=8400,H=5600;V.world=V.world||{};V.world.w=W;V.world.h=H;V.world.scaleVersion=3;V.world.regions={city:{x:0,y:0,w:3900,h:3000},suburbs:{x:3500,y:400,w:2200,h:2800},rural:{x:3000,y:2700,w:4000,h:2900},river:{x:7000,y:0,w:1200,h:5600}};
-const rect=(c,x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
-function line(c,x1,y1,x2,y2,col,w=4){c.strokeStyle=col;c.lineWidth=w;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke()}
-function road(c,x,y,w,h){rect(c,x,y,w,h,'#bca777');if(w>h){rect(c,x,y+h*.36,w,h*.28,'#dfd0a5');line(c,x,y+h*.5,x+w,y+h*.5,'#8b7557',4)}else{rect(c,x+w*.36,y,w*.28,h,'#dfd0a5');line(c,x+w*.5,y,x+w*.5,y+h,'#8b7557',4)}}
-function field(c,x,y,w,h){rect(c,x,y,w,h,'#9c8b60');for(let yy=y+28;yy<y+h;yy+=34)line(c,x+10,yy,x+w-10,yy,'#66764b',3)}
-function tree(c,x,y,s=1){rect(c,x-5*s,y+8*s,10*s,32*s,'#604832');rect(c,x-23*s,y-8*s,46*s,28*s,'#526b46');rect(c,x-15*s,y-22*s,30*s,20*s,'#60794c');rect(c,x-7*s,y-30*s,14*s,10*s,'#6b8250')}
-function fence(c,x,y,len){for(let i=0;i<len;i+=28)rect(c,x+i,y,6,28,'#75553b');rect(c,x,y,len,6,'#806143')}
-function river(c){const x=7000,w=1200;c.fillStyle='#5b858d';c.beginPath();c.moveTo(x+150,0);for(let y=0;y<=H;y+=160)c.lineTo(x+430+Math.sin(y*.008)*210,y);c.lineTo(x+w-120,H);for(let y=H;y>=0;y-=160)c.lineTo(x+760+Math.sin(y*.008)*190,y);c.closePath();c.fill();for(let y=90;y<H;y+=240)rect(c,x+300+(y%360),y,90,5,'#a8c4bf')}
-function bridge(c,y){rect(c,6940,y-26,1320,52,'#66503b');for(let i=0;i<1320;i+=42)rect(c,6960+i,y-34,6,68,'#4d3d30')}
-function install(){const e=V.engine;if(!e||typeof e.render!=='function'||e.__worldScaleV67)return false;e.__worldScaleV67=true;const original=e.render;e.render=function(){const r=original.apply(this,arguments),c=C.getContext('2d');if(!c)return r;const cam=V.camera||{x:0,y:0,zoom:1},z=Number(cam.zoom||1),vw=innerWidth,vh=innerHeight;c.save();c.translate(vw/2-cam.x*z,vh/2-cam.y*z);c.scale(z,z);c.imageSmoothingEnabled=false;
-if(cam.x>3600||cam.y>2300){rect(c,3000,2500,5400,3100,'#a8956b');for(let i=0;i<90;i++){const x=3000+(i*173)%4000,y=2700+(i*311)%2800;if(x<7000)tree(c,x,y,.75+(i%3)*.12)}}
-road(c,3950,700,1250,230);road(c,3950,1250,230,1350);road(c,5000,700,230,2300);road(c,3550,2200,1900,230);road(c,5900,1450,230,1700);road(c,6100,2700,1100,230);road(c,6700,3500,540,230);
-field(c,3000,3000,1050,650);field(c,4500,3150,1050,720);field(c,5650,3150,900,650);field(c,3500,3900,1150,700);field(c,4800,4100,1150,650);field(c,6100,3950,850,900);
-[[4200,430,620,250],[4200,1000,620,200],[4200,1500,620,250],[4200,2050,620,230],[5300,430,520,250],[5300,1000,520,250],[5300,1600,520,250],[5300,2150,520,240]].forEach(b=>{rect(c,b[0],b[1],b[2],b[3],'#bfa47a');fence(c,b[0]+18,b[1]+b[3]-12,b[2]-36)});
-rect(c,3150,2850,3850,10,'#6b5941');rect(c,3150,2853,3850,5,'#71929a');rect(c,5440,2850,10,2550,'#6b5941');rect(c,5443,2850,5,2550,'#71929a');river(c);bridge(c,815);bridge(c,1395);c.restore();return r};return true}
-function normalize(){(V.npcs||[]).forEach(n=>{n.heightScale=Number(n.age)<18?.78:1;n.worldHeight=Number(n.age)<18?S.childHeight:S.adultHeight;n.scaleClass=Number(n.age)<18?'child':'adult'});(V.life?.ambient||[]).forEach(n=>{n.heightScale=Number(n.age)<18?.78:1;n.worldHeight=Number(n.age)<18?S.childHeight:S.adultHeight;n.scaleClass=Number(n.age)<18?'child':'adult'});(V.life?.animals||[]).forEach(a=>a.worldScale=a.type==='vaca'?1.12:a.type==='caballo'?1.15:.32);(V.life?.traffic||[]).forEach(o=>o.worldScale=o.type==='camion'?1.05:o.type==='tractor'?.95:o.type==='bicicleta'?.38:.82)}
-normalize();install();S.layout='city-suburbs-rural-river';S.dimensions={width:W,height:H,previous:{width:4200,height:2700},areaMultiplier:4};S.physicalReferences={adult:60,child:47,cow:67,horse:69,door:78,car:86,truck:112};
+const V=window.VillaPelon||(window.VillaPelon={});
+const S=V.worldScale=Object.assign(V.worldScale||{}, {version:3,unit:'world-pixel',adultHeight:60,childHeight:47,cowHeight:67,horseHeight:69,doorHeight:78,carLength:86,truckLength:112,roadWidth:230,sidewalkWidth:34});
+const W=8400,H=5600;V.world=V.world||{};V.world.w=W;V.world.h=H;V.world.version=Math.max(Number(V.world.version)||0,7);V.world.scaleVersion=3;
+V.world.regions={city:{x:0,y:0,w:3900,h:3000},suburbs:{x:3500,y:400,w:2200,h:2800},rural:{x:3000,y:2700,w:4000,h:2900},river:{x:7000,y:0,w:1200,h:5600}};
+V.world.roads=V.world.roads||[
+{x:0,y:700,w:5200,h:230},{x:1180,y:0,w:220,h:2700},{x:3950,y:700,w:1250,h:230},{x:3950,y:1250,w:230,h:1350},{x:5000,y:700,w:230,h:2300},{x:3550,y:2200,w:1900,h:230},{x:5900,y:1450,w:230,h:1700},{x:6100,y:2700,w:1100,h:230},{x:6700,y:3500,w:540,h:230}
+];
+V.world.river=V.world.regions.river;V.world.bridges=[{y:815,h:90},{y:1395,h:90}];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+for(const n of(V.npcs||[])){n.heightScale=Number(n.age)<18?.78:1;n.worldHeight=Number(n.age)<18?S.childHeight:S.adultHeight;n.scaleClass=Number(n.age)<18?'child':'adult'}
+for(const n of(V.life?.ambient||[])){n.heightScale=Number(n.age)<18?.78:1;n.worldHeight=Number(n.age)<18?S.childHeight:S.adultHeight;n.scaleClass=Number(n.age)<18?'child':'adult'}
+for(const a of(V.life?.animals||[])){a.worldScale=a.type==='vaca'?1.12:a.type==='caballo'?1.15:.32}
+for(const o of(V.life?.traffic||[])){o.worldScale=o.type==='camion'?1.05:o.type==='tractor'?.95:o.type==='bicicleta'?.38:.82}
+if(V.state){V.state.x=clamp(Number(V.state.x)||1280,60,W-60);V.state.y=clamp(Number(V.state.y)||820,180,H-60)}
+S.layout='city-suburbs-rural-river';S.dimensions={width:W,height:H,previous:{width:4200,height:2700},areaMultiplier:4};S.physicalReferences={adult:60,child:47,cow:67,horse:69,door:78,car:86,truck:112};S.renderAuthority='game.js';S.ready=true;
+V.v4?.register?.('worldScale',S);
 })();
