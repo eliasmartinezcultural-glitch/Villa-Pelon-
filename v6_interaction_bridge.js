@@ -1,10 +1,10 @@
-/* Villa Pelón V6.6 — INTERACCIÓN COHERENTE
-   Una sola entrada de interacción. No crea ciclos ni secuestra misiones existentes.
+/* Villa Pelón V6.6 — PUENTE DE INTERACCIÓN COMPATIBLE
+   La jugabilidad V4 sigue siendo la autoridad de misiones, inventario y diálogo.
+   Este módulo sólo publica nearest() para los sistemas visuales que lo necesitan.
+   No intercepta interact() y no crea ciclos.
 */
 (()=>{'use strict';
-const V=window.VillaPelon||(window.VillaPelon={});const B=V.v6Interaction=V.v6Interaction||{version:2,enabled:true,ready:false};
+const V=window.VillaPelon||(window.VillaPelon={});const B=V.v6Interaction=V.v6Interaction||{version:3,enabled:true,ready:false};
 function nearest(){const s=V.state;if(!s)return null;let best=null,bd=150;const arr=[...(V.npcs||[]),...(V.buildings||[]),...(V.historySpots||[]),...(V.storyJob?[V.storyJob]:[])];for(const o of arr){if(o?._v65Hidden)continue;const x=o.x+(o.w?o.w/2:0),y=o.y+(o.h?o.h/2:0),d=Math.hypot(s.x-x,s.y-y);if(d<bd){bd=d;best=o}}return best}
-function open(s,lines,source){const b=document.getElementById('dialogue');if(!b)return;V.state.dialogue=true;b.classList.remove('hidden');b.dataset.lines=JSON.stringify(lines||['']);b.dataset.index='0';const sp=document.getElementById('speaker'),tx=document.getElementById('dialogueText'),a=document.getElementById('sourceLink');if(sp)sp.textContent=s;if(tx)tx.textContent=lines?.[0]||'';if(a){if(source){a.href=source;a.classList.remove('hidden')}else a.classList.add('hidden')}}
-function install(){if(B.patched||!V.engine||typeof V.engine.interact!=='function')return false;const old=V.engine.interact;V.engine.interact=function(){if(V.state?.dialogue)return old.apply(this,arguments);const n=nearest();if(n){if(n.type==='bakery'){open(n.label||'PANADERÍA',['Hay pan recién hecho. Un mandado sencillo también puede convertirse en una historia.']);return}if(n.type==='public'){open(n.label||'SALÓN VECINAL',['Acá se reúnen vecinos, se organizan actividades y se cruzan historias del barrio.']);return}if(n.type==='job'){open('CHANGA RURAL',['Hay trabajo para hacer. Preguntá por la tarea y ganá unas monedas.']);return}if(n.id&&V.historySpots?.some(x=>x===n||x.id===n.id)){const lines={origen:['Este lugar guarda una pista sobre los primeros tiempos del territorio.','La historia también queda en el paisaje.'],riego:['El agua cambió la vida productiva de la zona.','Seguí la pista de los canales y mirá cómo se transformó el paisaje.'],vinos:['La producción vitivinícola formó parte de la identidad del Chañar.','Todavía quedan huellas de ese proceso en las chacras y bodegas.']};open('MEMORIA DEL LUGAR',lines[n.id]||['Encontraste una memoria del territorio.']);return}}return old.apply(this,arguments)};B.patched=true;B.ready=true;V.engine.nearest=nearest;return true}
-if(!install())B.ready=false;
+if(V.engine){V.engine.nearest=nearest;B.ready=true}V.worldInteractionAPI={nearest};
 })();
