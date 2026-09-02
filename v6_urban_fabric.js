@@ -1,37 +1,20 @@
-/* Villa Pelón V6.27 — TEJIDO URBANO
+/* Villa Pelón V6.28 — TEJIDO URBANO
    Relación espacial entre calles, lotes, edificios y espacio público.
    No crea loop ni física. Consume exclusivamente StreetSystem y BuildingSystem.
-   V6.27: elimina coordenadas urbanas huérfanas y deriva los nodos públicos
-   desde la red vial real.
+   V6.28: los destinos públicos quedan expuestos como datos derivados para NPC.
 */
 (()=>{'use strict';
-const V=window.VillaPelon||(window.VillaPelon={});
-const U=V.urbanFabric=V.urbanFabric||{};U.version=2;U.enabled=true;U.patched=false;
+const V=window.VillaPelon||(window.VillaPelon={});const U=V.urbanFabric=V.urbanFabric||{};U.version=3;U.enabled=true;U.patched=false;U.publicNodes=[];
 const R=(c,x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))};
 const L=(c,x1,y1,x2,y2,col,lw=1)=>{c.strokeStyle=col;c.lineWidth=lw;c.beginPath();c.moveTo(Math.round(x1),Math.round(y1));c.lineTo(Math.round(x2),Math.round(y2));c.stroke()};
-const roads=()=>Array.isArray(V.streetSystem?.roads)?V.streetSystem.roads:[];
-const buildings=()=>Array.isArray(V.buildingSystem?.buildings)?V.buildingSystem.buildings:[];
-const urban=r=>r&&(r.kind==='urban'||r.kind==='urban-edge');
+const roads=()=>Array.isArray(V.streetSystem?.roads)?V.streetSystem.roads:[];const buildings=()=>Array.isArray(V.buildingSystem?.buildings)?V.buildingSystem.buildings:[];const urban=r=>r&&(r.kind==='urban'||r.kind==='urban-edge');
 function sidewalk(c,r){if(!urban(r))return;const sw=V.streetSystem?.sidewalkWidth||28;R(c,r.x-sw,r.y-sw,r.w+sw*2,sw,'rgba(213,199,165,.78)');R(c,r.x-sw,r.y+r.h,r.w+sw*2,sw,'rgba(213,199,165,.78)');R(c,r.x-sw,r.y,sw,r.h,'rgba(213,199,165,.78)');R(c,r.x+r.w,r.y,sw,r.h,'rgba(213,199,165,.78)');R(c,r.x-sw,r.y-2,r.w+sw*2,4,'rgba(92,76,59,.42)');R(c,r.x-sw,r.y+r.h-2,r.w+sw*2,4,'rgba(92,76,59,.42)');R(c,r.x-2,r.y-sw,4,r.h+sw*2,'rgba(92,76,59,.42)');R(c,r.x+r.w-2,r.y-sw,4,r.h+sw*2,'rgba(92,76,59,.42)')}
 function frontage(c,b){if(!b||!Number.isFinite(b.x))return;const r=V.streetSystem?.nearestRoad?.(b.x+b.w/2,b.y+b.h/2);if(!r||!urban(r))return;const d=b.door||{x:b.x+b.w/2,y:b.y+b.h+18};const sw=V.streetSystem?.sidewalkWidth||28;const target=r.orientation==='horizontal'?Math.max(r.y-sw,Math.min(d.y,r.y+r.h+sw)):Math.max(r.x-sw,Math.min(d.x,r.x+r.w+sw));if(r.orientation==='horizontal')R(c,d.x-5,Math.min(d.y,target)-2,10,Math.abs(d.y-target)+4,'rgba(177,157,119,.72)');else R(c,Math.min(d.x,target)-2,d.y-5,Math.abs(d.x-target)+4,10,'rgba(177,157,119,.72)')}
 function lots(c){for(const b of buildings()){if(!b||!Number.isFinite(b.x))continue;const pad=b.type==='home'?18:12;const col=b.type==='home'?'rgba(104,83,61,.12)':b.type==='shop'||b.type==='bakery'?'rgba(139,105,63,.13)':'rgba(83,76,64,.10)';R(c,b.x-pad,b.y-pad,b.w+pad*2,b.h+pad*2,col);if(b.type==='home'){R(c,b.x-4,b.y+b.h+10,b.w+8,5,'rgba(75,63,50,.20)');R(c,b.x-9,b.y+b.h+20,Math.min(42,b.w*.35),5,'rgba(75,63,50,.16)')}}}
-function publicNodes(c){
- const xs=V.streetSystem?.intersections||[];let used=0;
- for(const p of xs){const a=V.streetSystem?.roadById?.[p.a],b=V.streetSystem?.roadById?.[p.b];if(!urban(a)||!urban(b)||used>=2)continue;
-  const size=used===0?210:150,x=p.x-size/2,y=p.y-size/2;
-  R(c,x,y,size,size,'rgba(219,203,166,.48)');R(c,x+12,y+12,size-24,size-24,'rgba(173,157,121,.24)');
-  R(c,p.x-22,p.y-22,44,44,'rgba(94,79,60,.20)');
-  for(let i=0;i<4;i++){const ang=i*Math.PI/2;const tx=p.x+Math.cos(ang)*(size*.32),ty=p.y+Math.sin(ang)*(size*.32);R(c,tx-4,ty-4,8,22,'rgba(78,61,47,.55)');R(c,tx-12,ty-12,24,12,'rgba(71,96,58,.56)')}
-  for(let i=0;i<5;i++){R(c,x+size*.22+i*size*.14,y-9,Math.max(8,size*.07),6,'rgba(236,224,193,.80)');R(c,x+size*.22+i*size*.14,y+size+3,Math.max(8,size*.07),6,'rgba(236,224,193,.80)')}
-  used++;
- }
- U.publicNodeCount=used;
-}
-function parking(c){
- const bs=buildings().filter(b=>b&&(b.type==='shop'||b.type==='bakery'||b.type==='radio'));
- for(const b of bs){const r=V.streetSystem?.nearestRoad?.(b.x+b.w/2,b.y+b.h/2);if(!r||!urban(r))continue;const x=b.x+b.w+18,y=b.y+b.h+8; if(V.streetSystem?.onRoad?.(x,y))continue;R(c,x,y,124,30,'rgba(104,91,72,.10)');for(let i=1;i<2;i++)L(c,x+i*62,y+3,x+i*62,y+27,'rgba(87,74,59,.25)',2)}}
+function publicNodes(c){const xs=V.streetSystem?.intersections||[],nodes=[];let used=0;for(const p of xs){const a=V.streetSystem?.roadById?.[p.a],b=V.streetSystem?.roadById?.[p.b];if(!urban(a)||!urban(b)||used>=2)continue;const size=used===0?210:150,x=p.x-size/2,y=p.y-size/2;nodes.push({x:p.x,y:p.y,place:'plaza',nodeType:used===0?'central':'neighborhood',sourceIntersection:{a:p.a,b:p.b}});R(c,x,y,size,size,'rgba(219,203,166,.48)');R(c,x+12,y+12,size-24,size-24,'rgba(173,157,121,.24)');R(c,p.x-22,p.y-22,44,44,'rgba(94,79,60,.20)');for(let i=0;i<4;i++){const ang=i*Math.PI/2,tx=p.x+Math.cos(ang)*(size*.32),ty=p.y+Math.sin(ang)*(size*.32);R(c,tx-4,ty-4,8,22,'rgba(78,61,47,.55)');R(c,tx-12,ty-12,24,12,'rgba(71,96,58,.56'))}for(let i=0;i<5;i++){R(c,x+size*.22+i*size*.14,y-9,Math.max(8,size*.07),6,'rgba(236,224,193,.80)');R(c,x+size*.22+i*size*.14,y+size+3,Math.max(8,size*.07),6,'rgba(236,224,193,.80)')}used++}U.publicNodes=nodes;U.publicNodeCount=nodes.length}
+function parking(c){const bs=buildings().filter(b=>b&&(b.type==='shop'||b.type==='bakery'||b.type==='radio'));for(const b of bs){const r=V.streetSystem?.nearestRoad?.(b.x+b.w/2,b.y+b.h/2);if(!r||!urban(r))continue;const x=b.x+b.w+18,y=b.y+b.h+8;if(V.streetSystem?.onRoad?.(x,y))continue;R(c,x,y,124,30,'rgba(104,91,72,.10)');for(let i=1;i<2;i++)L(c,x+i*62,y+3,x+i*62,y+27,'rgba(87,74,59,.25)',2)}}
 function streetFurniture(c){const xs=V.streetSystem?.intersections||[];for(const p of xs.slice(0,8)){const pts=[[p.x-48,p.y-48],[p.x+48,p.y+48]];for(const [x,y] of pts){if(V.streetSystem?.onRoad?.(x,y)||V.streetSystem?.onSidewalk?.(x,y))continue;R(c,x,y,22,5,'rgba(81,63,48,.65)');R(c,x+3,y+5,3,9,'rgba(69,56,45,.55)');R(c,x+16,y+5,3,9,'rgba(69,56,45,.55)')}}}
 function draw(c){if(!U.enabled)return;for(const r of roads())sidewalk(c,r);lots(c);for(const b of buildings())frontage(c,b);publicNodes(c);parking(c);streetFurniture(c)}
-function patch(){if(U.patched||!V.life?.drawWorld)return;const old=V.life.drawWorld;V.life.drawWorld=function(c){old.call(this,c);draw(c)};U.patched=true;U.features=['derived-sidewalk-network','curbs','building-frontage','lot-relationships','derived-public-nodes','pedestrian-crossings','intersection-space','building-parking','derived-street-furniture','no-orphaned-urban-coordinates','no-extra-loop','single-street-authority'];}
+function patch(){if(U.patched||!V.life?.drawWorld)return;const old=V.life.drawWorld;V.life.drawWorld=function(c){old.call(this,c);draw(c)};U.patched=true;U.features=['derived-sidewalk-network','curbs','building-frontage','lot-relationships','derived-public-nodes','public-destination-api','pedestrian-crossings','intersection-space','building-parking','derived-street-furniture','no-orphaned-urban-coordinates','no-extra-loop','single-street-authority']}
 patch();setTimeout(patch,300);setTimeout(patch,1000);V.urbanFabric=U;
 })();
