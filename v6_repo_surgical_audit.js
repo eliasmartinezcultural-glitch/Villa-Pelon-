@@ -1,19 +1,60 @@
-/* Villa Pelón — AUDITOR + REPAIR AUTHORITY
-   Objetivo: recuperar coherencia después de regresiones sin crear otro motor.
-   Esta capa se ejecuta al final y corrige integración, plataforma e invariantes.
+/* Villa Pelón V6.40.3 — AUDITORÍA QUIRÚRGICA + RESTAURACIÓN FINAL
+   Autoridad final ejecutada cuando todos los módulos defer ya existen.
+   Repara integración sin crear un segundo motor ni un segundo loop.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
-const A=V.repoAudit=V.repoAudit||{version:50,checks:{},repairs:[],failures:[]};
-const note=(s)=>{if(!A.repairs.includes(s))A.repairs.push(s)};
+const A=V.repoAudit=V.repoAudit||{version:53,checks:{},repairs:[],failures:[]};
+const note=s=>{if(!A.repairs.includes(s))A.repairs.push(s)};
 const check=(name,ok,detail)=>{A.checks[name]={ok:!!ok,detail:detail||''};if(!ok&&!A.failures.includes(name))A.failures.push(name)};
-function platform(){const coarse=matchMedia('(pointer:coarse)').matches||innerWidth<=900;document.body.classList.toggle('villa-touch',coarse);document.body.classList.toggle('villa-pc',!coarse);document.documentElement.style.setProperty('--villa-vw',(visualViewport?.width||innerWidth)+'px');document.documentElement.style.setProperty('--villa-vh',(visualViewport?.height||innerHeight)+'px');const c=document.getElementById('world');if(c)c.style.touchAction='none';const legacy=document.getElementById('touch');if(legacy){legacy.setAttribute('aria-hidden','true');legacy.style.display='none'}const interact=document.getElementById('interact');if(interact){interact.style.touchAction='manipulation';interact.style.minWidth=coarse?'72px':'';interact.style.minHeight=coarse?'72px':''}if(coarse&&!document.querySelector('.platform-stick')&&typeof V.platform?.joystick==='boolean'){try{V.platform.reinstall?.()}catch(_){}}note(coarse?'mobile input normalized':'desktop input normalized')}
-function identity(){const bad='San Patricio del Chañar';const visible=[...document.body.querySelectorAll('*')].filter(e=>e.children.length===0);let hits=0;for(const e of visible){if((e.textContent||'').includes(bad)){e.textContent=e.textContent.replaceAll(bad,'Villa Pelón');hits++}}check('identity',hits===0,`referencias visibles externas al universo: ${hits}`);if(hits)note(`identity scrub: ${hits} visible references replaced`)}
-function repairEngine(){const e=V.engine;if(!e||typeof e.update!=='function'||typeof e.render!=='function'){check('engine',false,'motor V6 no expuesto');return}e.version=Math.max(Number(e.version)||0,50);e.authority='v6_game_core';e.movementAuthority='v6_game_core';e.renderAuthority='v6_game_core';e.inputAuthority='v6_game_core';V.engineReady=true;check('engine',true,'V6 engine update/render');note('engine authority normalized')}
-function repairWorld(){const w=V.world;if(w){w.w=8400;w.h=5600;w.version=7}if(V.state){V.state.flags=V.state.flags||{};V.state.relationships=V.state.relationships||{};V.state.inventory=Array.isArray(V.state.inventory)?V.state.inventory:[];V.state.x=Math.max(60,Math.min(8340,Number(V.state.x)||1280));V.state.y=Math.max(180,Math.min(5540,Number(V.state.y)||820))}check('world',!!w&&w.w===8400&&w.h===5600,'world contract 8400x5600');check('input',!!V.input,'shared input state');check('buildings',Array.isArray(V.buildings)&&V.buildings.length>=9,'building registry');check('population',!!V.life||!!V.population,'living world layer')}
-function repairSave(){const e=V.engine;if(!e)return;const originalSave=e.save,originalLoad=e.load;if(typeof originalSave==='function'&&!originalSave.__repairWrapped){e.save=function(){const r=originalSave.apply(this,arguments);try{const s=V.state;localStorage.setItem('villa_pelon_repair_checkpoint',JSON.stringify({x:s.x,y:s.y,day:s.day,minutes:s.minutes,money:s.money,energy:s.energy,mission:s.mission,inventory:s.inventory,history:s.history,relationships:s.relationships,flags:s.flags}))}catch(_){}return r};e.save.__repairWrapped=true;note('save checkpoint redundancy enabled')}if(typeof originalLoad==='function')note('save/load authority preserved')}
-function audio(){const u=V.ui;if(!u||typeof u.audioStart!=='function'){check('audio',false,'audio manager unavailable');return}check('audio',true,'procedural ambient music available');const s=u.settings||{};if(s.music!==false)note('relaxing ambient music retained')}
-function boot(){try{A.repairs=[];A.failures=[];repairEngine();repairWorld();repairSave();audio();platform();check('history',Array.isArray(V.history)&&typeof V.history.inspect==='function','history system');check('rpg',!!V.rpgProgression?.api,'RPG progression API');check('streets',Array.isArray(V.streetSystem?.roads)&&V.streetSystem.roads.length>=8,'street graph');check('intro',!!V.v6?.intro,'animated/narrative intro layer');check('mobile',!!V.platform?.joystick||!!document.querySelector('.platform-stick'),'touch joystick');check('pc',!!V.engine?.update&&!!V.engine?.render,'desktop engine');check('save',!!V.engine?.save&&!!V.engine?.load,'save/load');identity();A.ready=A.failures.length===0;A.timestamp=Date.now();V.engineAudit=A;console.info('[Villa Pelón] repair audit',A)}catch(err){A.ready=false;A.error=String(err?.message||err);console.error('[Villa Pelón] repair audit failed',err)}}
+function platform(){
+ const coarse=matchMedia('(pointer:coarse)').matches||innerWidth<=900;
+ document.body.classList.toggle('villa-touch',coarse);document.body.classList.toggle('villa-pc',!coarse);
+ document.documentElement.style.setProperty('--villa-vw',(visualViewport?.width||innerWidth)+'px');document.documentElement.style.setProperty('--villa-vh',(visualViewport?.height||innerHeight)+'px');
+ const c=document.getElementById('world');if(c)c.style.touchAction='none';
+ const legacy=document.getElementById('touch');if(legacy){legacy.setAttribute('aria-hidden','true');legacy.style.display='none'}
+ const interact=document.getElementById('interact');if(interact){interact.style.touchAction='manipulation';interact.style.minWidth=coarse?'72px':'';interact.style.minHeight=coarse?'72px':''}
+ if(coarse&&!document.querySelector('.platform-stick')&&typeof V.platform?.joystick==='boolean'){try{V.platform.reinstall?.()}catch(_){} }
+ note(coarse?'mobile input normalized':'desktop input normalized')
+}
+function identity(){
+ const bad='San Patricio del Chañar';const visible=[...document.body.querySelectorAll('*')].filter(e=>e.children.length===0);let hits=0;
+ for(const e of visible){if((e.textContent||'').includes(bad)){e.textContent=e.textContent.replaceAll(bad,'Villa Pelón');hits++}}
+ check('identity',hits===0,`referencias visibles externas al universo: ${hits}`);if(hits)note(`identity scrub: ${hits} visible references replaced`)
+}
+function repairEngine(){
+ const e=V.engine;if(!e||typeof e.update!=='function'||typeof e.render!=='function'){check('engine',false,'motor V6 no expuesto');return}
+ e.version=Math.max(Number(e.version)||0,53);e.authority='v6_game_core';e.movementAuthority='v6_game_core';e.renderAuthority='v6_game_core';e.inputAuthority='v6_game_core';V.engineReady=true;
+ check('engine',true,'V6 engine update/render');note('engine authority normalized')
+}
+function repairWorld(){
+ const w=V.world;if(w){w.w=8400;w.h=5600;w.version=7}
+ if(V.state){V.state.flags=V.state.flags||{};V.state.relationships=V.state.relationships||{};V.state.inventory=Array.isArray(V.state.inventory)?V.state.inventory:[];V.state.x=Math.max(60,Math.min(8340,Number(V.state.x)||1280));V.state.y=Math.max(180,Math.min(5540,Number(V.state.y)||820))}
+ check('world',!!w&&w.w===8400&&w.h===5600,'world contract 8400x5600');check('input',!!V.input,'shared input state');check('buildings',Array.isArray(V.buildings)&&V.buildings.length>=9,'building registry');check('population',!!V.life||!!V.population,'living world layer')
+}
+function repairSave(){
+ const e=V.engine;if(!e)return;const originalSave=e.save,originalLoad=e.load;
+ if(typeof originalSave==='function'&&!originalSave.__repairWrapped){e.save=function(){const r=originalSave.apply(this,arguments);try{const s=V.state;localStorage.setItem('villa_pelon_repair_checkpoint',JSON.stringify({x:s.x,y:s.y,day:s.day,minutes:s.minutes,money:s.money,energy:s.energy,mission:s.mission,inventory:s.inventory,history:s.history,relationships:s.relationships,flags:s.flags}))}catch(_){}return r};e.save.__repairWrapped=true;note('save checkpoint redundancy enabled')}
+ if(typeof originalLoad==='function')note('save/load authority preserved')
+}
+function inputAuthority(){
+ const e=V.engine,B=V.buildingSystem;
+ if(V.v4Playability)V.v4Playability.keys=true;
+ if(B&&typeof B.enter==='function'&&!B.__commercialAuthority){
+   const originalEnter=B.enter;B.enter=function(b){const type=String(b?.type||'').toLowerCase(),label=String(b?.label||b?.name||'').toLowerCase();if((type==='shop'||type==='bakery'||/almac[eé]n|comercio|panader/.test(label))&&V.shopFlow?.open)return V.shopFlow.open(b)!==false;return originalEnter.call(this,b)};B.__commercialAuthority=true;note('commercial entry unified with shop flow')
+ }
+ if(!e)return;
+ // This runs after every deferred listener has been registered. It therefore
+ // stops only legacy listeners still downstream of the authoritative core.
+ if(!V.__finalInputListener){window.addEventListener('keydown',ev=>{if(!V.state?.started)return;const k=String(ev.key||'').toLowerCase();if(k!=='e'&&k!==' '&&k!=='escape')return;if(k==='escape'&&V.buildingSystem?.inside){ev.preventDefault();ev.stopImmediatePropagation();V.buildingSystem.exit?.();return}ev.stopImmediatePropagation()},true);V.__finalInputListener=true;note('final keyboard authority installed after deferred systems')}
+ check('inputAuthority',e.movementAuthority==='v6_game_core'&&e.inputAuthority==='v6_game_core','movement/input owned by V6 core')
+}
+function audio(){const u=V.ui;if(!u||typeof u.audioStart!=='function'){check('audio',false,'audio manager unavailable');return}check('audio',true,'procedural ambient music available');if((u.settings||{}).music!==false)note('relaxing ambient music retained')}
+function boot(){try{
+ A.repairs=[];A.failures=[];repairEngine();repairWorld();repairSave();audio();platform();inputAuthority();
+ check('history',Array.isArray(V.history)&&typeof V.history.inspect==='function','history system');check('rpg',!!V.rpgProgression?.api,'RPG progression API');check('streets',Array.isArray(V.streetSystem?.roads)&&V.streetSystem.roads.length>=8,'street graph');check('intro',!!V.v6?.intro,'animated/narrative intro layer');check('mobile',!!V.platform?.joystick||!!document.querySelector('.platform-stick'),'touch joystick');check('pc',!!V.engine?.update&&!!V.engine?.render,'desktop engine');check('save',!!V.engine?.save&&!!V.engine?.load,'save/load');identity();
+ A.ready=A.failures.length===0;A.timestamp=Date.now();V.engineAudit=A;V.finalInputAuthority=V.finalInputAuthority||{};V.finalInputAuthority.ready=true;V.finalInputAuthority.version='6.40.3';console.info('[Villa Pelón] restored surgical audit',A)
+ }catch(err){A.ready=false;A.error=String(err?.message||err);console.error('[Villa Pelón] repair audit failed',err)}}
 function bootLater(){setTimeout(boot,0);setTimeout(()=>{platform();identity()},350)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootLater,{once:true});else bootLater();
 addEventListener('resize',platform,{passive:true});visualViewport?.addEventListener('resize',platform,{passive:true});
