@@ -1,49 +1,62 @@
-# VILLA PELÓN — DISEÑO MAESTRO V4
+# VILLA PELÓN — DISEÑO MAESTRO
 
-## Identidad
-Videojuego histórico-educativo ambientado en San Patricio del Chañar, Neuquén. La experiencia combina exploración libre, vida cotidiana, trabajo rural, comunidad y descubrimiento de la historia local.
+## Identidad definitiva
+Villa Pelón es un videojuego RPG 2D top-down de vida, exploración, comunidad y descubrimiento histórico.
+
+El jugador vive en Villa Pelón: camina por sus calles y zonas rurales, conoce habitantes, realiza actividades, cumple misiones y descubre progresivamente la historia del lugar.
+
+La referencia territorial real utilizada para ambientación, investigación y diseño es San Patricio del Chañar y su entorno regional. Esa referencia no sustituye el nombre ni la identidad del universo jugable: dentro del juego, el pueblo es Villa Pelón.
 
 ## Principios no negociables
 - Funcionalidad y jugabilidad antes que decoración.
 - PC y celular desde la misma base de código.
-- Estética 16-bit/pixel art, sin apariencia fantástica.
+- Estética 16-bit/pixel art cálida, rural y coherente.
 - Un solo motor principal y un único ciclo de actualización/render.
 - Las capas especializadas amplían el motor; no crean motores paralelos.
 - La historia documentada debe distinguirse de los diálogos y situaciones ficticias.
+- Las misiones son el principal vehículo para aprender la historia mientras se juega.
+- El mundo debe sentirse como un pueblo real: calles conectadas, edificios con accesos, zonas rurales coherentes y espacios con función.
 - El rendimiento debe degradar de forma controlada en equipos móviles.
 - Guardado y carga deben conservar progreso, inventario, dinero, energía e historia.
 
-## Arquitectura V4
-`game.js` es el propietario del estado, movimiento, cámara, interacción base y ciclo `update -> render -> requestAnimationFrame`.
+## Bucle de juego
+**VIVIR → EXPLORAR → CONOCER → RECIBIR MISIÓN → REALIZAR ACTIVIDAD → DESCUBRIR HISTORIA → PROGRESAR → SEGUIR VIVIENDO**
 
-Capas principales:
-- `v4_engine.js`: kernel pasivo, migración y diagnóstico.
-- `v4_playability.js`: autoridad de misiones, inventario, memoria, mapa y progreso.
-- `v4_characters.js`: personajes y animación.
-- `life.js`: vehículos, animales, ambiente, clima y actividad.
-- `v4_world.js`: sincronización estructural del mundo.
+## Arquitectura
+`v6_game_core.js` es el propietario del estado, movimiento, cámara, interacción base y ciclo principal.
+
+Capas especializadas:
+- `v4_engine.js`: compatibilidad, migración y diagnóstico.
+- `v4_playability.js`: campaña, misiones e inventario.
+- `v4_characters.js`: personajes.
+- `life.js`: vehículos, animales, ambiente y clima.
 - `world/streets/*`: calles, tráfico y detalles urbanos.
-- `v4_platform_core.js` + `v4_mobile_pro.js`: entrada táctil, viewport, rendimiento y capacidades móviles.
-- `v4_render_optimizer.js`: control adaptativo de render y pausa en segundo plano.
-- `v4_render_pipeline.js`: recorte de entidades fuera de cámara.
-- `v4_visual_power.js` + `v4_world_visual.js`: atmósfera, profundidad y ciclo visual de luz.
-- `v4_audit.js`: diagnóstico automático de conexiones y duplicaciones.
+- `v4_platform_core.js` + `v4_mobile_pro.js`: adaptación PC/celular.
+- `v4_render_optimizer.js`: optimización.
+- `v4_ui_audio.js`: menú, configuración y música ambiental procedural.
+- `v6_intro_polish.js`: introducción narrativa y flujo de guardado.
+- `v6_5_world_rules.js`: reglas territoriales.
+- `v6_buildings.js` + `v6_building_system.js`: edificios e interacción.
+- `v6_rpg_progression.js`: progresión RPG.
+- `v6_core_integrity.js` + `v6_repo_surgical_audit.js`: integridad y reparación.
 
-## Código retirado del runtime
-Las ramas V2/V3 y capas duplicadas de gameplay/móvil/narrativa no participan del arranque V4. Los runtimes V3 obsoletos fueron eliminados para evitar regresiones y ambigüedad.
+## Mundo
+El territorio debe reconocer visualmente una localidad del Alto Valle mediante calles, riego, chacras, frutales, viñedos, arquitectura sencilla, espacios comunitarios, comercio y actividad rural.
 
-## Objetivo territorial
-El mundo debe reconocer visualmente el valle y el pueblo mediante caminos, riego, chacras, frutales, viñedos, arquitectura sencilla, espacios comunitarios y actividad rural. La identidad local es parte de la jugabilidad, no solo del fondo gráfico.
+Reglas territoriales:
+- las rutas y calles permanecen libres de viviendas arbitrarias;
+- las viviendas se relacionan con calles y accesos;
+- los comercios ocupan ubicaciones lógicas;
+- los animales permanecen en áreas rurales apropiadas;
+- la maquinaria agrícola pertenece al entorno rural;
+- el río no contiene población, edificios ni maquinaria salvo infraestructura de cruce definida;
+- los puentes conectan sectores coherentemente.
 
-## Campaña inicial
-1. Conocé a alguien.
-2. El primer mandado.
-3. Lleváselo a Raúl.
-4. La vida de la plaza.
-5. Una changa rural.
-6. Una memoria del lugar.
-7. La voz del pueblo.
-8. Ahora elegís vos.
+## Historia
+La historia real debe aparecer mediante misiones, conversaciones, lugares, objetos, memorias y fuentes verificables. La ficción del juego debe estar claramente diferenciada de los hechos documentados.
+
+## Audio
+La música debe ser relajante, rural, cálida y ambiental. Debe acompañar la exploración sin convertir cada momento en una escena épica.
 
 ## Calidad técnica
-Cada BUILD debe verificarse en cuatro dimensiones: arranque, jugabilidad, plataforma y rendimiento. No se considera terminada una mejora visual si no está cargada desde `index.html` y desplegada correctamente.
+Cada versión debe verificarse en cuatro dimensiones: arranque, jugabilidad, plataforma y rendimiento. No se considera terminada una mejora si no está conectada al flujo real del juego.
