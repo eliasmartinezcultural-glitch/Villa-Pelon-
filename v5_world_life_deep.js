@@ -1,25 +1,89 @@
-/* Villa Pelón V6.6 — VIDA PROFUNDA RECONCILIADA */
+/* Villa Pelón V6.11 — POBLACIÓN Y RUTINAS UNIFICADAS
+   Este módulo reemplaza la capa V5 de vida profunda.
+   Una sola población para vecinos y trabajadores; las entidades visuales existentes
+   siguen perteneciendo a life.js y el motor principal.
+*/
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
-const D=V.worldLifeDeep={version:4,enabled:true,events:[],services:{},economy:{},ticks:0};
-const people=()=>V.worldLifeV56?.people||[];
+const D=V.worldLifeDeep={version:5,enabled:true,events:[],services:{},economy:{},ticks:0,population:[]};
 const hour=()=>((V.state?.minutes??480)/60)%24;
 const day=()=>V.state?.day||1;
-const mins=s=>{const a=s.split(':').map(Number);return a[0]*60+a[1]};
-const destinations={casa:{clara:[820,680],sergio:[1480,700],rosa:[900,940],miguel:[1650,1235],laura:[720,680],jorge:[1760,1235],sofia:[820,680],mateo:[820,680]},escuela:{sofia:[575,635],mateo:[575,635]},almacen:{clara:[1910,690],sergio:[1910,690],laura:[1910,690],ines_r:[1910,690]},plaza:{clara:[1050,760],sergio:[1180,760],rosa:[1280,760],miguel:[1400,760],laura:[1000,820],jorge:[1500,820],sofia:[1100,760],mateo:[1200,760]},radio:{ines_r:[1360,1650]},chacra:{carlos:[3300,3000],daniel:[3900,3200],ruben:[4750,3600],elena:[5450,3100],marcos:[6100,4000]},galpon:{raul:[2540,1200],pedro:[2480,1570]}};
-const schedules={estudiante:[['06:30','casa'],['07:30','escuela'],['13:30','plaza'],['17:30','casa'],['19:00','plaza'],['21:00','casa']],vecina:[['07:00','casa'],['08:00','almacen'],['10:00','plaza'],['12:00','casa'],['16:00','almacen'],['18:00','plaza'],['21:00','casa']],vecino:[['07:00','casa'],['09:00','almacen'],['12:00','casa'],['16:00','plaza'],['18:00','plaza'],['21:00','casa']],trabajadora:[['06:30','casa'],['07:00','chacra'],['12:30','casa'],['15:00','chacra'],['19:00','plaza'],['21:00','casa']],trabajador:[['06:00','casa'],['07:00','chacra'],['12:30','casa'],['15:00','chacra'],['19:00','plaza'],['21:30','casa']],tractorista:[['05:30','casa'],['06:30','chacra'],['13:00','casa'],['15:00','chacra'],['20:00','casa']],repartidora:[['07:00','casa'],['08:00','almacen'],['10:00','radio'],['12:00','plaza'],['14:00','almacen'],['18:00','radio'],['21:00','casa']]};
-function target(p){const list=schedules[p.role]||schedules.vecino;const m=(V.state?.minutes??480)%1440;let place=list[0][1];for(const r of list)if(m>=mins(r[0]))place=r[1];const q=destinations[place]?.[p.id];return q?{x:q[0],y:q[1],place}:null}
-function routines(dt){people().forEach(p=>{const t=target(p);if(!t)return;p.lifeTarget=t.place;p.lifeDestination=t;const d=Math.hypot(t.x-p.x,t.y-p.y);if(d>30){const speed=p.age<18?17:24;p.x+=(t.x-p.x)/d*speed*dt;p.y+=(t.y-p.y)/d*speed*dt;p.lifeMoving=true}else{p.lifeMoving=false;p.lifeAt=t.place}p.needs=p.needs||{social:45,rest:25,work:0,food:25};p.needs.social=Math.min(100,p.needs.social+dt*(p.lifeAt==='plaza'?-0.8:0.11));p.needs.rest=Math.min(100,p.needs.rest+dt*(p.lifeAt==='casa'?-0.7:0.09));p.needs.food=Math.min(100,p.needs.food+dt*0.035);p.needs.work=p.lifeAt==='chacra'?Math.min(100,(p.needs.work||0)+dt*.65):Math.max(0,(p.needs.work||0)-dt*.18);p.lifeMood=p.needs.social<20?'necesita compañía':p.needs.food>75?'tiene hambre':p.needs.rest>82?'cansado':p.needs.work>80?'agotado':'bien'})}
-function social(dt){const ps=people();for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const a=ps[i],b=ps[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d<90){a.social=a.social||{};b.social=b.social||{};a.social[b.id]=(a.social[b.id]||0)+dt*.1;b.social[a.id]=(b.social[a.id]||0)+dt*.1;a.socialTarget=b.name;b.socialTarget=a.name;if(!a.talking&&Math.random()<dt*.055){a.talking=b.talking=true;D.events.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,text:a.name+' conversa con '+b.name,ttl:6,type:'social',name:'talk_'+a.id+'_'+b.id})}}}}
+const minuteOfDay=()=>Number(V.state?.minutes??480)%1440;
+const home=p=>p.home&&Number.isFinite(p.home.x)&&Number.isFinite(p.home.y)?p.home:{x:Number.isFinite(p.homeX)?p.homeX:1200,y:Number.isFinite(p.homeY)?p.homeY:620};
+const parcelList=()=>V.agriculturalCycle?.parcels||[];
+function population(){
+ const seen=new Set(),out=[];
+ for(const p of [...(V.life?.ambient||[]),...(V.life?.workers||[])]){
+   if(!p||!p.id||seen.has(p.id))continue;seen.add(p.id);out.push(p);
+ }
+ for(const p of (V.npcs||[])){
+   if(!p||!p.id||seen.has(p.id))continue;seen.add(p.id);out.push(p);
+ }
+ D.population=out;return out;
+}
+function roleKey(p){const r=String(p.role||'vecino').toLowerCase();if(r.includes('estud'))return'estudiante';if(r.includes('trab')||r==='rural'||r.includes('tractor'))return'trabajador';if(r.includes('repart'))return'repartidor';return r.includes('vecina')?'vecina':'vecino'}
+const routes={
+ estudiante:[['06:30','casa'],['07:30','escuela'],['13:30','plaza'],['17:30','casa'],['19:00','plaza'],['21:00','casa']],
+ vecina:[['07:00','casa'],['08:00','almacen'],['10:00','plaza'],['12:00','casa'],['16:00','almacen'],['18:00','plaza'],['21:00','casa']],
+ vecino:[['07:00','casa'],['09:00','almacen'],['12:00','casa'],['16:00','plaza'],['18:00','plaza'],['21:00','casa']],
+ trabajador:[['06:00','casa'],['07:00','chacra'],['12:30','casa'],['15:00','chacra'],['19:00','plaza'],['21:30','casa']],
+ repartidor:[['07:00','casa'],['08:00','almacen'],['10:00','radio'],['12:00','plaza'],['14:00','almacen'],['18:00','radio'],['21:00','casa']]
+};
+const fixed={
+ casa:{ambient_0:[820,680],ambient_1:[1480,700],ambient_2:[900,940],ambient_3:[1650,1235],ambient_4:[720,680],ambient_5:[1760,1235]},
+ almacen:{ambient_0:[1910,690],ambient_1:[1910,690],ambient_4:[1910,690],worker_0:[1910,690],worker_1:[1910,690]},
+ plaza:{ambient_0:[1050,760],ambient_1:[1180,760],ambient_2:[1280,760],ambient_3:[1400,760],ambient_4:[1000,820],ambient_5:[1500,820]},
+ escuela:{ambient_2:[575,635],ambient_3:[575,635]},
+ radio:{ambient_5:[1360,1540]}
+};
+function workerParcel(p){
+ const ps=parcelList();if(!ps.length)return null;
+ const explicit=ps.find(q=>q.worker&&String(q.worker).toLowerCase()===String(p.name||'').toLowerCase());
+ if(explicit)return explicit;
+ const idx=Math.max(0,Number(String(p.id).replace(/\D/g,''))||0)%ps.length;return ps[idx];
+}
+function scheduleFor(p){
+ const m=minuteOfDay();const key=roleKey(p);let place='casa';
+ const list=routes[key]||routes.vecino;for(const r of list)if(m>=r[0].split(':')[0]*60+Number(r[0].split(':')[1]))place=r[1];
+ if(key==='trabajador'&&m>=420&&m<750)place='chacra';
+ if(key==='trabajador'&&m>=900&&m<1140)place='chacra';
+ const parcel=place==='chacra'?workerParcel(p):null;
+ if(parcel){const access={x:parcel.x+parcel.w*.12,y:parcel.y+parcel.h*.5};return{place,parcel,target:access};}
+ const q=fixed[place]?.[p.id];if(q)return{place,target:{x:q[0],y:q[1]}};
+ return{place,target:home(p)};
+}
+function moveTo(p,t,dt){const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy);if(d<=24){p.lifeMoving=false;p.lifeAt=t.place;return}const speed=Number(p.age)<18?17:24;p.x+=dx/d*speed*dt;p.y+=dy/d*speed*dt;p.lifeMoving=true;p.lifeAt='en camino';p.facing=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up')}
+function routines(dt){
+ const active=population(),working=[];
+ for(const p of active){
+   if(!(p.home||p.homeX||p.homeY)){p.home={x:p.x,y:p.y}}
+   const t=scheduleFor(p);p.lifeTarget=t.place;p.lifeDestination=t;p.lifeScheduleRole=roleKey(p);
+   if(t.parcel)p.lifeParcelId=t.parcel.id;else p.lifeParcelId=null;
+   if(V.v65Rules?.isRiver&&V.v65Rules.isRiver(p.x,p.y))continue;
+   moveTo(p,t.target,dt);
+   p.needs=p.needs||{social:45,rest:25,work:0,food:25};
+   p.needs.social=Math.min(100,p.needs.social+dt*(p.lifeAt==='plaza'?-0.8:0.11));
+   p.needs.rest=Math.min(100,p.needs.rest+dt*(p.lifeAt==='casa'?-0.7:0.09));
+   p.needs.food=Math.min(100,p.needs.food+dt*.035);
+   const atField=!!t.parcel&&p.lifeAt==='chacra';
+   p.needs.work=atField?Math.min(100,(p.needs.work||0)+dt*.65):Math.max(0,(p.needs.work||0)-dt*.18);
+   p.lifeMood=p.needs.social<20?'necesita compañía':p.needs.food>75?'tiene hambre':p.needs.rest>82?'cansado':p.needs.work>80?'agotado':'bien';
+   if(atField)working.push({person:p,parcel:t.parcel});
+ }
+ D.workersAtField=working;
+ for(const p of parcelList())p.workerActivity=working.filter(w=>w.parcel.id===p.id).length;
+}
+function social(dt){const ps=population().filter(p=>!p._v65Hidden);for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const a=ps[i],b=ps[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d<90){a.social=a.social||{};b.social=b.social||{};a.social[b.id]=(a.social[b.id]||0)+dt*.1;b.social[a.id]=(b.social[a.id]||0)+dt*.1;a.socialTarget=b.name;b.socialTarget=a.name;if(!a.talking&&Math.random()<dt*.055){a.talking=b.talking=true;D.events.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,text:a.name+' conversa con '+b.name,ttl:6,type:'social',name:'talk_'+a.id+'_'+b.id})}}}}
 function services(){const h=hour();D.services={almacen:h>=8&&h<20,escuela:h>=7&&h<18,radio:h>=10&&h<22,galpon:h>=7&&h<19,plaza:true,transporte:h>=6&&h<23}}
-function economy(){const h=hour(),workers=people().filter(p=>p.lifeAt==='chacra').length;D.economy={clientes:h>=8&&h<20?Math.round(5+people().length*.3):0,trabajadores:workers,produccion:workers?Math.round(workers*12):0,radioAudiencia:h>=10&&h<22?Math.round(people().length*.7):0,comercio:D.services.almacen?'activo':'cerrado'}}
+function economy(){const h=hour(),workers=D.workersAtField?.length||0;D.economy={clientes:h>=8&&h<20?Math.round(5+population().length*.3):0,trabajadores:workers,produccion:workers?Math.round(workers*12):0,radioAudiencia:h>=10&&h<22?Math.round(population().length*.7):0,comercio:D.services.almacen?'activo':'cerrado'}}
 const pool=[{name:'feria',text:'Feria y movimiento en la plaza',days:[5,6],a:16,b:20,x:1200,y:760},{name:'club',text:'Entrenamiento en el club',days:[2,4],a:18,b:21,x:2860,y:1570},{name:'radio',text:'Vecinos visitan la radio',days:[1,3,5],a:10,b:13,x:1360,y:1540},{name:'cosecha',text:'Jornada de cosecha en las chacras',days:[1,2,3,4,5,6],a:8,b:12,x:5000,y:3500}];
 function events(dt){const h=hour(),d=((day()-1)%7)+1;D.events=D.events.filter(e=>(e.ttl-=dt)>0);pool.forEach(e=>{if(e.days.includes(d)&&h>=e.a&&h<e.b&&!D.events.some(x=>x.name===e.name))D.events.push({...e,ttl:Math.min(18,(e.b-h)*60),type:'scheduled'})})}
-function weather(){const w=V.life?.weather||'despejado';D.environment={weather:w,temperature:V.life?.temperature??19,night:hour()<7||hour()>=21,activity:w==='lluvia'?.7:w==='viento'?.85:1};if(w==='lluvia')people().forEach(p=>p.lifeMood='buscando refugio')}
-function save(){try{localStorage.setItem('villa_pelon_life_deep',JSON.stringify({version:4,people:people().map(p=>({id:p.id,social:p.social,needs:p.needs}))}))}catch(_){} }
-function load(){try{const s=JSON.parse(localStorage.getItem('villa_pelon_life_deep')||'null');people().forEach(p=>{const q=s?.people?.find(x=>x.id===p.id);if(q){p.social=q.social||{};p.needs=q.needs||p.needs}})}catch(_){} }
+function weather(){const w=V.life?.weather||'despejado';D.environment={weather:w,temperature:V.life?.temperature??19,night:hour()<7||hour()>=21,activity:w==='lluvia'?.7:w==='viento'?.85:1};if(w==='lluvia')population().forEach(p=>p.lifeMood='buscando refugio')}
+function save(){try{localStorage.setItem('villa_pelon_life_deep',JSON.stringify({version:5,people:population().map(p=>({id:p.id,social:p.social,needs:p.needs,lifeParcelId:p.lifeParcelId}))}))}catch(_){} }
+function load(){try{const s=JSON.parse(localStorage.getItem('villa_pelon_life_deep')||'null');population().forEach(p=>{const q=s?.people?.find(x=>x.id===p.id);if(q){p.social=q.social||{};p.needs=q.needs||p.needs;p.lifeParcelId=q.lifeParcelId||null}})}catch(_){} }
 function hook(){if(!V.engine?.update||V.engine.__lifeDeepHook)return;const old=V.engine.update;V.engine.update=function(dt){const r=old.apply(this,arguments);if(V.state?.started){routines(dt);social(dt);services();economy();events(dt);weather();D.ticks++;if(D.ticks%120===0)save()}return r};V.engine.__lifeDeepHook=true;load()}
 hook();
-V.worldLifeAPI={state:D,people,find:id=>people().find(p=>p.id===id),target,getServices:()=>D.services,getEconomy:()=>D.economy,getEvents:()=>D.events};
-D.features=['individual-routines','door-safe-destinations','school-schedule','work-schedule','commerce','radio-life','plaza-life','rural-work','social-proximity','relationships','needs','scheduled-events','weather-effects','persistent-memory'];
+V.population={state:D,people:population,find:id=>population().find(p=>p.id===id),schedule:scheduleFor,workerParcel,workers:()=>D.workersAtField||[],getServices:()=>D.services,getEconomy:()=>D.economy,getEvents:()=>D.events};
+V.worldLifeAPI={state:D,people:population,find:V.population.find,target:scheduleFor,getServices:()=>D.services,getEconomy:()=>D.economy,getEvents:()=>D.events};
+D.features=['unified-population','individual-routines','worker-parcel-assignment','field-work','schedule-driven-movement','social-proximity','relationships','needs','scheduled-events','weather-effects','persistent-memory'];
 })();
