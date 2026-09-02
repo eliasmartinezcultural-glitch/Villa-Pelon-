@@ -1,7 +1,6 @@
-/* Villa Pelón V6.9.1 — CICLO COMERCIAL + INTERACCIÓN DE TECLADO
-   Extiende la autoridad de V4 Playability sin crear otra economía/inventario.
-   La tienda contextual funciona con teclado, botón táctil y API, y conecta
-   precio, dinero, compra, inventario, guardado y avance de misión.
+/* Villa Pelón V6.9.2 — CICLO COMERCIAL + INTERACCIÓN PRIORITARIA
+   La tienda contextual intercepta E/ESPACIO antes del listener global del motor,
+   sin duplicar movimiento, economía ni inventario.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
@@ -18,7 +17,7 @@ function open(shop){const label=shop?.label||shop?.name||'ALMACÉN';if(!state().
 const p=document.body.appendChild(document.createElement('div'));p.id='v4pPanel';p.className='v4p-panel';p.innerHTML='<div class="v4p-head"><strong>'+esc(label)+'</strong><button class="v4p-close">CERRAR</button></div><div class="v4p-body">'+html+'</div>';p.querySelector('.v4p-close').onclick=()=>{p.remove();V.v4Playability.open=null};p.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>buy(b.dataset.buy,Number(b.dataset.price)));V.v4Playability.open=p;return true}
 function isShopTarget(){const target=typeof V.worldInteractionAPI?.nearest==='function'?V.worldInteractionAPI.nearest():typeof V.engine?.nearest==='function'?V.engine.nearest():null;return target&&(target.type==='shop'||target.type==='bakery')?target:null}
 function patch(){const G=V.v4Playability;if(!G||S.patched||typeof G.interact!=='function')return false;const original=G.interact;G.interact=function(){const target=isShopTarget();if(target)return open(target);return original.apply(this,arguments)};S.patched=true;S.hook='V.v4Playability.interact';return true}
-function keyboardPatch(){if(S.keyboardPatched)return true;document.addEventListener('keydown',e=>{if(!state().started||state().dialogue)return;const k=String(e.key||'').toLowerCase();if(k!=='e'&&k!==' ')return;const panel=document.getElementById('v4pPanel');if(panel)return;const target=isShopTarget();if(!target)return;e.preventDefault();e.stopImmediatePropagation();open(target)},true);S.keyboardPatched=true;return true}
+function keyboardPatch(){if(S.keyboardPatched)return true;window.addEventListener('keydown',e=>{if(!state().started||state().dialogue)return;const k=String(e.key||'').toLowerCase();if(k!=='e'&&k!==' ')return;const panel=document.getElementById('v4pPanel');if(panel)return;const target=isShopTarget();if(!target)return;e.preventDefault();e.stopImmediatePropagation();open(target)},true);S.keyboardPatched=true;return true}
 function style(){if(document.getElementById('v6ShopFlowCSS'))return;const st=document.createElement('style');st.id='v6ShopFlowCSS';st.textContent='.v4p-shop-balance{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;margin-bottom:12px;background:#2b241b;border:1px solid #665438;border-radius:9px;color:#e7d8b9}.v4p-shop-balance span{font-size:20px;font-weight:800;color:#f0d487}.v4p-shop-item{min-height:180px;display:flex;flex-direction:column}.v4p-shop-item .v4p-action{margin-top:auto}.v4p-price{font-size:18px!important;font-weight:800;color:#f0d487!important}.v4p-shop-note{font-size:11px;color:#aaa08e;margin-top:14px;padding-top:10px;border-top:1px solid #5e4e36}';document.head.appendChild(st)}
-style();patch();keyboardPatch();setTimeout(patch,250);setTimeout(patch,800);S.features=['contextual-shop','keyboard-shop-interaction','touch-shop-interaction','bread-purchase','yerba-purchase','money-sync','inventory-sync','mission-sync','save-sync','no-duplicate-items'];
+style();patch();keyboardPatch();setTimeout(patch,250);setTimeout(patch,800);S.features=['contextual-shop','priority-keyboard-shop-interaction','touch-shop-interaction','bread-purchase','yerba-purchase','money-sync','inventory-sync','mission-sync','save-sync','no-duplicate-items'];
 })();
