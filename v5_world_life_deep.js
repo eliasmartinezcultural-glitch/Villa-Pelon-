@@ -1,11 +1,7 @@
-/* Villa Pelón V5.8 — VIDA PROFUNDA RECONCILIADA
-   Una sola regla: las personas van a destinos cotidianos, pero esperan afuera
-   de los edificios. La autoridad territorial final es V.v65Rules cuando existe.
-*/
+/* Villa Pelón V5.8 — VIDA PROFUNDA RECONCILIADA */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 const D=V.worldLifeDeep={version:3,enabled:true,events:[],services:{},economy:{},ticks:0};
-const C=document.getElementById('world');
 const people=()=>V.worldLifeV56?.people||[];
 const hour=()=>((V.state?.minutes??480)/60)%24;
 const day=()=>V.state?.day||1;
@@ -38,8 +34,7 @@ function events(dt){const h=hour(),d=((day()-1)%7)+1;D.events=D.events.filter(e=
 function weather(){const w=V.life?.weather||'despejado';D.environment={weather:w,temperature:V.life?.temperature??19,night:hour()<7||hour()>=21,activity:w==='lluvia'?.7:w==='viento'?.85:1};if(w==='lluvia')people().forEach(p=>p.lifeMood='buscando refugio')}
 function save(){try{localStorage.setItem('villa_pelon_life_deep',JSON.stringify({version:3,people:people().map(p=>({id:p.id,social:p.social,needs:p.needs}))}))}catch(_){} }
 function load(){try{const s=JSON.parse(localStorage.getItem('villa_pelon_life_deep')||'null');people().forEach(p=>{const q=s?.people?.find(x=>x.id===p.id);if(q){p.social=q.social||{};p.needs=q.needs||p.needs}})}catch(_){} }
-function draw(){const e=V.engine;if(!e||!C||typeof e.render!=='function'||e.__lifeDeepRender)return;e.__lifeDeepRender=true;const old=e.render;e.render=function(){const r=old.apply(this,arguments),c=C.getContext('2d');if(!c)return r;const cam=V.camera||{x:0,y:0,zoom:1},z=Number(cam.zoom||1);c.save();c.translate(innerWidth/2-cam.x*z,innerHeight/2-cam.y*z);c.scale(z,z);D.events.forEach(ev=>{c.fillStyle='#fffdf0';c.fillRect(Math.round(ev.x-74),Math.round(ev.y-69),148,20);c.fillStyle='#30251d';c.font='11px monospace';c.textAlign='center';c.fillText(ev.text,Math.round(ev.x),Math.round(ev.y-54)});c.textAlign='left';c.restore();return r}}
-function hook(){if(!V.engine?.update||V.engine.__lifeDeepHook)return;const old=V.engine.update;V.engine.update=function(dt){const r=old.apply(this,arguments);if(V.state?.started){routines(dt);social(dt);services();economy();events(dt);weather();D.ticks++;if(D.ticks%120===0)save()}return r};V.engine.__lifeDeepHook=true;load();draw()}
+function hook(){if(!V.engine?.update||V.engine.__lifeDeepHook)return;const old=V.engine.update;V.engine.update=function(dt){const r=old.apply(this,arguments);if(V.state?.started){routines(dt);social(dt);services();economy();events(dt);weather();D.ticks++;if(D.ticks%120===0)save()}return r};V.engine.__lifeDeepHook=true;load()}
 hook();setTimeout(hook,300);setTimeout(hook,900);
 V.worldLifeAPI={state:D,people,find:id=>people().find(p=>p.id===id),target,getServices:()=>D.services,getEconomy:()=>D.economy,getEvents:()=>D.events};
 D.features=['individual-routines','door-safe-destinations','school-schedule','work-schedule','commerce','radio-life','plaza-life','rural-work','social-proximity','relationships','needs','scheduled-events','weather-effects','persistent-memory'];
