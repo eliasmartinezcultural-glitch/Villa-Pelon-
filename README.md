@@ -1,61 +1,70 @@
-# VILLA PELÓN — V3
+# VILLA PELÓN — V6.7 · HISTORIA VIVA
 
-Videojuego 2D de exploración, vida cotidiana, aventura e identidad rural, inspirado en el paisaje y la cultura de San Patricio del Chañar, Neuquén.
+Videojuego 2D top-down 16-bit de exploración, vida cotidiana, aventura e identidad rural, inspirado en San Patricio del Chañar, Neuquén.
 
-## Motor V3
+## Motor V6.7
 
-V3 utiliza un único motor central para:
+V6.7 usa un único motor central (`game.js`) para movimiento, cámara, colisiones, reloj, energía, entrada de teclado/táctil, render, guardado y carga.
 
-- movimiento del jugador;
-- cámara y escala del mundo;
-- colisiones;
-- reloj, días y energía;
-- entrada de teclado y controles táctiles;
-- render del escenario;
-- guardado y carga;
-- integración con narrativa y mundo vivo.
+El mundo es nativo de **8400×5600** y está dividido funcionalmente en ciudad, barrios, zona rural y río. Las capas V4/V5/V6 actúan como sistemas especializados sobre `window.VillaPelon`, sin crear un segundo ciclo de juego.
 
-Los módulos especializados se conectan al motor mediante `window.VillaPelon` y no crean bucles de juego paralelos.
+## Reglas territoriales
+
+- Día desde las 07:00.
+- Noche desde las 21:00.
+- De noche la población vuelve a sus hogares y no permanece en espacios públicos.
+- Las rutas y calles permanecen libres de viviendas.
+- Los animales se mantienen en la zona rural.
+- Tractores y maquinaria pertenecen al sector rural.
+- El río no puede contener población, animales, maquinaria ni edificios.
+- Los cruces del río se realizan únicamente por los dos puentes definidos.
+- El clima cambia durante la partida.
 
 ## Mundo vivo
 
 El pueblo continúa funcionando mientras el jugador explora:
 
 - ciudadanos con hogares, trabajos y horarios;
-- tránsito por rutas y caminos;
+- tránsito y semáforos;
 - autos, camionetas, colectivo, tractor, camión y bicicletas;
 - vacas, caballos y gallinas;
 - actividad urbana y rural;
 - cambios de hora, clima y ambiente;
 - comercios, radio, escuela, chacras y bodegas;
-- eventos y mensajes del mundo.
+- eventos, necesidades y relaciones;
+- memoria histórica y puntos de descubrimiento.
 
 ## Jugabilidad
 
-El jugador puede caminar, correr, conversar, descubrir memorias, realizar changas, comprar objetos, administrar dinero y energía, avanzar misiones, explorar caminos rurales y guardar su progreso.
+El jugador puede caminar, correr, conversar, descubrir memorias, realizar changas, comprar objetos, administrar dinero y energía, avanzar misiones, recorrer el pueblo y la zona rural y guardar su progreso.
 
-La narrativa y los sistemas educativos están separados de los datos históricos. Los hechos documentados incorporan fuentes verificables y la ficción permanece diferenciada.
+La campaña inicial incluye llegada, mandados, entrega, plaza, changa rural, memoria, radio y exploración libre. Los sistemas históricos y educativos permanecen separados de la ficción para poder incorporar fuentes verificables.
 
-## Arquitectura
+## Arquitectura activa
 
-- `game.js` — motor central.
-- `life.js` — clima y capa ambiental.
-- `v3_world.js` — ciudadanos, rutas, tránsito y animales.
-- `story.js` — narrativa, misiones, diálogos y relaciones.
-- `v3.js` — mochila, mapa y teléfono.
-- `village_data.js` — datos de actividades y objetos.
-- `history.js` — memorias y datos históricos documentados.
-- `style.css` — interfaz y presentación.
-- `index.html` — entrada del juego.
-
-Se eliminó la antigua capa `data.js` porque no formaba parte del motor activo.
+- `game.js` — motor V6.7 central.
+- `life.js` — clima, tránsito, animales y ambiente.
+- `history.js` — memoria e información histórica.
+- `story.js` — narrativa.
+- `v4_playability.js` — campaña y misiones.
+- `v5_character_world.js` — escala y personajes.
+- `v5_world_scale.js` — contrato físico del mundo.
+- `v5_world_life_deep.js` — rutinas y vida social.
+- `v6_buildings.js` — arquitectura funcional.
+- `v6_motion_world.js` — aceleración y animación de movimiento.
+- `v6_dialogue_stable.js` — diálogo estable.
+- `v6_5_world_rules.js` — reglas territoriales.
+- `v6_core_integrity.js` — contrato de integridad.
+- `v6_integration.js` — integración V6.7.
+- `v6_player_avatar.js` — avatar principal 16-bit.
+- `v6_world_reconciliation.js` — compatibilidad estructural sin duplicar el motor.
 
 ## Guardado
 
-La partida V3 se guarda en `localStorage` con las claves `villa_pelon_v3_save` y `villa_pelon_v3_world`. El motor puede migrar una partida anterior de V2 al cargarla.
+V6.7 conserva compatibilidad con partidas anteriores y guarda el estado principal en `localStorage`. La versión actual se identifica como `7` internamente y como **V6.7** en la interfaz.
 
 ## Publicación
 
-El proyecto está preparado para ejecutarse en navegador mediante GitHub Pages, sin instalación.
+El proyecto está preparado para ejecutarse directamente en navegador mediante GitHub Pages, sin instalación.
 
-**PROYECTO: VILLA PELÓN — V3 — MOTOR CENTRAL + MUNDO VIVO**
+**PROYECTO: VILLA PELÓN — V6.7 — HISTORIA VIVA — MOTOR CENTRAL + MUNDO EXPANDIDO**
