@@ -1,26 +1,10 @@
-/* Villa Pelón V6.1 — MOVIMIENTO, ANIMACIÓN Y MUNDO VIVO
-   Capa de mejora sobre el motor existente.
-   No crea RAF ni reemplaza el loop principal.
+/* Villa Pelón V6.6 — MOVIMIENTO Y ANIMACIÓN
+   Mejora el movimiento sin crear otro motor ni polling.
 */
 (()=>{'use strict';
-const V=window.VillaPelon||(window.VillaPelon={});
-const M=V.v6Motion=V.v6Motion||{version:1,enabled:true};
-const state=()=>V.state||{};const input=()=>V.input||{};const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const V=window.VillaPelon||(window.VillaPelon={});const M=V.v6Motion=V.v6Motion||{version:2,enabled:true};const state=()=>V.state||{};const input=()=>V.input||{};const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function initPlayer(){const s=state();s.motion=s.motion||{vx:0,vy:0,speed:0,phase:0,facing:'down',step:0};s.motion.accel=720;s.motion.brake=980;s.motion.max=235;return s.motion}
-function patchUpdate(){if(!V.engine||M.updatePatched)return false;const original=V.engine.update;V.engine.update=function(dt){
- const s=state(),i=input(),m=initPlayer();const dx=(i.right?1:0)-(i.left?1:0),dy=(i.down?1:0)-(i.up?1:0),moving=!!(dx||dy);
- for(const n of (V.npcs||[])){n._v6PrevX=n.x;n._v6PrevY=n.y}
- if(moving){const l=Math.hypot(dx,dy)||1,tx=dx/l*m.max,ty=dy/l*m.max,k=Math.min(1,dt*5.5);m.vx+=(tx-m.vx)*k;m.vy+=(ty-m.vy)*k;m.speed=Math.hypot(m.vx,m.vy);if(Math.abs(dx)>Math.abs(dy))m.facing=dx>0?'right':'left';else m.facing=dy>0?'down':'up'}
- else{const k=Math.min(1,dt*7);m.vx*=1-k;m.vy*=1-k;m.speed=Math.hypot(m.vx,m.vy)}
- const oldSpeed=s.speed;s.speed=clamp(m.speed,0,m.max);const result=original.call(V.engine,dt);s.speed=oldSpeed||235;
- const actualMoving=m.speed>8;m.phase+=dt*(actualMoving?(8+m.speed/34):1.4);m.step=actualMoving?Math.sin(m.phase):0;s.moving=actualMoving;s.facing=m.facing;s.walkPhase=m.phase;
- for(const n of (V.npcs||[])){const vx=(n.x-n._v6PrevX)/(dt||.016),vy=(n.y-n._v6PrevY)/(dt||.016);n._vx=vx;n._vy=vy;n.v6=n.v6||{phase:(n.appearanceSeed||0)*.1,facing:'down',speed:0,activity:'walking'};const nm=n.v6,sp=Math.hypot(vx,vy);if(sp>1){nm.speed=sp;nm.phase+=dt*(6+sp/18);nm.facing=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'down':'up');nm.activity='walking';n.walkPhase=nm.phase;n.facing=nm.facing;n.step=Math.sin(nm.phase);n.moving=true}else{nm.speed=0;nm.phase+=dt*1.2;nm.activity='idle';n.step=0;n.moving=false}}
- return result;
-};M.updatePatched=true;return true}
-function enrichLife(){const life=V.life;if(!life||M.lifePatched)return false;const original=life.update;life.update=function(dt,minutes){const r=original.call(life,dt,minutes);life.phase=(life.phase||0)+dt;const hour=(minutes||480)/60;
- for(const n of (life.ambient||[])){n.v6=n.v6||{phase:(n.appearanceSeed||0)*.1,activity:'caminar'};const a=n.v6;a.phase+=dt*2;a.activity=n.moving?(hour>=18?'volviendo':'caminando'):'esperando';n.action=a.activity;n.step=n.moving?Math.sin(a.phase):0}
- for(const n of (life.workers||[])){n.v6=n.v6||{phase:(n.appearanceSeed||0)*.1};n.v6.phase+=dt*2.4;n.action=hour<8?'preparando':hour<12?'trabajando':hour<14?'descansando':hour<18?'trabajando':'regresando';n.step=Math.sin(n.v6.phase)}
- for(const a of (life.animals||[])){a.v6=a.v6||{phase:(a.x+a.y)*.01};a.v6.phase+=dt*(a.type==='gallina'?4:2);a.step=Math.sin(a.v6.phase)}return r};M.lifePatched=true;return true}
-function install(){if(!V.engine){setTimeout(install,50);return}patchUpdate();enrichLife();V.v6Motion=M;V.v6Motion.features=['accelerated-walk','deceleration','direction','step-phase','npc-velocity','ambient-activity','animal-animation']}
-install();
+function patchUpdate(){if(!V.engine||M.updatePatched)return false;const original=V.engine.update;V.engine.update=function(dt){const s=state(),i=input(),m=initPlayer();const dx=(i.right?1:0)-(i.left?1:0),dy=(i.down?1:0)-(i.up?1:0),moving=!!(dx||dy);for(const n of(V.npcs||[])){n._v6PrevX=n.x;n._v6PrevY=n.y}if(moving){const l=Math.hypot(dx,dy)||1,tx=dx/l*m.max,ty=dy/l*m.max,k=Math.min(1,dt*5.5);m.vx+=(tx-m.vx)*k;m.vy+=(ty-m.vy)*k;m.speed=Math.hypot(m.vx,m.vy);if(Math.abs(dx)>Math.abs(dy))m.facing=dx>0?'right':'left';else m.facing=dy>0?'down':'up'}else{const k=Math.min(1,dt*7);m.vx*=1-k;m.vy*=1-k;m.speed=Math.hypot(m.vx,m.vy)}const oldSpeed=s.speed;s.speed=clamp(m.speed,0,m.max);const result=original.call(V.engine,dt);s.speed=oldSpeed||235;const actualMoving=m.speed>8;m.phase+=dt*(actualMoving?(8+m.speed/34):1.4);m.step=actualMoving?Math.sin(m.phase):0;s.moving=actualMoving;s.facing=m.facing;s.walkPhase=m.phase;for(const n of(V.npcs||[])){const vx=(n.x-n._v6PrevX)/(dt||.016),vy=(n.y-n._v6PrevY)/(dt||.016);n._vx=vx;n._vy=vy;n.v6=n.v6||{phase:(n.appearanceSeed||0)*.1,facing:'down',speed:0,activity:'walking'};const nm=n.v6,sp=Math.hypot(vx,vy);if(sp>1){nm.speed=sp;nm.phase+=dt*(6+sp/18);nm.facing=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'down':'up');nm.activity='walking';n.walkPhase=nm.phase;n.facing=nm.facing;n.step=Math.sin(nm.phase);n.moving=true}else{nm.speed=0;nm.phase+=dt*1.2;nm.activity='idle';n.step=0;n.moving=false}}return result};M.updatePatched=true;return true}
+function enrichLife(){const life=V.life;if(!life||M.lifePatched)return false;const original=life.update;life.update=function(dt,minutes){const r=original.call(life,dt,minutes);const hour=(minutes||480)/60;for(const n of(life.ambient||[])){n.v6=n.v6||{phase:(n.appearanceSeed||0)*.1,activity:'caminar'};const a=n.v6;a.phase+=dt*2;a.activity=n.moving?(hour>=18?'volviendo':'caminando'):'esperando';n.action=a.activity;n.step=n.moving?Math.sin(a.phase):0}for(const n of(life.workers||[])){n.v6=n.v6||{phase:(n.appearanceSeed||0)*.1};n.v6.phase+=dt*2.4;n.action=hour<8?'preparando':hour<12?'trabajando':hour<14?'descansando':hour<18?'trabajando':'regresando';n.step=Math.sin(n.v6.phase)}for(const a of(life.animals||[])){a.v6=a.v6||{phase:(a.x+a.y)*.01};a.v6.phase+=dt*(a.type==='gallina'?4:2);a.step=Math.sin(a.v6.phase)}return r};M.lifePatched=true;return true}
+if(V.engine){patchUpdate();enrichLife();M.ready=true}M.features=['accelerated-walk','deceleration','direction','step-phase','npc-velocity','ambient-activity','animal-animation'];
 })();
