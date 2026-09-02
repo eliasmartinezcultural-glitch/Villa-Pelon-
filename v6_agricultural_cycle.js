@@ -8,9 +8,9 @@ const A=V.agriculturalCycle=V.agriculturalCycle||{version:2,enabled:true,patched
 const SAVE='villa_pelon_agriculture';
 const state=()=>V.state||(V.state={});
 const parcels=A.parcels||[
- {id:'chacra_norte',x:2590,y:1335,w:520,h:250,label:'CHACRA · ALAMEDA NORTE',crop:'frutales',growth:.68,moisture:.72,watered:false,worker:'Raúl'},
- {id:'chacra_central',x:3120,y:1335,w:500,h:250,label:'CHACRA · PARCELA CENTRAL',crop:'frutales',growth:.44,moisture:.58,watered:false,worker:'Pedro'},
- {id:'chacra_sur',x:2590,y:1710,w:520,h:220,label:'CHACRA · BORDE SUR',crop:'frutales',growth:.32,moisture:.46,watered:false,worker:'Trabajador rural'},
+ {id:'chacra_norte',x:2590,y:1335,w:520,h:250,label:'CHACRA · ALAMEDA NORTE',crop:'frutales',growth:.68,moisture:.72,watered:false,worker:'Carlos'},
+ {id:'chacra_central',x:3120,y:1335,w:500,h:250,label:'CHACRA · PARCELA CENTRAL',crop:'frutales',growth:.44,moisture:.58,watered:false,worker:'Daniel'},
+ {id:'chacra_sur',x:2590,y:1710,w:520,h:220,label:'CHACRA · BORDE SUR',crop:'frutales',growth:.32,moisture:.46,watered:false,worker:'Rubén'},
  {id:'chacra_este',x:3180,y:1710,w:560,h:220,label:'CHACRA · LÍNEA ESTE',crop:'cultivo',growth:.55,moisture:.61,watered:false,worker:'Trabajador rural'}
 ];
 A.parcels=parcels;
