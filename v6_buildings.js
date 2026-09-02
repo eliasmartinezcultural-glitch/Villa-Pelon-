@@ -1,6 +1,7 @@
-/* Villa Pelón V6.0 — POBLAMIENTO FINO
-   Completa el mapa expandido con arquitectura funcional y variada.
-   Usa la misma lista V.buildings del motor para conservar colisión e interacción. */
+/* Villa Pelón V6.7 — POBLAMIENTO FINO
+   Arquitectura funcional y variada sobre el mundo 8400x5600.
+   Regla territorial: ningún edificio ocupa el cauce del río ni una ruta.
+*/
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 if(!Array.isArray(V.buildings))return;
@@ -27,10 +28,10 @@ const add=(b)=>{const k=`${b.x}:${b.y}:${b.type}`;if(!existing.has(k)){V.buildin
 {x:5220,y:2100,w:340,h:195,label:'CASA',type:'home'},
 {x:5800,y:3000,w:430,h:250,label:'GALPÓN DE CHACRA',type:'rural'},
 {x:6350,y:3300,w:500,h:270,label:'BODEGA Y DEPÓSITO',type:'rural'},
-{x:7000,y:3650,w:380,h:230,label:'GALPÓN DE PRODUCCIÓN',type:'rural'},
-{x:7550,y:4200,w:320,h:200,label:'CASA RURAL',type:'home'},
-{x:6750,y:4500,w:300,h:190,label:'CASA RURAL',type:'home'},
+{x:6500,y:3650,w:380,h:230,label:'GALPÓN DE PRODUCCIÓN',type:'rural'},
+{x:6200,y:4200,w:320,h:200,label:'CASA RURAL',type:'home'},
+{x:6450,y:4500,w:300,h:190,label:'CASA RURAL',type:'home'},
 {x:5850,y:4550,w:350,h:210,label:'GALPÓN',type:'rural'}
 ].forEach(add);
-V.buildingRegistryV6={version:1,added:true,count:V.buildings.length,features:['expanded-neighborhoods','commerce','services','rural-buildings','varied-homes','functional-collision']};
+V.buildingRegistryV6={version:7,added:true,count:V.buildings.length,features:['expanded-neighborhoods','commerce','services','rural-buildings','varied-homes','functional-collision','river-safe-placement']};
 })();
