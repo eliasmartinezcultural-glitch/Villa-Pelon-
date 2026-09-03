@@ -1,64 +1,70 @@
-/* Villa Pelón V33 — RPG World Layer
-   Capa adicional sobre V31/V32: rutinas, relaciones, economía, eventos y actividad.
-   No reemplaza el motor base; amplía sus sistemas. */
+/* Villa Pelón V34 — RPG World Director
+   Integra progreso, relaciones, economía, actividades, eventos y persistencia
+   sobre el motor V31/V32 sin crear otro loop ni tocar el movimiento del jugador. */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
-const saveKey='villa_pelon_rpg_world_v33';
-const R=V.rpgWorld={version:'V33',startedAt:Date.now(),events:[],relationships:{},completed:{},daily:{},notice:'',noticeTimer:0};
-const clock=()=>{const s=V.__state||{};return {day:s.day||1,minutes:s.minutes||480}};
-const routes={
-  comercio:{home:{x:760,y:450},work:{x:1750,y:610},idle:{x:1080,y:430}},
-  trabajo:{home:{x:1450,y:790},work:{x:2140,y:1000},idle:{x:2000,y:1120}},
-  plaza:{home:{x:760,y:450},work:{x:1160,y:390},idle:{x:1180,y:470}},
-  radio:{home:{x:1450,y:790},work:{x:1200,y:1190},idle:{x:1180,y:470}}
-};
-function posFor(n,mins){const h=mins/60,r=routes[n.role]||routes.plaza;if(h<7||h>=22)return r.home;if(h>=8&&h<13)return r.work;if(h>=14&&h<18)return r.idle;return r.home}
-function load(){try{Object.assign(R,JSON.parse(localStorage.getItem(saveKey)||'{}'))}catch(e){}}
-function persist(){try{localStorage.setItem(saveKey,JSON.stringify(R))}catch(e){}}
-function toast(t){R.notice=t;R.noticeTimer=4;}
-function relationship(name,delta=0){R.relationships[name]=(R.relationships[name]||0)+delta;return R.relationships[name]}
+const KEY='villa_pelon_rpg_world_v34';
+const OLD='villa_pelon_rpg_world_v33';
+const R=V.rpgWorld={version:'V34',events:[],relationships:{},completed:{},daily:{},active:null,notice:'',noticeTimer:0};
+const defaults={day:1,active:'vecino',completed:{},relationships:{},daily:{},events:[],inventory:{}};
+function merge(a,b){return Object.assign({},a||{},b||{})}
+function load(){try{const old=JSON.parse(localStorage.getItem(OLD)||'null');const now=JSON.parse(localStorage.getItem(KEY)||'null');const s=merge(defaults,merge(old,now));Object.assign(R,s);R.completed=merge({},s.completed);R.relationships=merge({},s.relationships);R.daily=merge({},s.daily);R.events=Array.isArray(s.events)?s.events:[]}catch(e){Object.assign(R,defaults)}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({version:R.version,active:R.active,completed:R.completed,relationships:R.relationships,daily:R.daily,events:R.events.slice(-40),inventory:R.inventory}))}catch(e){}}
+function toast(text){R.notice=text;R.noticeTimer=4;if(toastBox){toastBox.textContent=text;toastBox.style.opacity='1';clearTimeout(toastBox._t);toastBox._t=setTimeout(()=>toastBox.style.opacity='0',4000)}}
+function day(){const el=document.getElementById('day');return Math.max(1,Number(el&&el.textContent)||1)}
+function clock(){const el=document.getElementById('clock');return el?el.textContent:'08:00'}
+function money(){const el=document.getElementById('money');return Number((el&&el.textContent||'0').replace(/\D/g,''))||0}
 load();
-const originalLife=V.life&&V.life.update;
-if(originalLife){V.life.update=(dt,minutes)=>{originalLife.call(V.life,dt,minutes);
-  (V.npcs||[]).forEach((n,i)=>{const p=posFor(n,minutes);n._target=p;n._vx=n._vx||0;n._vy=n._vy||0;const dx=p.x-n.x,dy=p.y-n.y,d=Math.hypot(dx,dy);if(d>18){const sp=22+(i%3)*5;n.x+=dx/d*sp*dt;n.y+=dy/d*sp*dt}n._activity=d>18?'transitando':(minutes/60<13?'trabajando':'vida cotidiana')});
-  if(R.noticeTimer>0)R.noticeTimer-=dt;
-  const h=minutes/60;
-  if(Math.floor(minutes/30)!==R._slot){R._slot=Math.floor(minutes/30);if(Math.random()<.22){const choices=['Hay movimiento en la plaza.','Llegó una camioneta a la zona rural.','La radio está preparando su programación.','Alguien abrió temprano el almacén.','Se ven trabajadores rumbo a las chacras.'];toast(choices[Math.floor(Math.random()*choices.length)]);persist()}}
-}}
-const originalDraw=V.life&&V.life.drawWorld;
-if(originalDraw){V.life.drawWorld=(c)=>{originalDraw.call(V.life,c);const t=V.life.phase||0;
-  // trabajadores rurales: pequeños grupos visibles y animados
-  for(let i=0;i<9;i++){const x=1880+i*38+Math.sin(t*.7+i)*7,y=1050+(i%3)*34+Math.cos(t+i)*4;c.fillStyle=i%2?'#596b55':'#795f4d';c.fillRect(x-5,y-13,10,20);c.fillStyle='#d8a77d';c.fillRect(x-4,y-22,8,8);}
-  // banderines de feria / vida comunitaria
-  c.strokeStyle='#75664c';c.lineWidth=2;c.beginPath();c.moveTo(960,590);c.lineTo(1380,590);c.stroke();for(let x=970;x<1380;x+=34){c.fillStyle=(Math.floor(x/34)%2)?'#b96b55':'#d2b36d';c.beginPath();c.moveTo(x,590);c.lineTo(x+16,608);c.lineTo(x+32,590);c.closePath();c.fill()}
-  // señales de actividad en edificios
-  const pulse=2+Math.sin(t*3)*2;c.fillStyle='rgba(235,201,105,.8)';c.fillRect(1748,594,6+pulse,6+pulse);c.fillRect(1180,1110,6+pulse,6+pulse);
-}}
-// Sistema RPG autónomo: misiones encadenadas, reputación y eventos cotidianos.
 R.missions=R.missions||[
- {id:'vecino',title:'Una mañana en Villa Pelón',text:'Conocé a un vecino y descubrí qué está haciendo hoy.',reward:300},
- {id:'almacen',title:'Compra cotidiana',text:'Visitá el almacén y hacé una compra.',reward:250},
- {id:'chacra',title:'Ritmo rural',text:'Visitá la zona rural y realizá una tarea.',reward:600},
- {id:'radio',title:'La voz del pueblo',text:'Acercate a la radio y escuchá qué sucede.',reward:450},
- {id:'plaza',title:'Punto de encuentro',text:'Recorré la plaza y observá la vida comunitaria.',reward:350}
+{id:'vecino',title:'Una mañana en Villa Pelón',text:'Conocé a un vecino.',reward:300,kind:'dialogue'},
+{id:'almacen',title:'Compra cotidiana',text:'Hacé una compra en el almacén.',reward:250,kind:'shop'},
+{id:'chacra',title:'Ritmo rural',text:'Realizá una tarea rural.',reward:600,kind:'job'},
+{id:'radio',title:'La voz del pueblo',text:'Acercate a la radio y escuchá su actividad.',reward:450,kind:'radio'},
+{id:'plaza',title:'Punto de encuentro',text:'Visitá la plaza y observá la vida comunitaria.',reward:350,kind:'plaza'},
+{id:'descanso',title:'Un día de pueblo',text:'Volvé a casa y descansá.',reward:200,kind:'home'}
 ];
 R.active=R.active||'vecino';
-function currentMission(){return R.missions.find(m=>m.id===R.active)||R.missions[0]}
-function complete(id){if(R.completed[id])return false;R.completed[id]=clock().day;const m=R.missions.find(x=>x.id===id);if(m){R.active=(R.missions[R.missions.indexOf(m)+1]||m).id;toast('Misión completada: '+m.title+'  +$'+m.reward);window.dispatchEvent(new CustomEvent('villa:rpg-reward',{detail:{money:m.reward}}));persist()}return true}
+function current(){return R.missions.find(m=>m.id===R.active)||R.missions[R.missions.length-1]}
+function relationship(name,delta=1){if(!name)return 0;R.relationships[name]=(R.relationships[name]||0)+delta;persist();return R.relationships[name]}
+function complete(id,reason){if(R.completed[id])return false;const m=R.missions.find(x=>x.id===id);if(!m)return false;R.completed[id]=day();const idx=R.missions.indexOf(m);R.active=(R.missions[idx+1]||m).id;R.events.push({day:day(),time:clock(),type:'mission',id,title:m.title,reason:reason||'actividad'});toast('✓ '+m.title+'  ·  +$'+m.reward);persist();renderMission();return true}
 R.complete=complete;
-// Observador de proximidad, sin tomar control del movimiento del motor base.
-setInterval(()=>{const s=V.__state;if(!s||!s.started)return;const near=(V.npcs||[]).find(n=>Math.hypot(s.x-n.x,s.y-n.y)<105);if(near){relationship(near.name,0.002);if(R.active==='vecino')complete('vecino');}
-  if(R.active==='almacen'&&Math.hypot(s.x-1750,s.y-610)<150)complete('almacen');
-  if(R.active==='chacra'&&Math.hypot(s.x-2100,s.y-1100)<260)complete('chacra');
-  if(R.active==='radio'&&Math.hypot(s.x-1200,s.y-1190)<180)complete('radio');
-  if(R.active==='plaza'&&Math.hypot(s.x-1160,s.y-420)<250)complete('plaza');
-},1000);
-// Mantener referencia ligera al estado sin reemplazarlo.
-Object.defineProperty(V,'__state',{configurable:true,get:()=>window.__villaPelonState||null});
-// HUD adicional creado de forma segura.
-const style=document.createElement('style');style.textContent='.rpg-live{position:fixed;left:12px;bottom:12px;z-index:20;background:rgba(27,31,25,.88);color:#f3e5c4;border:1px solid rgba(220,196,139,.35);padding:9px 12px;border-radius:10px;font:12px monospace;max-width:310px;box-shadow:0 5px 22px #0005}.rpg-live b{display:block;color:#e7c982;margin-bottom:3px}.rpg-toast{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:30;background:#302b22eF;color:#f7e8c4;padding:9px 15px;border-radius:9px;font:12px monospace;pointer-events:none;transition:opacity .3s}';document.head.appendChild(style);
-const box=document.createElement('div');box.className='rpg-live';box.innerHTML='<b>VILLA PELÓN · VIDA</b><span id="rpgMission">Cargando actividad…</span>';document.body.appendChild(box);
-const toastBox=document.createElement('div');toastBox.className='rpg-toast';toastBox.style.opacity='0';document.body.appendChild(toastBox);
-setInterval(()=>{const m=currentMission();document.getElementById('rpgMission').textContent=m.title+' · '+m.text;if(R.noticeTimer>0){toastBox.textContent=R.notice;toastBox.style.opacity='1'}else toastBox.style.opacity='0'},250);
-window.addEventListener('villa:rpg-reward',e=>{if(window.__villaPelonState)window.__villaPelonState.money+=Number(e.detail.money||0)});
+function record(type,label){R.events.push({day:day(),time:clock(),type,label});R.events=R.events.slice(-40);persist()}
+function detectActivity(speaker,text){
+ const t=(speaker+' '+text).toLowerCase();
+ let kind=null;
+ if(/almacén|compraste|compra/.test(t))kind='shop';
+ else if(/changa rural|cosecha|carga|galpón/.test(t))kind='job';
+ else if(/radio oasis|la radio/.test(t))kind='radio';
+ else if(/casa|descansaste/.test(t))kind='home';
+ else if(/plaza/.test(t))kind='plaza';
+ else if(['marta','raúl','lucía','pedro','nico'].some(n=>speaker.toLowerCase().includes(n)))kind='dialogue';
+ if(kind){record(kind,speaker||'actividad');const m=current();if(m.kind===kind)complete(m.id,kind);}
+ if(speaker&&['Marta','Raúl','Lucía','Pedro','Nico','Rosa','Tomás','Elena'].some(n=>speaker.includes(n))){relationship(speaker.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g,''),1)}
+}
+// Observa únicamente la UI de diálogo existente: no intercepta input ni crea un segundo game loop.
+const dialogue=document.getElementById('dialogue');
+if(dialogue){const obs=new MutationObserver(()=>{if(!dialogue.classList.contains('hidden')){const sp=(document.getElementById('speaker')||{}).textContent||'';const tx=(document.getElementById('dialogueText')||{}).textContent||'';const sig=sp+'|'+tx;if(sig!==R._dialogueSig){R._dialogueSig=sig;detectActivity(sp,tx)}}});obs.observe(dialogue,{attributes:true,subtree:true,childList:true,characterData:true})}
+// El almacén, la radio y el trabajo también dejan huella cuando el juego cambia su dinero.
+let lastMoney=money();setInterval(()=>{const now=money();if(now!==lastMoney){if(now<lastMoney)record('economy','Compra / gasto');else record('economy','Ingreso / trabajo');lastMoney=now}const d=day();if(R.daily.day!==d){R.daily={day:d,activities:0};toast('Nuevo día en Villa Pelón · nuevas rutinas y oportunidades');persist()}R.noticeTimer=Math.max(0,(R.noticeTimer||0)-1);renderMission()},1000);
+function renderMission(){const el=document.getElementById('rpgMission');if(!el)return;const m=current();const rel=Object.keys(R.relationships).length;el.innerHTML='<b>'+m.title+'</b><br>'+m.text+'<br><small>Vínculos: '+rel+' · Día '+day()+' · '+clock()+'</small>'}
+// Calendario de pequeñas escenas cotidianas. Son mensajes de mundo, no misiones falsas.
+const scenes=[
+ ['07:00','La mañana empieza: se abren casas y comienzan los primeros recorridos.'],
+ ['09:00','El almacén recibe movimiento y la zona central empieza a activarse.'],
+ ['11:00','La plaza concentra vecinos, charlas y pequeños encuentros.'],
+ ['13:00','El pueblo baja un cambio: almuerzo y pausa en la jornada.'],
+ ['16:00','La tarde rural sigue activa: trabajo, herramientas y tránsito.'],
+ ['18:00','La radio prepara el cierre de la jornada y vuelve a conectar al pueblo.'],
+ ['21:00','La noche llega a Villa Pelón: menos tránsito, más vida doméstica.']
+];
+let sceneSlot='';setInterval(()=>{const c=clock(),slot=scenes.filter(x=>c>=x[0]).slice(-1)[0];if(slot&&slot[0]!==sceneSlot){sceneSlot=slot[0];toast('• '+slot[1]);record('world',slot[1])}},5000);
+// Director visual: agrega señales discretas de actividad sin alterar el render base.
+const originalDraw=V.life&&V.life.drawWorld;
+if(originalDraw&&!V.life.__v34Draw){V.life.__v34Draw=true;V.life.drawWorld=(c)=>{originalDraw.call(V.life,c);const phase=V.life.phase||0;const pulse=3+Math.sin(phase*3)*2;
+ const signs=[[1750,594,'ALMACÉN'],[1180,1110,'RADIO'],[2150,565,'GALPÓN']];signs.forEach((s,i)=>{c.fillStyle='rgba(45,38,28,.72)';c.fillRect(s[0]-28,s[1]-25,56,14);c.fillStyle='rgba(240,211,139,.88)';c.font='8px monospace';c.textAlign='center';c.fillText(s[2],s[0],s[1]-15);if(i<2){c.fillStyle='rgba(241,201,92,.75)';c.beginPath();c.arc(s[0]+24,s[1]-18,pulse,0,Math.PI*2);c.fill()}});
+}}
+const style=document.createElement('style');style.textContent='.rpg-live{position:fixed;left:12px;bottom:12px;z-index:20;background:rgba(27,31,25,.91);color:#f3e5c4;border:1px solid rgba(220,196,139,.4);padding:10px 13px;border-radius:10px;font:12px monospace;max-width:320px;box-shadow:0 5px 22px #0006;pointer-events:none}.rpg-live b{display:block;color:#e7c982;margin-bottom:3px}.rpg-live small{opacity:.7}.rpg-toast{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:30;background:#302b22ef;color:#f7e8c4;padding:10px 16px;border-radius:9px;font:12px monospace;pointer-events:none;opacity:0;transition:opacity .25s}';document.head.appendChild(style);
+const box=document.createElement('div');box.className='rpg-live';box.innerHTML='<span id="rpgMission">Cargando actividad…</span>';document.body.appendChild(box);
+const toastBox=document.createElement('div');toastBox.className='rpg-toast';document.body.appendChild(toastBox);
+renderMission();persist();
 })();
