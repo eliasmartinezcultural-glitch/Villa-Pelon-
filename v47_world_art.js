@@ -4,48 +4,18 @@
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});const life=V.life;if(!life)return;
 const W=3200,H=2000;
-const A={grass:'#78945f',grass2:'#6b8755',dirt:'#b99a67',road:'#555b50',road2:'#67695d',edge:'#a9a28b',curb:'#bcb59b',wall:'#d0b487',wall2:'#b9956d',roof:'#594c3f',roof2:'#715a46',wood:'#73543b',metal:'#59625a',wire:'#343b34',water:'#6b9a9b',plaza:'#b6a477',green:'#55764b',tree:'#426b47',light:'#eadca4'};
+const A={dirt:'#b99a67',road:'#555b50',edge:'#a9a28b',curb:'#bcb59b',wall:'#d0b487',wall2:'#b9956d',roof:'#594c3f',roof2:'#715a46',wood:'#73543b',metal:'#59625a',wire:'#343b34',water:'#6b9a9b',plaza:'#b6a477',green:'#55764b',tree:'#426b47',light:'#eadca4'};
 function px(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function line(c,x1,y1,x2,y2,col,w=2){c.strokeStyle=col;c.lineWidth=w;c.beginPath();c.moveTo(Math.round(x1),Math.round(y1));c.lineTo(Math.round(x2),Math.round(y2));c.stroke()}
-function building(c,b){
- const x=b.x,y=b.y,w=b.w,h=b.h;
- px(c,x+7,y+h+7,w-2,9,'rgba(31,35,28,.20)');
- px(c,x,y,w,h,A.wall);px(c,x+8,y+8,w-16,10,A.wall2);
- px(c,x-3,y-9,w+6,14,A.roof);px(c,x+14,y-16,w-28,9,A.roof2);
- px(c,x+10,y+22,10,h-32,'rgba(100,74,52,.28)');
- const cols=Math.max(1,Math.floor((w-46)/62));for(let i=0;i<cols;i++){const wx=x+25+i*62;px(c,wx,y+43,27,24,'#354c4b');px(c,wx+4,y+47,19,16,'#9db0a0');px(c,wx+13,y+47,3,16,A.wood)}
- const doorX=x+w/2-13;px(c,doorX,y+h-52,26,52,'#59402f');px(c,doorX+5,y+h-45,16,42,'#805b3e');px(c,doorX+18,y+h-27,4,4,A.light);
- px(c,x+18,y+h-8,w-36,6,A.curb);
-}
-function roads(c){
- // Eje urbano principal horizontal. Segmentado para no invadir edificios.
- px(c,0,680,W,88,A.road);px(c,0,686,W,4,A.edge);px(c,0,758,W,4,A.edge);
- for(let x=0;x<W;x+=88)px(c,x,720,48,4,A.edge);
- // Eje vertical de circulación, con cortes naturales frente a estructuras.
- const gaps=[[350,540],[720,900],[1120,1340],[1500,1710]];
- let y=0;gaps.forEach(g=>{if(g[0]>y){px(c,1125,y,80,g[0]-y,A.road);px(c,1125,y,4,g[0]-y,A.edge);px(c,1201,y,4,g[0]-y,A.edge)}y=g[1]});if(y<H){px(c,1125,y,80,H-y,A.road);px(c,1125,y,4,H-y,A.edge);px(c,1201,y,4,H-y,A.edge)}
- // Camino rural de tierra: nunca se convierte en calle urbana.
- line(c,1930,900,2700,900,A.dirt,38);line(c,1930,900,2700,900,'rgba(111,83,50,.30)',3);
-}
-function sidewalk(c){
- px(c,0,650,W,24,A.curb);px(c,0,774,W,20,A.curb);px(c,0,654,W,4,'#d1c9af');px(c,0,770,W,4,'#8e8979');
- for(let x=0;x<W;x+=48)line(c,x,650,x+24,674,'rgba(120,115,100,.35)',2);
- for(let x=0;x<W;x+=48)line(c,x,774,x+24,794,'rgba(120,115,100,.25)',2);
-}
-function plaza(c){
- px(c,1030,300,270,190,'rgba(40,50,37,.12)');px(c,1040,310,250,170,A.plaza);
- for(let x=1060;x<1280;x+=42)for(let y=330;y<470;y+=34)px(c,x,y,3,3,'#8e825e');
- px(c,1148,350,34,90,A.water);px(c,1154,356,22,78,'#86abad');
- px(c,1120,432,90,7,A.wood);px(c,1127,439,8,22,A.wood);px(c,1195,439,8,22,A.wood);
-}
+function building(c,b){const x=b.x,y=b.y,w=b.w,h=b.h;px(c,x+7,y+h+7,w-2,9,'rgba(31,35,28,.20)');px(c,x,y,w,h,A.wall);px(c,x+8,y+8,w-16,10,A.wall2);px(c,x-3,y-9,w+6,14,A.roof);px(c,x+14,y-16,w-28,9,A.roof2);px(c,x+10,y+22,10,h-32,'rgba(100,74,52,.28)');const cols=Math.max(1,Math.floor((w-46)/62));for(let i=0;i<cols;i++){const wx=x+25+i*62;px(c,wx,y+43,27,24,'#354c4b');px(c,wx+4,y+47,19,16,'#9db0a0');px(c,wx+13,y+47,3,16,A.wood)}const doorX=x+w/2-13;px(c,doorX,y+h-52,26,52,'#59402f');px(c,doorX+5,y+h-45,16,42,'#805b3e');px(c,doorX+18,y+h-27,4,4,A.light);px(c,x+18,y+h-8,w-36,6,A.curb)}
+function roads(c){px(c,0,680,W,88,A.road);px(c,0,686,W,4,A.edge);px(c,0,758,W,4,A.edge);for(let x=0;x<W;x+=88)px(c,x,720,48,4,A.edge);const gaps=[[350,540],[720,900],[1120,1340],[1500,1710]];let y=0;gaps.forEach(g=>{if(g[0]>y){px(c,1125,y,80,g[0]-y,A.road);px(c,1125,y,4,g[0]-y,A.edge);px(c,1201,y,4,g[0]-y,A.edge)}y=g[1]});if(y<H){px(c,1125,y,80,H-y,A.road);px(c,1125,y,4,H-y,A.edge);px(c,1201,y,4,H-y,A.edge)}line(c,1930,900,2700,900,A.dirt,38);line(c,1930,900,2700,900,'rgba(111,83,50,.30)',3)}
+function sidewalk(c){px(c,0,650,W,24,A.curb);px(c,0,774,W,20,A.curb);px(c,0,654,W,4,'#d1c9af');px(c,0,770,W,4,'#8e8979');for(let x=0;x<W;x+=48)line(c,x,650,x+24,674,'rgba(120,115,100,.35)',2);for(let x=0;x<W;x+=48)line(c,x,774,x+24,794,'rgba(120,115,100,.25)',2)}
+function plaza(c){px(c,1030,300,270,190,'rgba(40,50,37,.12)');px(c,1040,310,250,170,A.plaza);for(let x=1060;x<1280;x+=42)for(let y=330;y<470;y+=34)px(c,x,y,3,3,'#8e825e');px(c,1148,350,34,90,A.water);px(c,1154,356,22,78,'#86abad');px(c,1120,432,90,7,A.wood);px(c,1127,439,8,22,A.wood);px(c,1195,439,8,22,A.wood)}
 function tree(c,x,y,s=1){px(c,x-5*s,y+10*s,10*s,24*s,A.wood);px(c,x-22*s,y-8*s,44*s,30*s,A.tree);px(c,x-14*s,y-20*s,28*s,22*s,A.green);px(c,x-6*s,y-28*s,13*s,14*s,'#64855a');px(c,x-17*s,y+20*s,34*s,4,'rgba(31,42,30,.15)')}
-function utility(c){
- [220,820,1460,2050,2840].forEach(x=>{px(c,x,610,7,70,A.metal);px(c,x-7,604,21,7,A.metal);line(c,x+4,607,x+330,600,A.wire,2);line(c,x+4,612,x+330,606,A.wire,1)});
-}
-function fence(c,x,y,len){for(let i=0;i<len;i+=24){px(c,x+i,y-5,5,18,A.wood);px(c,x+i,y,len?3:3, A.wood)}line(c,x,y,x+len,y,A.wood,3);line(c,x,y+8,x+len,y+8,A.wood,3)}
+function utility(c){[220,820,1460,2050,2840].forEach(x=>{px(c,x,610,7,70,A.metal);px(c,x-7,604,21,7,A.metal);line(c,x+4,607,x+330,600,A.wire,2);line(c,x+4,612,x+330,606,A.wire,1)})}
+function fence(c,x,y,len){for(let i=0;i<len;i+=24){px(c,x+i,y-5,5,18,A.wood)}line(c,x,y,x+len,y,A.wood,3);line(c,x,y+8,x+len,y+8,A.wood,3)}
 function chacra(c,x,y,w,h){px(c,x,y,w,h,'rgba(119,139,78,.45)');for(let yy=y+14;yy<y+h;yy+=18)line(c,x,yy,x+w,yy,A.green,2);for(let xx=x+12;xx<x+w;xx+=28)px(c,xx,y+3,2,h-6,'rgba(74,102,58,.30)')}
 function labels(c){c.font='bold 12px monospace';c.textAlign='center';[['CENTRO',1165,625],['PLAZA',1165,292],['RURAL',2350,885],['CHACRAS',2450,1040]].forEach(a=>{px(c,a[1]-42,a[2]-13,84,22,'rgba(30,39,30,.78)');c.fillStyle='#e9dfbd';c.fillText(a[0],a[1],a[2]+2)})}
 function drawArchitecture(c){c.save();roads(c);sidewalk(c);const buildings=(V.worldGeometry&&V.worldGeometry.buildings)||[];buildings.forEach(b=>building(c,b));plaza(c);chacra(c,2050,1010,720,380);chacra(c,2600,1180,420,240);fence(c,1980,1390,560);fence(c,2700,1080,360);[180,780,2350,3000,850,1550,1850,3000].forEach((x,i)=>tree(c,x,[300,270,280,500,1500,1500,1680,1700][i],i%3?1:.85));utility(c);labels(c);c.restore()}
-const old=life.drawWorld;if(!life.__v47Art){life.__v47Art=true;life.drawWorld=function(c){drawArchitecture(c);if(old)old(c)}}
-V.worldArt={version:'V47',drawArchitecture};
+const old=life.drawWorld;if(!life.__v47Art){life.__v47Art=true;life.drawWorld=function(c){drawArchitecture(c);if(old)old(c)}}V.worldArt={version:'V47',drawArchitecture};
 })();
