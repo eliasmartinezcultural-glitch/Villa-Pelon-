@@ -9,25 +9,29 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="color-scheme" content="dark">
-<link rel="manifest" href="./manifest.webmanifest?v=70">
-<title>Villa Pelón · Historia en juego · V70</title>
-<link rel="stylesheet" href="./style.css?v=70">
-<link rel="stylesheet" href="./v48_intro.css?v=70">
-<link rel="stylesheet" href="./mobile_v63.css?v=70">
-<link rel="stylesheet" href="./core/professional_runtime.css?v=70">
+<link rel="manifest" href="./manifest.webmanifest?v=71">
+<title>Villa Pelón · Historia en juego · V71</title>
+<link rel="stylesheet" href="./style.css?v=71">
+<link rel="stylesheet" href="./v48_intro.css?v=71">
+<link rel="stylesheet" href="./mobile_v63.css?v=71">
+<link rel="stylesheet" href="./core/professional_runtime.css?v=71">
 </head>
 <body>
 <main id="app">
 <section id="start" class="screen intro-screen">
-  <div class="title-card">
-    <div class="eyebrow">VILLA PELÓN · CONTEXTO HISTÓRICO</div>
-    <h1>UNA HISTORIA NACIDA DEL TERRITORIO</h1>
-    <p>Villa Pelón es el nombre del mundo del juego. Su punto de partida histórico es <strong>San Patricio del Chañar, Neuquén</strong>, una comunidad del valle del río Neuquén cuya transformación estuvo profundamente ligada al agua, el riego, las chacras y el trabajo rural.</p>
-    <p>En <strong>1968</strong>, Roberto Gasparri adquirió grandes extensiones de tierra en el área. Entre <strong>1969 y 1971</strong> avanzaron obras de riego y sistematización que permitieron poner tierras en producción. El <strong>21 de mayo de 1973</strong>, mediante el Decreto Provincial 1339, se creó la Comisión de Fomento de San Patricio del Chañar. En 1974 comenzaron sus primeras autoridades y se consolidó la organización del riego.</p>
-    <p>Con el tiempo, el territorio desarrolló una fuerte identidad <strong>frutícola</strong> y posteriormente un importante perfil <strong>vitivinícola</strong>. La historia productiva también convive con otra historia mucho más antigua: en el área de la bodega Familia Schroeder fueron hallados restos fósiles atribuidos a <strong>Panamericansaurus schroederi</strong>, un dinosaurio de aproximadamente 72 millones de años.</p>
-    <div class="intro-note"><strong>REFERENCIA:</strong> el juego usa a Villa Pelón como universo narrativo. Los datos históricos reales se incorporarán como contenido documentado y la ficción será identificada como ficción.</div>
+  <div class="intro-atmosphere" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="title-card cinematic" id="introCard">
+    <div class="eyebrow" id="introEyebrow">VILLA PELÓN · UNA HISTORIA EN JUEGO</div>
+    <div class="intro-mark" aria-hidden="true">✦</div>
+    <h1 id="introTitle">ANTES DE SER UN PUEBLO, FUE TERRITORIO.</h1>
+    <p id="introText">Hay lugares que se conocen caminándolos. Otros, escuchando a quienes los habitaron.</p>
+    <div class="intro-progress" aria-hidden="true"><span id="introProgress"></span></div>
+    <div class="intro-hint" id="introHint">TOCÁ PARA CONTINUAR</div>
+    <div class="intro-note"><strong>JUEGO EDUCATIVO</strong> · Explorá, hablá con vecinos, cumplí misiones y descubrí la historia de San Patricio del Chañar. La ficción y los datos históricos estarán diferenciados.</div>
     <button id="startBtn" type="button">ENTRAR AL TERRITORIO</button>
   </div>
+  <button id="introSkip" class="intro-skip" type="button">SALTAR INTRO</button>
+  <div class="audio-badge" id="audioBadge" aria-live="polite">♫ SONIDO ACTIVADO</div>
 </section>
 <section id="game" class="hidden">
   <header class="hud">
@@ -44,20 +48,21 @@
   <button id="save" class="save" type="button">GUARDAR</button>
 </section>
 </main>
-<script src="./village_data.js?v=70" defer></script>
-<script src="./core/world.js?v=70" defer></script>
-<script src="./core/runtime.js?v=70" defer></script>
-<script src="./life.js?v=70" defer></script>
-<script src="./game.js?v=70" defer></script>
-<script src="./v57_integrity.js?v=70" defer></script>
-<script src="./v50_version_badge.js?v=70" defer></script>
-<script src="./v55_runtime_integrator.js?v=70" defer></script>
-<script src="./ui_system.js?v=70" defer></script>
-<script src="./controls.js?v=70" defer></script>
-<script src="./core/mobile_runtime.js?v=70" defer></script>
-<script src="./core/professional_runtime.js?v=70" defer></script>
-<script src="./core/world_rules.js?v=70" defer></script>
-<script src="./core/mobile_quality.js?v=70" defer></script>
-<script src="./core/education_journal.js?v=70" defer></script>
-<script src="./core/world_life_expansion.js?v=70" defer></script>
+<script src="./village_data.js?v=71" defer></script>
+<script src="./core/world.js?v=71" defer></script>
+<script src="./core/runtime.js?v=71" defer></script>
+<script src="./life.js?v=71" defer></script>
+<script src="./intro_runtime.js?v=71" defer></script>
+<script src="./game.js?v=71" defer></script>
+<script src="./v57_integrity.js?v=71" defer></script>
+<script src="./v50_version_badge.js?v=71" defer></script>
+<script src="./v55_runtime_integrator.js?v=71" defer></script>
+<script src="./ui_system.js?v=71" defer></script>
+<script src="./controls.js?v=71" defer></script>
+<script src="./core/mobile_runtime.js?v=71" defer></script>
+<script src="./core/professional_runtime.js?v=71" defer></script>
+<script src="./core/world_rules.js?v=71" defer></script>
+<script src="./core/mobile_quality.js?v=71" defer></script>
+<script src="./core/education_journal.js?v=71" defer></script>
+<script src="./core/world_life_expansion.js?v=71" defer></script>
 </body></html>
