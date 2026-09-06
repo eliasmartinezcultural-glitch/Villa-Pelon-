@@ -27,8 +27,6 @@ if(typeof oldUpdate==='function'&&!V.__v8712){
       S.x=Math.max(26,Math.min(world().width-26,S.x));
       S.y=Math.max(30,Math.min(world().height-30,S.y));
     }
-    V.campaignRuntime?.check?.();
-    V.missionUI?.refresh?.();
   };
 }
 const touchButtons=[...document.querySelectorAll('[data-key]')];
