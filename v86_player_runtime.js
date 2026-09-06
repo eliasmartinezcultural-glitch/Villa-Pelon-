@@ -37,7 +37,7 @@ function bind(){
   ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(t=>b.addEventListener(t,up,{capture:true,passive:false}));
  });
  const ib=document.getElementById('interact');
- if(ib)ib.addEventListener('pointerdown',e=>{e.stopImmediatePropagation()},{capture:true});
+ if(ib)ib.addEventListener('pointerdown',e=>{e.preventDefault();e.stopImmediatePropagation();V.interact?.()},{capture:true,passive:false});
 }
 function ensureOverlay(){
  if(!canvas||!game)return;
