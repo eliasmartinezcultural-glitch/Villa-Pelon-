@@ -1,11 +1,11 @@
-/* Villa Pelón CORE WORLD v1.0
+/* Villa Pelón CORE WORLD v1.1
    Autoridad estructural del territorio: mapa, río, barrios, ruralidad, rutas y sitios.
    Regla espacial: las rutas son corredores de circulación; no se colocan viviendas sobre ellas.
-   La geometría es jugable y puede crecer sin duplicar autoridades.
+   Todo punto del territorio queda recorrible salvo barreras explícitas.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
-const WORLD={version:'1.0.0',width:3200,height:2000,spawn:{x:520,y:760},safeMargin:55,
+const WORLD={version:'1.1.0',width:3200,height:2000,w:3200,h:2000,spawn:{x:520,y:760},safeMargin:55,
  zones:[
   {id:'centro',name:'Centro',x:300,y:260,w:1050,h:570},
   {id:'barrio',name:'Barrio',x:300,y:830,w:1050,h:520},
@@ -14,7 +14,7 @@ const WORLD={version:'1.0.0',width:3200,height:2000,spawn:{x:520,y:760},safeMarg
   {id:'rio',name:'Río Neuquén / ribera',x:0,y:120,w:3100,h:230},
   {id:'meseta',name:'Meseta y campo abierto',x:1350,y:1310,w:1500,h:610}
  ],
- river:{id:'rio-neuquen',name:'Río Neuquén',x:0,y:90,w:3200,h:170,kind:'water'},
+ river:{id:'rio-neuquen',name:'Río Neuquén',x:0,y:90,w:3200,h:170,kind:'water',walkableBank:{x:0,y:260,w:3200,h:90}},
  roads:[
   {id:'ruta-7',name:'Ruta Provincial 7',x:40,y:700,w:3120,h:72,kind:'route'},
   {id:'ruta-8',name:'Ruta Provincial 8',x:1290,y:180,w:72,h:1700,kind:'route'},
@@ -42,20 +42,11 @@ const WORLD={version:'1.0.0',width:3200,height:2000,spawn:{x:520,y:760},safeMarg
   {id:'canal',name:'Canal de Riego',kind:'irrigation',x:1450,y:820,zone:'rural'},
   {id:'fossils',name:'Sitio de fósiles',kind:'paleontology',x:2680,y:1500,zone:'meseta'},
   {id:'mirador',name:'Mirador de la Meseta',kind:'landscape',x:2450,y:1670,zone:'meseta'},
-  {id:'ribera',name:'Ribera del río',kind:'riverbank',x:1050,y:220,zone:'rio'},
+  {id:'ribera',name:'Ribera del río',kind:'riverbank',x:1050,y:280,zone:'rio'},
   {id:'canal-viejo',name:'Canal Viejo',kind:'irrigation-memory',x:1660,y:520,zone:'rural'}
  ],
  housesMustNotOverlapRoads:true,
- rules:{
-  roadsAreCirculationOnly:true,
-  noHousesOnRoutes:true,
-  ruralBuildingsOnlyInRuralZone:true,
-  riverIsWaterBarrier:true,
-  fossilsAreResearchSites:true,
-  historicalFactsRequireSources:true,
-  fictionalContentMustBeMarked:true,
-  realReferenceNameMayAppearOnlyAsHistoricalContext:true
- }
+ rules:{roadsAreCirculationOnly:true,noHousesOnRoutes:true,ruralBuildingsOnlyInRuralZone:true,riverIsWaterBarrier:true,riverBankAccessible:true,fossilsAreResearchSites:true,historicalFactsRequireSources:true,fictionalContentMustBeMarked:true,realReferenceNameMayAppearOnlyAsHistoricalContext:true,unrestrictedTerrainIsWalkable:true}
 };
 function overlaps(a,b,pad=0){return a.x-pad<b.x+b.w&&a.x+a.w+pad>b.x&&a.y-pad<b.y+b.h&&a.y+a.h+pad>b.y}
 function validBuilding(b){if(WORLD.rules.noHousesOnRoutes&&b.type==='home'&&WORLD.roads.some(r=>overlaps(b,r,10)))return false;return true}
@@ -66,8 +57,8 @@ WORLD.collision={
   if(WORLD.river.y<y&&y<WORLD.river.y+WORLD.river.h)return true;
   return WORLD.buildings.some(b=>x>b.x-r&&x<b.x+b.w+r&&y>b.y-r&&y<b.y+b.h+r);
  },
- roadAt(x,y){return WORLD.roads.find(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h)||null;},
- zoneAt(x,y){return WORLD.zones.find(z=>x>=z.x&&x<=z.x+z.w&&y>=z.y&&y<=z.y+z.h)||null;}
+ roadAt(x,y){return WORLD.roads.find(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h)||null},
+ zoneAt(x,y){return WORLD.zones.find(z=>x>=z.x&&x<=z.x+z.w&&y>=z.y&&y<=z.y+z.h)||null}
 };
 V.worldGeometry=WORLD;V.world=WORLD;V.worldAuthority={version:WORLD.version,geometry:WORLD,blocked:WORLD.collision.blocked,roadAt:WORLD.collision.roadAt,zoneAt:WORLD.collision.zoneAt,validateBuilding:validBuilding};
 window.dispatchEvent(new CustomEvent('villa-pelon-world-ready',{detail:{version:WORLD.version}}));
