@@ -4,35 +4,35 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#294d38">
-<meta name="description" content="Villa Pelón — RPG educativo 2D pixel para conocer la historia de San Patricio del Chañar y avanzar hacia el universo narrativo de Villa Pelón. Jugá desde el celular, sin descargar nada.">
+<meta name="description" content="Villa Pelón — juego educativo 2D pixel para aprender la historia de San Patricio del Chañar y avanzar hacia Villa Pelón. Jugá desde el celular mediante un enlace, sin descargar nada.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="color-scheme" content="dark">
-<link rel="manifest" href="./manifest.webmanifest?v=67">
-<title>Villa Pelón · Historia en juego · V67</title>
-<link rel="stylesheet" href="./style.css?v=67">
-<link rel="stylesheet" href="./v48_intro.css?v=67">
-<link rel="stylesheet" href="./mobile_v63.css?v=67">
-<link rel="stylesheet" href="./core/professional_runtime.css?v=67">
+<link rel="manifest" href="./manifest.webmanifest?v=68">
+<title>Villa Pelón · Historia en juego · V68</title>
+<link rel="stylesheet" href="./style.css?v=68">
+<link rel="stylesheet" href="./v48_intro.css?v=68">
+<link rel="stylesheet" href="./mobile_v63.css?v=68">
+<link rel="stylesheet" href="./core/professional_runtime.css?v=68">
 </head>
 <body>
 <main id="app">
 <section id="start" class="screen intro-screen">
   <div class="title-card">
-    <div class="eyebrow">VILLA PELÓN · EXPERIENCIA EDUCATIVA</div>
-    <h1>DONDE COMIENZA UNA HISTORIA</h1>
-    <p id="introText">Este juego nace de una pregunta: ¿qué podemos aprender de un territorio cuando, en vez de leer su historia solamente, podemos caminarla?</p>
-    <p>El recorrido parte de la historia real de <strong>San Patricio del Chañar</strong> y avanza hacia <strong>Villa Pelón</strong>, un universo narrativo rural construido para aprender explorando.</p>
-    <div class="intro-objective"><strong>APRENDER JUGANDO</strong><br>Recorré el territorio, hablá con sus habitantes, visitá lugares, encontrá objetos y completá misiones. Cada descubrimiento puede abrir una nueva pregunta sobre el pasado.</div>
-    <div class="intro-note">Las ambientaciones y personajes de ficción estarán diferenciados de los hechos históricos. Cuando una misión presente historia real, deberá apoyarse en fuentes verificables.</div>
+    <div class="eyebrow">VILLA PELÓN · JUEGO EDUCATIVO TERRITORIAL</div>
+    <h1>CAMINÁ LA HISTORIA</h1>
+    <p id="introText">Este no es un juego para memorizar fechas. Es una experiencia para recorrer un territorio, hacer preguntas y descubrir cómo una comunidad construye su historia.</p>
+    <p>El recorrido educativo parte de la <strong>historia real de San Patricio del Chañar</strong> y avanza hacia <strong>Villa Pelón</strong>, un universo narrativo rural donde vas a aprender explorando.</p>
+    <div class="intro-objective"><strong>APRENDER JUGANDO</strong><br>Recorré calles y zonas rurales, hablá con personas, visitá lugares, encontrá objetos, reuní pistas y completá misiones. La mochila conserva tus descubrimientos y el mapa te ayuda a entender el territorio.</div>
+    <div class="intro-note"><strong>REGLA HISTÓRICA:</strong> un hecho real necesita una fuente verificable. Los elementos de ficción estarán identificados como ficción. El juego nunca debe presentar una invención como historia.</div>
     <div class="vp-intro-details">
-      <button type="button" data-intro-tab="context">▸ CONTEXTO</button>
+      <button type="button" data-intro-tab="context">▸ CONTEXTO HISTÓRICO</button>
       <button type="button" data-intro-tab="play">▸ CÓMO SE JUEGA</button>
       <button type="button" data-intro-tab="history">▸ CÓMO SE APRENDE</button>
-      <div class="vp-intro-panel" data-intro-panel="context">San Patricio del Chañar es el territorio histórico que guía la investigación. Villa Pelón funciona como el escenario narrativo desde el que vas a recorrer, preguntar, comparar y descubrir.</div>
-      <div class="vp-intro-panel hidden" data-intro-panel="play">Caminá libremente. En el celular usá el control táctil y el botón INTERACTUAR. Acercate a personas, edificios y puntos de interés. Guardá tus descubrimientos en la mochila y consultá el mapa sin abandonar el mundo.</div>
-      <div class="vp-intro-panel hidden" data-intro-panel="history">Las misiones no buscan que memorices una lista de fechas. Buscan que encuentres pistas y relaciones personas, lugares, documentos, fotografías, oficios y transformaciones del territorio con fuentes históricas.</div>
+      <div class="vp-intro-panel" data-intro-panel="context">San Patricio del Chañar es el territorio histórico que guía la investigación. Villa Pelón es el universo narrativo desde el que vas a caminar, conversar y descubrir. A medida que avance el proyecto, cada etapa histórica incorporará documentación, testimonios, fotografías y fuentes.</div>
+      <div class="vp-intro-panel hidden" data-intro-panel="play">En el celular movete con los controles táctiles. Acercate a personas, edificios y puntos de interés y tocá INTERACTUAR. MAPA y MOCHILA están siempre disponibles en la pantalla principal. No necesitás instalar una aplicación.</div>
+      <div class="vp-intro-panel hidden" data-intro-panel="history">Una misión puede comenzar con una pregunta, llevarte a un lugar, hacerte encontrar una pista y terminar abriendo una fuente. El objetivo es relacionar territorio, memoria y documentación, no solamente acumular recompensas.</div>
     </div>
     <button id="startBtn" type="button">ENTRAR AL TERRITORIO</button>
   </div>
@@ -42,7 +42,7 @@
     <strong>VILLA PELÓN</strong><span>🕐 <b id="clock">08:00</b></span><span>📅 Día <b id="day">1</b></span><span>🌤️ <b id="weather">Despejado</b></span><span>💰 $<b id="money">10000</b></span><span>⚡ <b id="energy">100</b></span>
   </header>
   <div class="main-tools" aria-label="Herramientas principales">
-    <button type="button" data-main-tool="inventory" aria-label="Abrir mochila">🎒 <span>MOCHILA</span></button>
+    <button type="button" data-main-tool="inventory" aria-label="Abrir mochila">🎒 <span>MOCHILA</span><b id="discoveryCount">0</b></button>
     <button type="button" data-main-tool="map" aria-label="Abrir mapa">🗺️ <span>MAPA</span></button>
   </div>
   <canvas id="world" aria-label="Villa Pelón: exploración libre y aprendizaje histórico"></canvas>
@@ -52,5 +52,5 @@
   <button id="save" class="save" type="button">GUARDAR</button>
 </section>
 </main>
-<script src="./village_data.js?v=67" defer></script><script src="./core/runtime.js?v=67" defer></script><script src="./life.js?v=67" defer></script><script src="./game.js?v=67" defer></script><script src="./v57_integrity.js?v=67" defer></script><script src="./v50_version_badge.js?v=67" defer></script><script src="./v55_runtime_integrator.js?v=67" defer></script><script src="./ui_system.js?v=67" defer></script><script src="./controls.js?v=67" defer></script><script src="./core/mobile_runtime.js?v=67" defer></script><script src="./core/professional_runtime.js?v=67" defer></script><script src="./core/world_rules.js?v=67" defer></script><script src="./core/mobile_quality.js?v=67" defer></script>
+<script src="./village_data.js?v=68" defer></script><script src="./core/runtime.js?v=68" defer></script><script src="./life.js?v=68" defer></script><script src="./game.js?v=68" defer></script><script src="./v57_integrity.js?v=68" defer></script><script src="./v50_version_badge.js?v=68" defer></script><script src="./v55_runtime_integrator.js?v=68" defer></script><script src="./ui_system.js?v=68" defer></script><script src="./controls.js?v=68" defer></script><script src="./core/mobile_runtime.js?v=68" defer></script><script src="./core/professional_runtime.js?v=68" defer></script><script src="./core/world_rules.js?v=68" defer></script><script src="./core/mobile_quality.js?v=68" defer></script><script src="./core/education_journal.js?v=68" defer></script>
 </body></html>
