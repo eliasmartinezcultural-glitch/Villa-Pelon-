@@ -5,87 +5,24 @@
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 const S={version:'V77.1',tickMs:500,plans:new Map(),lastTick:0};
-const points={
-  casa:[900,575],plaza:[1160,430],escuela:[580,420],almacen:[1650,440],radio:[1215,430],
-  chacra:[2145,1025],galpon:[2145,430],bodega:[2380,1130]
-};
+const points={casa:[900,575],plaza:[1160,430],escuela:[580,420],almacen:[1650,440],radio:[1215,430],chacra:[2145,1025],galpon:[2145,430],bodega:[2380,1130]};
 const common={
-  marta:[
-    {from:0,to:8,activity:'en casa',place:'casa'},
-    {from:8,to:9,activity:'camino al almacén',place:'almacen',move:true},
-    {from:9,to:13,activity:'trabajando en el almacén',place:'almacen'},
-    {from:13,to:14,activity:'almuerzo',place:'casa',move:true},
-    {from:14,to:18,activity:'almuerzo y mandados',place:'plaza'},
-    {from:18,to:21,activity:'vuelta a casa',place:'casa',move:true},
-    {from:21,to:24,activity:'en casa',place:'casa'}
-  ],
-  raul:[
-    {from:0,to:6.5,activity:'en casa',place:'casa'},
-    {from:6.5,to:7.5,activity:'camino a la chacra',place:'chacra',move:true},
-    {from:7.5,to:12.5,activity:'trabajando en la chacra',place:'chacra'},
-    {from:12.5,to:14,activity:'descanso',place:'galpon'},
-    {from:14,to:18,activity:'trabajando en la chacra',place:'chacra'},
-    {from:18,to:20,activity:'regreso y mandados',place:'plaza',move:true},
-    {from:20,to:24,activity:'en casa',place:'casa',move:true}
-  ],
-  lucia:[
-    {from:0,to:7,activity:'en casa',place:'casa'},
-    {from:7,to:8,activity:'camino a la escuela',place:'escuela',move:true},
-    {from:8,to:13,activity:'trabajando en la escuela',place:'escuela'},
-    {from:13,to:14,activity:'almuerzo',place:'casa',move:true},
-    {from:14,to:16,activity:'tareas de la escuela',place:'escuela',move:true},
-    {from:16,to:19,activity:'en la plaza',place:'plaza',move:true},
-    {from:19,to:24,activity:'en casa',place:'casa',move:true}
-  ],
-  pedro:[
-    {from:0,to:6,activity:'en casa',place:'casa'},
-    {from:6,to:7,activity:'camino al campo',place:'chacra',move:true},
-    {from:7,to:12,activity:'trabajando en el campo',place:'chacra'},
-    {from:12,to:13,activity:'descanso',place:'galpon'},
-    {from:13,to:18,activity:'trabajando en el campo',place:'chacra'},
-    {from:18,to:20,activity:'regreso',place:'casa',move:true},
-    {from:20,to:24,activity:'en casa',place:'casa'}
-  ],
-  nico:[
-    {from:0,to:8,activity:'en casa',place:'casa'},
-    {from:8,to:10,activity:'camino a la radio',place:'radio',move:true},
-    {from:10,to:13,activity:'en la radio',place:'radio'},
-    {from:13,to:15,activity:'almuerzo y plaza',place:'plaza',move:true},
-    {from:15,to:18,activity:'en la radio',place:'radio',move:true},
-    {from:18,to:21,activity:'en la plaza',place:'plaza',move:true},
-    {from:21,to:24,activity:'en casa',place:'casa',move:true}
-  ],
-  rosa:[
-    {from:0,to:9,activity:'en casa',place:'casa'},
-    {from:9,to:11,activity:'haciendo mandados',place:'almacen',move:true},
-    {from:11,to:18,activity:'en la plaza',place:'plaza',move:true},
-    {from:18,to:20,activity:'regreso',place:'casa',move:true},
-    {from:20,to:24,activity:'en casa',place:'casa'}
-  ],
-  tomas:[
-    {from:0,to:7,activity:'en casa',place:'casa'},
-    {from:7,to:8,activity:'camino al galpón',place:'galpon',move:true},
-    {from:8,to:13,activity:'trabajando',place:'galpon'},
-    {from:13,to:14,activity:'descanso',place:'galpon'},
-    {from:14,to:17,activity:'trabajando',place:'galpon'},
-    {from:17,to:19,activity:'mandados',place:'almacen',move:true},
-    {from:19,to:24,activity:'en casa',place:'casa',move:true}
-  ],
-  elena:[
-    {from:0,to:8,activity:'en casa',place:'casa'},
-    {from:8,to:9,activity:'camino al comercio',place:'almacen',move:true},
-    {from:9,to:13,activity:'trabajando',place:'almacen'},
-    {from:13,to:15,activity:'almuerzo',place:'casa',move:true},
-    {from:15,to:19,activity:'trabajando',place:'almacen',move:true},
-    {from:19,to:21,activity:'en la plaza',place:'plaza',move:true},
-    {from:21,to:24,activity:'en casa',place:'casa',move:true}
-  ]
+ marta:[{from:0,to:8,activity:'en casa',place:'casa'},{from:8,to:9,activity:'camino al almacén',place:'almacen',move:true},{from:9,to:13,activity:'trabajando en el almacén',place:'almacen'},{from:13,to:14,activity:'almuerzo',place:'casa',move:true},{from:14,to:18,activity:'almuerzo y mandados',place:'plaza'},{from:18,to:21,activity:'vuelta a casa',place:'casa',move:true},{from:21,to:24,activity:'en casa',place:'casa'}],
+ raul:[{from:0,to:6.5,activity:'en casa',place:'casa'},{from:6.5,to:7.5,activity:'camino a la chacra',place:'chacra',move:true},{from:7.5,to:12.5,activity:'trabajando en la chacra',place:'chacra'},{from:12.5,to:14,activity:'descanso',place:'galpon'},{from:14,to:18,activity:'trabajando en la chacra',place:'chacra'},{from:18,to:20,activity:'regreso y mandados',place:'plaza',move:true},{from:20,to:24,activity:'en casa',place:'casa',move:true}],
+ lucia:[{from:0,to:7,activity:'en casa',place:'casa'},{from:7,to:8,activity:'camino a la escuela',place:'escuela',move:true},{from:8,to:13,activity:'trabajando en la escuela',place:'escuela'},{from:13,to:14,activity:'almuerzo',place:'casa',move:true},{from:14,to:16,activity:'tareas de la escuela',place:'escuela',move:true},{from:16,to:19,activity:'en la plaza',place:'plaza',move:true},{from:19,to:24,activity:'en casa',place:'casa',move:true}],
+ pedro:[{from:0,to:6,activity:'en casa',place:'casa'},{from:6,to:7,activity:'camino al campo',place:'chacra',move:true},{from:7,to:12,activity:'trabajando en el campo',place:'chacra'},{from:12,to:13,activity:'descanso',place:'galpon'},{from:13,to:18,activity:'trabajando en el campo',place:'chacra'},{from:18,to:20,activity:'regreso',place:'casa',move:true},{from:20,to:24,activity:'en casa',place:'casa'}],
+ nico:[{from:0,to:8,activity:'en casa',place:'casa'},{from:8,to:10,activity:'camino a la radio',place:'radio',move:true},{from:10,to:13,activity:'en la radio',place:'radio'},{from:13,to:15,activity:'almuerzo y plaza',place:'plaza',move:true},{from:15,to:18,activity:'en la radio',place:'radio',move:true},{from:18,to:21,activity:'en la plaza',place:'plaza',move:true},{from:21,to:24,activity:'en casa',place:'casa',move:true}],
+ rosa:[{from:0,to:9,activity:'en casa',place:'casa'},{from:9,to:11,activity:'haciendo mandados',place:'almacen',move:true},{from:11,to:18,activity:'en la plaza',place:'plaza',move:true},{from:18,to:20,activity:'regreso',place:'casa',move:true},{from:20,to:24,activity:'en casa',place:'casa'}],
+ tomas:[{from:0,to:7,activity:'en casa',place:'casa'},{from:7,to:8,activity:'camino al galpón',place:'galpon',move:true},{from:8,to:13,activity:'trabajando',place:'galpon'},{from:13,to:14,activity:'descanso',place:'galpon'},{from:14,to:17,activity:'trabajando',place:'galpon'},{from:17,to:19,activity:'mandados',place:'almacen',move:true},{from:19,to:24,activity:'en casa',place:'casa',move:true}],
+ elena:[{from:0,to:8,activity:'en casa',place:'casa'},{from:8,to:9,activity:'camino al comercio',place:'almacen',move:true},{from:9,to:13,activity:'trabajando',place:'almacen'},{from:13,to:15,activity:'almuerzo',place:'casa',move:true},{from:15,to:19,activity:'trabajando',place:'almacen',move:true},{from:19,to:21,activity:'en la plaza',place:'plaza',move:true},{from:21,to:24,activity:'en casa',place:'casa',move:true}]
 };
 function planFor(o){const n=(o.name||'').toLowerCase();if(n.includes('marta'))return common.marta;if(n.includes('raul'))return common.raul;if(n.includes('luc'))return common.lucia;if(n.includes('pedro'))return common.pedro;if(n.includes('nico'))return common.nico;if(n.includes('rosa'))return common.rosa;if(n.includes('tomas'))return common.tomas;if(n.includes('elena'))return common.elena;return null}
-function weatherOverride(slot){const w=V.life?.weather;if(w!=='lluvia')return slot;if(['chacra','plaza'].includes(slot.place))return {...slot,activity:'resguardado por la lluvia',place:slot.place==='chacra'?'galpon':'escuela'};return slot}
-function slotFor(o,h){const plan=planFor(o);if(!plan)return null;let slot=plan.find(s=>h>=s.from&&h<s.to)||plan[plan.length-1];return weatherOverride(slot)}
-function apply(o,h){const slot=slotFor(o,h);if(!slot)return;const p=points[slot.place]||points.plaza;const id=slot.from+'-'+slot.to+'-'+slot.place;if(o.schedule77Id===id&&o.schedule77Day===Number(V.gameState?.day||1))return;const previous=o.activity;o.schedule77Id=id;o.schedule77Day=Number(V.gameState?.day||1);o.scheduleIndex77=planFor(o)?.indexOf(slot)||0;o.activity=slot.activity;o.activityPlace77=slot.place;o.routeDestination77=[p[0],p[1]];o.scheduleState77=slot.move?'transit':'stationary';o.target=[p[0],p[1]];o.wait=0;o.active=true;if(previous!==o.activity&&V.worldEvent)V.worldEvent('npc-schedule',{npc:o.name,activity:o.activity,place:slot.place})}
+function weatherOverride(slot){if(V.life?.weather!=='lluvia')return slot;if(['chacra','plaza'].includes(slot.place))return {...slot,activity:'resguardado por la lluvia',place:slot.place==='chacra'?'galpon':'escuela'};return slot}
+function slotFor(o,h){const plan=planFor(o);if(!plan)return null;const slot=plan.find(s=>h>=s.from&&h<s.to)||plan[plan.length-1];return weatherOverride(slot)}
+function apply(o,h,force=false){const slot=slotFor(o,h);if(!slot)return;const p=points[slot.place]||points.plaza;const id=slot.from+'-'+slot.to+'-'+slot.place;if(!force&&o.schedule77Id===id&&o.schedule77Day===Number(V.gameState?.day||1))return;const previous=o.activity;o.schedule77Id=id;o.schedule77Day=Number(V.gameState?.day||1);o.scheduleIndex77=planFor(o)?.indexOf(slot)||0;o.activity=slot.activity;o.activityPlace77=slot.place;o.routeDestination77=[p[0],p[1]];o.scheduleState77=slot.move?'transit':'stationary';o.target=[p[0],p[1]];o.wait=0;o.active=true;if(previous!==o.activity&&V.worldEvent)V.worldEvent('npc-schedule',{npc:o.name,activity:o.activity,place:slot.place})}
 function tick(){const life=V.life,g=V.gameState;if(!life||!Array.isArray(life.ambient)||!g)return;const h=((Number(g.minutes)||480)/60)%24;life.ambient.forEach(o=>apply(o,h));S.lastTick=Date.now()}
-function install(){if(V.__v77Installed)return;V.__v77Installed=true;V.npcSchedule77=S;V.npcRoutines77={version:'V77.1',points,plans:common,slotFor,apply};tick();setInterval(tick,S.tickMs);window.addEventListener('villa-pelon-world-event',e=>{if(e.detail?.type==='load')tick()});}
+function install(){if(V.__v77Installed)return;V.__v77Installed=true;V.npcSchedule77=S;V.npcRoutines77={version:'V77.1',points,plans:common,slotFor,apply};
+ if(V.life&&!V.life.__v77Schedule){const original=V.life.update;V.life.update=function(dt,minutes){original(dt,minutes);const g=V.gameState,h=((Number(minutes??g?.minutes)||480)/60)%24;(V.life.ambient||[]).forEach(o=>apply(o,h,true));};V.life.__v77Schedule=true;}
+ tick();setInterval(tick,S.tickMs);window.addEventListener('villa-pelon-world-event',e=>{if(e.detail?.type==='load')tick()});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
