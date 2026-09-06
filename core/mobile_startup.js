@@ -32,7 +32,8 @@
   }
 
   V.gameStart = function () {
-    if (state.started && !start.classList.contains('hidden')) restore();
+    // Recuperar ANTES de marcar la partida como iniciada: el estado nuevo arranca con started=false.
+    restore();
     state.started = true;
     start.classList.add('hidden');
     game.classList.remove('hidden');
