@@ -4,32 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#294d38">
-<meta name="description" content="Villa Pelón — RPG 2D pixel rural de mundo vivo. Cumplí misiones, conocé a sus habitantes y reconstruí la historia del pueblo.">
+<meta name="description" content="Villa Pelón — RPG 2D pixel rural de mundo vivo. Explorá un valle patagónico, cumplí misiones y reconstruí la memoria de una comunidad ficticia.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="color-scheme" content="dark">
-<link rel="manifest" href="./manifest.webmanifest?v=62">
-<title>Villa Pelón · RPG Pixel · V62</title>
-<link rel="stylesheet" href="./style.css?v=62">
-<link rel="stylesheet" href="./v48_intro.css?v=62">
+<link rel="manifest" href="./manifest.webmanifest?v=63">
+<title>Villa Pelón · RPG Pixel · V63</title>
+<link rel="stylesheet" href="./style.css?v=63">
+<link rel="stylesheet" href="./v48_intro.css?v=63">
 </head>
 <body>
 <main id="app">
 <section id="start" class="screen intro-screen">
   <div class="title-card">
-    <div class="eyebrow">VILLA PELÓN · V62</div>
-    <h1>DONDE COMIENZA UNA HISTORIA</h1>
-    <p id="introText">Villa Pelón es un pequeño pueblo rural donde la historia no está toda escrita en un solo lugar. Está repartida entre sus calles, sus casas, los oficios, los recuerdos de sus vecinos y los lugares que todavía guardan huellas del pasado.</p>
-    <p>Llegás como un visitante y empezás a recorrerlo a tu ritmo. Caminás, conocés gente, entrás en lugares, trabajás, comprás algo para el día, tomás mate, descansás y observás cómo cambia el pueblo mientras pasan las horas.</p>
-    <p class="intro-objective"><strong>EL OBJETIVO</strong><br>No se trata solamente de ganar. Se trata de descubrir. Cumplí misiones para acercarte a personas, lugares, objetos, fotografías, documentos y recuerdos. Cada descubrimiento agrega una pieza al relato y te ayuda a reconstruir la historia de Villa Pelón.</p>
-    <p class="intro-note">El mundo puede tener historias de ambientación para hacerlo vivir. Cuando una misión represente un hecho histórico real, deberá estar documentada y su fuente podrá ser consultada.</p>
+    <div class="eyebrow">VILLA PELÓN · V63</div>
+    <h1>DONDE EL AGUA GUARDA LA MEMORIA</h1>
+    <p id="introText">Villa Pelón está en un valle seco donde el agua hizo posible la vida. Alrededor de los canales crecieron las chacras, los frutales, los viñedos, los galpones y las casas. Con el tiempo aparecieron caminos, comercios, una escuela, una radio y nuevas formas de trabajo.</p>
+    <p>Pero la historia del pueblo nunca quedó guardada en un solo lugar. Está repartida entre las personas, las fotografías, los papeles, las herramientas, los caminos y el paisaje. Llegás como un visitante y empezás a recorrerlo a tu ritmo: caminás, trabajás, comprás, tomás mate, escuchás la radio, conocés vecinos y descubrís rincones que cuentan algo.</p>
+    <p class="intro-objective"><strong>EL OBJETIVO</strong><br>No se trata solamente de ganar. Se trata de descubrir. Cumplí misiones para acercarte a personas, lugares, objetos, fotografías, documentos y recuerdos. Cada evidencia agrega una pieza al relato y te ayuda a reconstruir la historia de Villa Pelón.</p>
+    <p class="intro-note">Villa Pelón es una ficción territorial construida a partir de referencias de la vida rural norpatagónica. Cuando una misión represente un hecho histórico real, deberá estar documentada y su fuente podrá consultarse sin romper la identidad ficticia del pueblo.</p>
     <button id="startBtn" type="button">COMENZAR</button>
   </div>
 </section>
 <section id="game" class="hidden">
   <header class="hud"><strong>VILLA PELÓN</strong><span>🕐 <b id="clock">08:00</b></span><span>📅 Día <b id="day">1</b></span><span>🌤️ <b id="weather">Despejado</b></span><span>💰 $<b id="money">10000</b></span><span>⚡ <b id="energy">100</b></span></header>
-  <canvas id="world" aria-label="Villa Pelón: exploración libre y pueblo vivo"></canvas>
+  <canvas id="world" aria-label="Villa Pelón: valle rural patagónico, exploración libre y pueblo vivo"></canvas>
   <div class="quest"><b>MISIÓN</b><span id="questText">Conocé a un vecino.</span></div>
   <div id="dialogue" class="dialogue hidden"><div id="speaker"></div><div id="dialogueText"></div><button id="dialogueNext" type="button">CONTINUAR</button></div>
   <div class="touch" aria-label="Controles de movimiento">
@@ -39,14 +39,15 @@
   <button id="save" class="save" type="button">GUARDAR</button>
 </section>
 </main>
-<script src="./village_data.js?v=62" defer></script>
-<script src="./core/runtime.js?v=62" defer></script>
-<script src="./life.js?v=62" defer></script>
-<script src="./game.js?v=62" defer></script>
-<script src="./v57_integrity.js?v=62" defer></script>
-<script src="./v50_version_badge.js?v=62" defer></script>
-<script src="./v55_runtime_integrator.js?v=62" defer></script>
-<script src="./ui_system.js?v=62" defer></script>
-<script src="./controls.js?v=62" defer></script>
+<script src="./village_data.js?v=63" defer></script>
+<script src="./regional_identity.js?v=63" defer></script>
+<script src="./core/runtime.js?v=63" defer></script>
+<script src="./life.js?v=63" defer></script>
+<script src="./game.js?v=63" defer></script>
+<script src="./v57_integrity.js?v=63" defer></script>
+<script src="./v50_version_badge.js?v=63" defer></script>
+<script src="./v55_runtime_integrator.js?v=63" defer></script>
+<script src="./ui_system.js?v=63" defer></script>
+<script src="./controls.js?v=63" defer></script>
 </body>
 </html>
