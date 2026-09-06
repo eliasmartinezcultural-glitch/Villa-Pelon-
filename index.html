@@ -9,10 +9,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="color-scheme" content="dark">
-<link rel="manifest" href="./manifest.webmanifest?v=58">
+<link rel="manifest" href="./manifest.webmanifest?v=59">
 <title>Villa Pelón · RPG Pixel</title>
-<link rel="stylesheet" href="./style.css?v=58">
-<link rel="stylesheet" href="./v48_intro.css?v=58">
+<link rel="stylesheet" href="./style.css?v=59">
+<link rel="stylesheet" href="./v48_intro.css?v=59">
 </head>
 <body>
 <main id="app">
@@ -21,34 +21,28 @@
     <div class="eyebrow">VILLA PELÓN</div>
     <h1>DONDE COMIENZA UNA HISTORIA</h1>
     <p id="introText">En un pequeño pueblo, cada calle guarda una historia. Cada casa conserva una memoria. Cada persona forma parte de una vida que continúa día tras día.</p>
+    <button id="startBtn" type="button">COMENZAR</button>
   </div>
-  <button id="startBtn" hidden aria-hidden="true" tabindex="-1"></button>
 </section>
 <section id="game" class="hidden">
   <header class="hud"><strong>VILLA PELÓN</strong><span>🕐 <b id="clock">08:00</b></span><span>📅 Día <b id="day">1</b></span><span>🌤️ <b id="weather">Despejado</b></span><span>💰 $<b id="money">10000</b></span><span>⚡ <b id="energy">100</b></span></header>
   <canvas id="world" aria-label="Villa Pelón: exploración libre, calles, río y pueblo vivo"></canvas>
   <div class="quest"><b>MISIÓN</b><span id="questText">Conocé a un vecino.</span></div>
-  <div id="dialogue" class="dialogue hidden"><div id="speaker"></div><div id="dialogueText"></div><button id="dialogueNext">CONTINUAR</button></div>
-  <div class="touch"><button data-key="up" aria-label="Mover arriba">▲</button><div><button data-key="left" aria-label="Mover izquierda">◀</button><button data-key="down" aria-label="Mover abajo">▼</button><button data-key="right" aria-label="Mover derecha">▶</button></div><button id="interact" aria-label="Interactuar">E</button></div>
-  <button id="save" class="save">GUARDAR</button>
+  <div id="dialogue" class="dialogue hidden"><div id="speaker"></div><div id="dialogueText"></div><button id="dialogueNext" type="button">CONTINUAR</button></div>
+  <div class="touch" aria-label="Controles de movimiento">
+    <button data-key="up" type="button" aria-label="Mover arriba">▲</button>
+    <div><button data-key="left" type="button" aria-label="Mover izquierda">◀</button><button data-key="down" type="button" aria-label="Mover abajo">▼</button><button data-key="right" type="button" aria-label="Mover derecha">▶</button></div>
+    <button id="interact" type="button" aria-label="Interactuar">E</button>
+  </div>
+  <button id="save" class="save" type="button">GUARDAR</button>
 </section>
 </main>
-<script src="./village_data.js?v=58" defer></script>
-<script src="./core/runtime.js?v=58" defer></script>
-<script src="./life.js?v=58" defer></script>
-<script src="./game.js?v=58" defer></script>
-<script src="./v57_integrity.js?v=58" defer></script>
-<script src="./v50_version_badge.js?v=58" defer></script>
-<script src="./v55_runtime_integrator.js?v=58" defer></script>
-<script>
-window.addEventListener('DOMContentLoaded',()=>{
-  const V=window.VillaPelon;
-  const b=document.getElementById('startBtn');
-  if(b)b.addEventListener('click',()=>{
-    if(V&&V.engine&&V.gameState&&V.gameState.started)V.engine.setState('running');
-  });
-  if(V&&V.engine)V.engine.setState('ready');
-});
-</script>
+<script src="./village_data.js?v=59" defer></script>
+<script src="./core/runtime.js?v=59" defer></script>
+<script src="./life.js?v=59" defer></script>
+<script src="./game.js?v=59" defer></script>
+<script src="./v57_integrity.js?v=59" defer></script>
+<script src="./v50_version_badge.js?v=59" defer></script>
+<script src="./v55_runtime_integrator.js?v=59" defer></script>
 </body>
 </html>
