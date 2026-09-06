@@ -1,1 +1,0 @@
-window.VILLA_PELON={version:'0.3.0',world:{width:3200,height:2000},player:{speed:190,interactionRadius:58},economy:{startingMoney:10000},quests:[{id:'meet_neighbor',title:'Conocé a un vecino',reward:0},{id:'find_clue',title:'Buscá la primera pista histórica',reward:2500},{id:'first_archive',title:'Primer descubrimiento',reward:0}]};
