@@ -51,13 +51,13 @@ function wrapPersistence(){
 }
 function protectLegacyStart(){
  const b=$('startBtn');if(!b||b.dataset.v84Start)return;b.dataset.v84Start='1';
- b.addEventListener('click',()=>{setTimeout(()=>{if(V.persistence72?.load)V.persistence72.load()},0)},{capture:false});
+ b.addEventListener('click',()=>{setTimeout(()=>{if(V.persistence72?.load)V.persistence72.load()},0),},{capture:false});
 }
 function protectMenu(){
  const ui=V.ui;if(!ui||ui.__v84Wrapped)return;ui.__v84Wrapped=true;
  const open=ui.openMenu,close=ui.closeMenu;
  ui.openMenu=function(){if(S){S._dialogueBeforeMenu=dialogueVisible();S._menuPaused=true}return open.apply(this,arguments)};
- ui.closeMenu=function(){const was=!!S?._dialogueBeforeMenu;const r=close.apply(this,arguments);if(S){S._menuPaused=false;S._dialogueBeforeMenu=false;if(was){S.dialogue=true;$('dialogue')?.classList.remove('hidden')}}return r};
+ ui.closeMenu=function(){const was=!!S&&!!S._dialogueBeforeMenu;const r=close.apply(this,arguments);if(S){S._menuPaused=false;S._dialogueBeforeMenu=false;if(was){S.dialogue=true;$('dialogue')?.classList.remove('hidden')}}return r};
 }
 function audit(){
  wrapPersistence();protectLegacyStart();protectMenu();syncVisibleNpcs();collisionSafety();
