@@ -1,35 +1,48 @@
 # Villa Pelón — control de versiones
 
 ## Versión activa
-**V60**
+**V62**
 
-## Regla de versionado
-Cada cambio estructural o funcional que altere el comportamiento del juego debe incrementar la versión principal de build. Los archivos pueden conservar nombres históricos por compatibilidad, pero la versión activa se controla desde `v50_version_badge.js` y este registro.
+## V62 — Worldplay Core
+- Nueva introducción narrativa: el objetivo es descubrir la historia mediante misiones y exploración.
+- Mundo ampliado conceptualmente por zonas: centro, barrio, rural, ribera y servicios/comunidad.
+- Nuevos puntos de interés y actividades cotidianas definidos como datos.
+- Contenido histórico separado de ficción de ambientación: los hechos reales requieren fuente verificable.
+- Menú de partida, guardado por ranuras, carga, reinicio, idioma, música, pantalla completa y ayuda.
+- Soporte PC y celular sobre una única autoridad de movimiento.
+- V62 visible como `V62 · worldplay-core`.
 
-## V60 — Base estándar consolidada
-- Intro narrativa con contexto, propuesta y objetivo del juego.
-- Inicio explícito mediante `COMENZAR`.
-- Controles PC y móvil bajo una única autoridad de entrada.
-- Control táctil con pointer capture y liberación segura.
-- Core de runtime separado del motor visual.
-- Un único game loop (`game.js`).
-- Simulación de vida separada (`life.js`).
-- Datos del pueblo separados (`village_data.js`).
-- Integrador estructural separado (`v55_runtime_integrator.js`).
-- Capa de integridad separada (`v57_integrity.js`).
-- Persistencia local mediante guardado del estado de partida.
-- Versionado/cache-busting coherente en recursos principales.
-- Indicador técnico visible `V60 · standard-core`.
+## V61 — Player Systems
+- Menú de pausa para PC y celular.
+- Guardado manual en 3 ranuras locales.
+- Carga por ranura y reinicio con confirmación.
+- Idioma ES / EN / PT para la interfaz principal.
+- Música ambiental procedural mediante Web Audio.
+- Pantalla completa y ESC.
+- Controles táctiles reforzados.
+- HUD y menú responsive.
 
 ## Arquitectura de autoridad
-1. `core/runtime.js` — ciclo de vida, eventos, estado y salud.
-2. `village_data.js` — datos/contenido del mundo.
-3. `life.js` — simulación temporal y vida del pueblo.
-4. `game.js` — render, cámara, movimiento, interacción y loop único.
-5. `v57_integrity.js` — validaciones de integridad.
-6. `v55_runtime_integrator.js` — coordinación entre capas.
-7. `controls.js` — entrada táctil complementaria sin segundo motor.
-8. `v50_version_badge.js` — versión/build visible y registro técnico.
+1. `core/runtime.js` — ciclo de vida y salud.
+2. `village_data.js` — datos del mundo y contenido.
+3. `life.js` — simulación temporal y vida autónoma.
+4. `game.js` — render, cámara, movimiento, interacción y único loop.
+5. `v57_integrity.js` — validaciones y correcciones de integridad.
+6. `v55_runtime_integrator.js` — coordinación.
+7. `ui_system.js` — interfaz, menú, persistencia de usuario, idioma y audio.
+8. `controls.js` — entrada táctil complementaria.
+9. `v50_version_badge.js` — versión visible.
 
-## Próximo criterio de avance
-No sumar sistemas duplicados. Antes de incorporar contenido masivo, consolidar entidades/NPC, rutinas, interacción, misiones y persistencia sobre estas autoridades únicas.
+## Regla profesional
+No crear segundos motores, loops, estados paralelos ni sistemas de misión aislados. Todo nuevo sistema debe conectarse a las autoridades existentes y aumentar la versión.
+
+## Próximo salto — V63
+- Entidades únicas de NPC.
+- Rutinas horarias compartidas entre simulación e interacción.
+- Misiones definidas por datos.
+- Inventario y objetos con IDs.
+- Interacción contextual.
+- Interiores reales y transiciones.
+- Persistencia versionada con migraciones.
+- Evidencias históricas coleccionables y archivo de memoria.
+- Sistema de audio ambiental por zona/hora.
