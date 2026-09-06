@@ -1,9 +1,41 @@
-/* VILLA PELÓN V57 — arranque narrativo único y contrato de runtime. */
-(()=>{'use strict';
-const V=window.VillaPelon||(window.VillaPelon={}),state=V.gameState,life=V.life;
-if(!state)return;
-V.runtime={version:'V57',platforms:['pc','mobile'],worldBounds:{w:3200,h:2000},rules:{singlePlayerState:true,singleLifeUpdate:true,singleVisualAuthority:'game.js',introNarrativeOnly:true,noLegacyOverlays:true}};
-const start=document.getElementById('start'),game=document.getElementById('game'),copy=document.getElementById('introText');
-if(start&&game&&!V.runtime.__intro){V.runtime.__intro=true;const card=start.querySelector('.title-card');const story=['En un pequeño pueblo, cada calle guarda una historia. Cada casa conserva una memoria. Cada persona forma parte de una vida que continúa día tras día.','Las mañanas comienzan despacio. Se abren las puertas, el trabajo empieza y las voces se encuentran en las calles, en la plaza, en la escuela y en las chacras.','El pueblo no es solamente un lugar. Es la suma de sus recuerdos, sus vínculos y las pequeñas decisiones de quienes lo habitan.','Y ahora, una nueva historia está a punto de comenzar.'];let i=0;const show=()=>{if(copy)copy.textContent=story[i]};show();if(card)card.classList.add('cinematic');const next=()=>{i++;if(i<story.length){show();setTimeout(next,3300);return}start.classList.add('hidden');game.classList.remove('hidden');state.started=true;if(typeof V.showVersion==='function')V.showVersion()};setTimeout(next,3800)}
-V.runtime.ready=true;window.dispatchEvent(new CustomEvent('villa-pelon-runtime-ready',{detail:{version:'V57',platforms:['pc','mobile']}}));
+/* VILLA PELÓN — Runtime Integrator 1.0
+   Orquestador estructural. La entrada al juego pertenece a game.js.
+   Este módulo NO inicia partidas, NO crea RAF y NO duplica estados.
+*/
+(()=>{
+  'use strict';
+  const V=window.VillaPelon||(window.VillaPelon={});
+  const E=V.engine;
+  if(!E){console.error('[Villa Pelón] Runtime Core ausente');return}
+
+  V.runtime={
+    version:'1.0.0',
+    platform:['pc','mobile'],
+    worldBounds:{w:3200,h:2000},
+    authority:{game:'game.js',life:'life.js',data:'village_data.js',integrity:'v57_integrity.js'},
+    singlePlayerState:true,
+    singleLifeUpdate:true,
+    singleVisualAuthority:'game.js'
+  };
+
+  const validate=()=>{
+    const h=E.health();
+    h.runtime=true;
+    h.ok=!!(h.game&&h.life&&h.geometry&&h.canvas);
+    V.runtime.health=h;
+    E.emit('health',h);
+    if(!h.ok)console.warn('[Villa Pelón] Health check incompleto',h);
+    return h
+  };
+
+  E.on('state',state=>{
+    if(state==='ready')validate();
+    if(state==='running')validate();
+  });
+
+  E.on('ready',validate);
+  window.addEventListener('villa-pelon-runtime-ready',validate,{once:true});
+  V.runtime.validate=validate;
+  V.runtime.ready=true;
+  validate();
 })();
