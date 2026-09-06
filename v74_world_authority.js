@@ -1,0 +1,32 @@
+/* Villa Pelón V74 — autoridad única de interacción y navegación.
+   Núcleo: un solo router para E/táctil, una sola lectura de zona y una sola regla de caminabilidad.
+*/
+(()=>{'use strict';
+const V=window.VillaPelon||(window.VillaPelon={});
+const A={version:'V74',last:null};
+function player(){const g=V.gameState||{};return{x:Number(g.x),y:Number(g.y)}}
+function zoneAt(x,y){const z=V.territory&&V.territory.zones;if(!z)return null;for(const k of Object.keys(z)){const a=z[k];if(x>=a.x&&x<=a.x+a.w&&y>=a.y&&y<=a.y+a.h)return k}return null}
+function blocked(x,y,pad=18){const w=V.world||{w:3200,h:2000};if(x<55||y<135||x>w.w-55||y>w.h-55)return true;const bs=V.worldGeometry?.buildings||[];if(bs.some(b=>x>b.x-pad&&x<b.x+b.w+pad&&y>b.y-pad&&y<b.y+b.h+pad))return true;return false}
+function nearestNpc(){const p=player(),ns=Array.isArray(V.npcs)?V.npcs:[];let best=null,bd=Infinity;for(const n of ns){const d=Math.hypot(p.x-n.x,p.y-n.y);if(d<88&&d<bd){bd=d;best=n}}return best}
+function nearestObject(){const S=V.interactions69;return S&&typeof S.nearest==='function'?S.nearest(player().x,player().y):null}
+function interact(){
+ const g=V.gameState;if(!g||!g.started)return false;
+ if(g.dialogue){if(typeof V.closeDialogue==='function')return V.closeDialogue();const b=document.getElementById('dialogue');if(b&&typeof b.__vpClose==='function')return b.__vpClose();return false}
+ if(V.buildings71?.getState?.()){return !!V.buildings71.exit()}
+ if(V.buildings71?.nearest){const b=V.buildings71.nearest();if(b)return !!V.buildings71.enter(b)}
+ const n=nearestNpc();if(n&&typeof V.openDialogue==='function'){if(g.quest===0)g.quest=1;V.openDialogue(n.name,n.lines||[]);return true}
+ const o=nearestObject();if(o&&V.interact69){V.interact69();return true}
+ if(typeof V.getNearby==='function'){const legacy=V.getNearby();if(legacy&&legacy!==n&&typeof V._legacyInteract==='function'){V._legacyInteract();return true}}
+ return false
+}
+function install(){
+ if(V.__v74Installed)return;V.__v74Installed=true;
+ V.territory=V.territory||{};V.territory.zoneAt=zoneAt;
+ V.navigation74={version:'V74',zoneAt,blocked};
+ V.interact=interact;A.interact=interact;V.worldAuthority74=A;
+ window.__villaPelonInteractRouter=interact;
+ const dispatch=()=>{const p=player();window.dispatchEvent(new CustomEvent('villa-pelon-player-state',{detail:{x:p.x,y:p.y,zone:zoneAt(p.x,p.y)}}))};
+ setInterval(dispatch,180);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
