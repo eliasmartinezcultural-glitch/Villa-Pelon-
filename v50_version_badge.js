@@ -1,8 +1,8 @@
-/* VILLA PELÓN V63 — control visible de versión/build. */
+/* VILLA PELÓN V64 — control visible de versión/build. */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
-const VERSION='V63';
-const BUILD='territorial-identity';
+const VERSION='V64';
+const BUILD='historical-worldplay';
 const boot=()=>{
  let el=document.getElementById('versionBadge');
  if(!el){el=document.createElement('div');el.id='versionBadge';document.body.appendChild(el)}
