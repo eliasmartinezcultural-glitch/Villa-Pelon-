@@ -1,8 +1,8 @@
-/* VILLA PELÓN V61 — control visible de versión/build. */
+/* VILLA PELÓN V62 — control visible de versión/build. */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
-const VERSION='V61';
-const BUILD='player-systems';
+const VERSION='V62';
+const BUILD='worldplay-core';
 const boot=()=>{
  let el=document.getElementById('versionBadge');
  if(!el){el=document.createElement('div');el.id='versionBadge';document.body.appendChild(el)}
