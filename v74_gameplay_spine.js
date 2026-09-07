@@ -4,13 +4,10 @@
    La historia se presenta como investigación: no se inventan hechos históricos. */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={}),s=V.gameState;if(!s)return;
-
-/* Congelamos los disparadores automáticos V72/V73 y dejamos un único progreso V74. */
 const legacyQuest=Number.isFinite(s.historyQuest)?s.historyQuest:0;
 if(!Number.isFinite(s.v74Quest))s.v74Quest=Math.max(0,Math.min(21,legacyQuest));
 s.historyQuest=21;
 s.v74Seen=Array.isArray(s.v74Seen)?s.v74Seen:[];
-
 const missions=[
  {id:0,title:'Llegar y observar',text:'Explorá el núcleo del pueblo y hablá con una persona.',kind:'talk',names:['Marta','Lucía','Nico','Raúl','Pedro']},
  {id:1,title:'El nombre del lugar',text:'Encontrá el cartel de entrada y activá la pista histórica.',kind:'landmark',x:1120,y:560,r:150},
@@ -35,7 +32,6 @@ const missions=[
  {id:20,title:'Historia abierta',text:'Llegá al mirador rural: la investigación queda abierta a nuevas fuentes.',kind:'landmark',x:6500,y:3800,r:190}
 ];
 V.v74Missions=missions;
-
 function current(){return missions[s.v74Quest]||null}
 function invHas(v){return Array.isArray(s.inventory)&&s.inventory.includes(v)}
 function invPrefix(v){return Array.isArray(s.inventory)&&s.inventory.some(x=>String(x).startsWith(v))}
@@ -43,7 +39,6 @@ function near(x,y,r){return Math.hypot(s.x-x,s.y-y)<=r}
 function nearby(){return typeof V.getNearby==='function'?V.getNearby():null}
 function records(){return (s.inventory||[]).filter(x=>String(x).startsWith('Historia · V74')).length}
 function bridgeNear(){const bs=V.worldGeometry?.bridges||[];return bs.some(b=>near(b.x+b.w/2,b.y+b.h/2,190))}
-
 function eligible(m,n){
  if(!m)return false;
  switch(m.kind){
@@ -61,36 +56,27 @@ function eligible(m,n){
   default:return false;
  }
 }
-
 function complete(m){
  if(!m||s.v74Seen.includes(m.id))return;
  s.v74Seen.push(m.id);s.v74Quest=Math.min(21,m.id+1);
  const next=current();
- const lines=[
-  'Registro incorporado al recorrido.',
-  m.text,
-  next?'Siguiente: '+next.title:'Completaste la primera campaña de Villa Pelón.'
- ];
  V.addItem?.('Historia · V74 · '+String(m.id+1).padStart(2,'0')+' · '+m.title);
- V.openDialogue?.(m.title,lines);
+ V.openDialogue?.(m.title,['Registro incorporado al recorrido.',m.text,next?'Siguiente: '+next.title:'Completaste la primera campaña de Villa Pelón.']);
 }
-
-/* Interacción como centro del juego. Se conserva toda la interacción existente. */
 const originalInteract=V.interact;
 if(typeof originalInteract==='function'&&!V.__v74Interact){
  V.interact=function(){
-  const m=current(),n=nearby();
+  const m=current(),n=nearby(),ready=eligible(m,n);
+  if(ready&&(m.kind==='landmark'||m.kind==='orchard'||m.kind==='bridge'||m.kind==='boundary'||m.kind==='records')){complete(m);return;}
   originalInteract();
-  /* Evaluamos después: así una compra, changa o diálogo puede convertirse en evidencia. */
-  if(!s.dialogue&&eligible(m,n))complete(m);
-  else if(!s.dialogue&&m?.kind==='item'&&invHas(m.item))complete(m);
-  else if(!s.dialogue&&m?.kind==='itemPrefix'&&invPrefix(m.prefix))complete(m);
-  else if(!s.dialogue&&m?.kind==='records'&&records()>=m.count)complete(m);
+  if(ready||eligible(m,n)){s.v74Pending=m?.id??null}
  };
  V.__v74Interact=true;
 }
-
-/* Marcadores de objetivo: visuales mínimos, pixel-art, sin llenar la pantalla. */
+setInterval(()=>{
+ if(!s.started||s.dialogue||s.v74Pending==null)return;
+ const m=missions[s.v74Pending];if(m&&s.v74Quest===m.id&&eligible(m,nearby())){s.v74Pending=null;complete(m)}else if(!m||s.v74Quest!==m.id)s.v74Pending=null;
+},250);
 const oldDraw=V.life&&V.life.drawWorld;
 if(oldDraw&&!V.life.__v74){
  V.life.drawWorld=function(c){
@@ -101,26 +87,11 @@ if(oldDraw&&!V.life.__v74){
   }
   if(m.kind==='bridge'){const b=(V.worldGeometry?.bridges||[])[0];if(!b)return;x=b.x+b.w/2;y=b.y+b.h/2}
   if(m.kind==='boundary'){x=3600;y=950}
-  c.fillStyle='rgba(216,189,120,.95)';c.fillRect(Math.round(x-5),Math.round(y-34),10,4);c.fillRect(Math.round(x-2),Math.round(y-30),4,10);
-  c.fillStyle='rgba(35,31,25,.9)';c.fillRect(Math.round(x-2),Math.round(y-22),4,4);
+  c.fillStyle='rgba(216,189,120,.95)';c.fillRect(Math.round(x-5),Math.round(y-34),10,4);c.fillRect(Math.round(x-2),Math.round(y-30),4,10);c.fillStyle='rgba(35,31,25,.9)';c.fillRect(Math.round(x-2),Math.round(y-22),4,4);
  };
  V.life.__v74=true;
 }
-
-setInterval(()=>{
- const q=document.getElementById('questText');if(!q||!s.started)return;
- const m=current();q.textContent=m?`${String(m.id+1).padStart(2,'0')}/21 · ${m.title} · INTERACTUÁ`:'21/21 · PRIMERA CAMPAÑA COMPLETADA ✓';
-},250);
-
-/* Ficha de investigación accesible desde el archivo: diferencia lo que el juego sabe de lo que todavía debe documentar. */
-V.v74Evidence={
- rules:[
-  'HECHO DOCUMENTADO: solo se incorpora cuando exista una fuente verificable.',
-  'TESTIMONIO: se conserva como voz y se identifica como memoria oral.',
-  'AMBIENTACIÓN: sirve para jugar, pero no se presenta como hecho histórico.'
- ],
- pendingResearch:['toponimia','origen del asentamiento','transformaciones territoriales','producción y trabajo','instituciones','fiestas y memoria','crecimiento urbano','río y paisaje']
-};
-
+setInterval(()=>{const q=document.getElementById('questText');if(!q||!s.started)return;const m=current();q.textContent=m?`${String(m.id+1).padStart(2,'0')}/21 · ${m.title} · INTERACTUÁ`:'21/21 · PRIMERA CAMPAÑA COMPLETADA ✓';},250);
+V.v74Evidence={rules:['HECHO DOCUMENTADO: solo se incorpora cuando exista una fuente verificable.','TESTIMONIO: se conserva como voz y se identifica como memoria oral.','AMBIENTACIÓN: sirve para jugar, pero no se presenta como hecho histórico.'],pendingResearch:['toponimia','origen del asentamiento','transformaciones territoriales','producción y trabajo','instituciones','fiestas y memoria','crecimiento urbano','río y paisaje']};
 V.audit=V.audit||{};V.audit.v74={manualMissionLoop:true,interactionWrapped:!!V.__v74Interact,missions:missions.length===21,evidenceRules:true};
 })();
