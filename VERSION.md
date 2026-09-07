@@ -1,7 +1,16 @@
 # Villa Pelón — control de versiones
 
 ## Versión activa
-**V68**
+**V69**
+
+## V69 — Interacciones contextuales
+- Se incorpora `interaction_context_v69.js` como módulo de autoridad de INTERACTION para ciudadanos compartidos.
+- Las conversaciones de Marta, Raúl, Lucía, Pedro y Nico dependen de su actividad/destino actual, además de hora y clima.
+- Un mismo vecino puede ofrecer conversaciones diferentes en almacén, chacra, escuela, radio, plaza o casa.
+- El contexto se alimenta del estado compartido consolidado por V66 y de las rutinas de LIFE de V68.
+- Las interacciones contextuales son data-driven y no crean game loops ni duplican ciudadanos.
+- La interacción genérica existente se conserva para pistas, trabajos, edificios y demás objetivos no ciudadanos.
+- `index.html` integra el nuevo módulo y adopta cache bust V69.
 
 ## V68 — Rutinas contextuales
 - Se incorpora `life_routines_v68.js` como módulo de autoridad de rutinas dentro de LIFE.
@@ -9,13 +18,11 @@
 - La lluvia modifica la rutina y deriva actividades exteriores hacia un galpón/refugio.
 - La actividad contextual queda expuesta como `routineActivity` y es compartida con los NPC interactivos de `game.js` mediante V66.
 - No se crea ningún game loop adicional: las rutinas se evalúan dentro de la actualización existente de LIFE.
-- `index.html` integra el nuevo módulo y adopta cache bust V68.
 
 ## V67 — Movimiento consolidado
 - Se retira `player_movement_v65.js`, que había sido creado como puente temporal de recuperación.
 - `game.js` queda como autoridad directa del movimiento del jugador dentro del único game loop existente.
 - Se conserva el movimiento PC/móvil, cámara, colisiones, interacción, energía y avance temporal del núcleo funcional.
-- No se agrega un segundo loop ni otra autoridad de movimiento.
 
 ## V66 — NPC Consolidation
 - Se consolida la identidad de los ciudadanos interactivos con las entidades autónomas de `life.js`.
@@ -44,13 +51,14 @@
 1. `core/runtime.js` — ciclo de vida y salud.
 2. `village_data.js` — datos del mundo y contenido.
 3. `life.js` + `life_routines_v68.js` — simulación temporal, rutinas y vida autónoma.
-4. `game.js` — render, cámara, movimiento, interacción y único loop.
+4. `game.js` — render, cámara, movimiento, interacción genérica y único loop.
 5. `v66_npc_consolidation.js` — enlace de ciudadanos compartidos entre LIFE e interacción.
-6. `v57_integrity.js` — validaciones y correcciones de integridad.
-7. `v55_runtime_integrator.js` — coordinación.
-8. `ui_system.js` — interfaz, menú, persistencia, idioma y audio.
-9. `controls.js` — bridge de entrada táctil.
-10. `v50_version_badge.js` — versión visible.
+6. `interaction_context_v69.js` — contexto de conversación de ciudadanos.
+7. `v57_integrity.js` — validaciones y correcciones de integridad.
+8. `v55_runtime_integrator.js` — coordinación.
+9. `ui_system.js` — interfaz, menú, persistencia, idioma y audio.
+10. `controls.js` — bridge de entrada táctil.
+11. `v50_version_badge.js` — versión visible.
 
 ## Próximo ladrillo
-Consolidar la rutina contextual con **interacciones dependientes de actividad**: que hablar con Marta en el almacén, encontrar a Raúl en la chacra, cruzarse con Lucía en la escuela o visitar a Nico en la radio produzca conversaciones y oportunidades distintas según hora, lugar y estado. Después, comenzar la primera expansión territorial verificable —nuevas cuadras y caminos— sin duplicar autoridades ni romper el núcleo.
+Comenzar la **primera expansión territorial verificable**: nuevas cuadras, calles y caminos conectados al mundo existente, con colisiones y transición urbana/periférica. La expansión deberá reutilizar los datos territoriales actuales, mantener el rendimiento y no duplicar autoridades. Después, incorporar edificios/interiores relevantes y nuevas actividades sobre el territorio ampliado.
