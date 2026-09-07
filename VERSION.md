@@ -1,13 +1,20 @@
 # Villa Pelón — control de versiones
 
 ## Versión activa
-**V67**
+**V68**
+
+## V68 — Rutinas contextuales
+- Se incorpora `life_routines_v68.js` como módulo de autoridad de rutinas dentro de LIFE.
+- Los ciudadanos reciben actividades y destinos según franja horaria y rol: hogar, escuela, comercio, radio, plaza, servicios y trabajo rural.
+- La lluvia modifica la rutina y deriva actividades exteriores hacia un galpón/refugio.
+- La actividad contextual queda expuesta como `routineActivity` y es compartida con los NPC interactivos de `game.js` mediante V66.
+- No se crea ningún game loop adicional: las rutinas se evalúan dentro de la actualización existente de LIFE.
+- `index.html` integra el nuevo módulo y adopta cache bust V68.
 
 ## V67 — Movimiento consolidado
 - Se retira `player_movement_v65.js`, que había sido creado como puente temporal de recuperación.
 - `game.js` queda como autoridad directa del movimiento del jugador dentro del único game loop existente.
 - Se conserva el movimiento PC/móvil, cámara, colisiones, interacción, energía y avance temporal del núcleo funcional.
-- `index.html` elimina la carga del puente V65 y adopta cache bust V67.
 - No se agrega un segundo loop ni otra autoridad de movimiento.
 
 ## V66 — NPC Consolidation
@@ -36,7 +43,7 @@
 ## Arquitectura de autoridad
 1. `core/runtime.js` — ciclo de vida y salud.
 2. `village_data.js` — datos del mundo y contenido.
-3. `life.js` — simulación temporal y vida autónoma.
+3. `life.js` + `life_routines_v68.js` — simulación temporal, rutinas y vida autónoma.
 4. `game.js` — render, cámara, movimiento, interacción y único loop.
 5. `v66_npc_consolidation.js` — enlace de ciudadanos compartidos entre LIFE e interacción.
 6. `v57_integrity.js` — validaciones y correcciones de integridad.
@@ -46,4 +53,4 @@
 10. `v50_version_badge.js` — versión visible.
 
 ## Próximo ladrillo
-Con el movimiento ya consolidado, el siguiente ladrillo es convertir los ciudadanos compartidos en una primera rutina contextual verificable por franjas horarias y destinos: trabajo, escuela, comercio, plaza, radio y hogar. Después se podrá conectar cada rutina con interacciones concretas y comenzar una expansión territorial real sin duplicar autoridades.
+Consolidar la rutina contextual con **interacciones dependientes de actividad**: que hablar con Marta en el almacén, encontrar a Raúl en la chacra, cruzarse con Lucía en la escuela o visitar a Nico en la radio produzca conversaciones y oportunidades distintas según hora, lugar y estado. Después, comenzar la primera expansión territorial verificable —nuevas cuadras y caminos— sin duplicar autoridades ni romper el núcleo.
