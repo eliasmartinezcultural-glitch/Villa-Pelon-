@@ -1,0 +1,2 @@
+/* V72 UI patch — muestra la misión histórica actual y progreso 21/21. */
+(()=>{'use strict';const V=window.VillaPelon||{};const s=V.gameState;function tick(){const q=document.getElementById('questText');if(!q||!s||!Array.isArray(V.historyMissions))return;const i=Number(s.historyQuest)||0;if(i>=21)q.textContent='21/21 · HISTORIA COMPLETADA ✓';else{const m=V.historyMissions[i];q.textContent=`${String(i+1).padStart(2,'0')}/21 · ${m[0]} — ${m[1]}`}}setInterval(tick,250);})();
