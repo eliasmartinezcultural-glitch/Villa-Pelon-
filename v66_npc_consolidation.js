@@ -44,7 +44,8 @@
       n.direction=p.direction||'down';
       n.sheltered=!!p.sheltered;
       n.destination=p.destination||null;
-      n.activity=p.destination||p.role||'cotidiano';
+      n.activity=p.routineActivity||p.destination||p.role||'cotidiano';
+      n.routineClock=life.routineClock;
     });
   }
 
