@@ -1,7 +1,15 @@
 # Villa Pelón — control de versiones
 
 ## Versión activa
-**V62**
+**V63**
+
+## V63 — Input Consolidation
+- La entrada móvil queda consolidada como bridge `pointer/touch → teclado sintético → game.js`.
+- `game.js` continúa siendo la única autoridad de movimiento y conserva el único game loop.
+- El bridge móvil se carga antes del motor para registrar primero los eventos táctiles.
+- Los listeners táctiles heredados de `game.js` quedan bloqueados mediante `stopImmediatePropagation`, evitando doble procesamiento del mismo gesto.
+- Liberación segura mediante `pointerup`, `pointercancel`, `lostpointercapture`, `blur` y `visibilitychange`.
+- Se mantiene la compatibilidad con teclado físico y con el resto del núcleo V62.
 
 ## V62 — Worldplay Core
 - Nueva introducción narrativa: el objetivo es descubrir la historia mediante misiones y exploración.
@@ -30,19 +38,11 @@
 5. `v57_integrity.js` — validaciones y correcciones de integridad.
 6. `v55_runtime_integrator.js` — coordinación.
 7. `ui_system.js` — interfaz, menú, persistencia de usuario, idioma y audio.
-8. `controls.js` — entrada táctil complementaria.
+8. `controls.js` — bridge de entrada táctil.
 9. `v50_version_badge.js` — versión visible.
 
 ## Regla profesional
 No crear segundos motores, loops, estados paralelos ni sistemas de misión aislados. Todo nuevo sistema debe conectarse a las autoridades existentes y aumentar la versión.
 
-## Próximo salto — V63
-- Entidades únicas de NPC.
-- Rutinas horarias compartidas entre simulación e interacción.
-- Misiones definidas por datos.
-- Inventario y objetos con IDs.
-- Interacción contextual.
-- Interiores reales y transiciones.
-- Persistencia versionada con migraciones.
-- Evidencias históricas coleccionables y archivo de memoria.
-- Sistema de audio ambiental por zona/hora.
+## Próximo ladrillo
+Con la entrada consolidada, el siguiente trabajo prioritario es auditar y consolidar las entidades/NPC y sus rutinas sin duplicar la autoridad de `life.js` ni la interacción de `game.js`.
