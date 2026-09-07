@@ -17,11 +17,10 @@ card.innerHTML=`
  <button id="startBtn" type="button">ENTRAR AL MUNDO</button>`;
 const newBtn=document.getElementById('startBtn');
 newBtn.onclick=()=>{
- try{if(typeof V.loadGame==='function')V.loadGame()}catch(_){}
- s.started=true;s.dialogue=false;
+ try{const saved=JSON.parse(localStorage.getItem('villa_pelon_save')||'null');if(saved&&typeof saved==='object')Object.keys(saved).forEach(k=>{if(k!=='started'&&k!=='dialogue'&&k!=='saved')s[k]=saved[k]})}catch(_){}
+ s.started=true;s.dialogue=false;s.saved=false;
  start.classList.add('hidden');game.classList.remove('hidden');
- try{if(typeof V.saveGame==='function'){} }catch(_){}
- document.getElementById('questText').textContent='01/21 · Llegar y observar · INTERACTUÁ';
+ const q=document.getElementById('questText');if(q)q.textContent='01/21 · Llegar y observar · INTERACTUÁ';
 };
 const style=document.createElement('style');style.textContent=`
 .v78-context{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0;text-align:left}
