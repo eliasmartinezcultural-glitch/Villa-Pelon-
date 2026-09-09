@@ -29,7 +29,7 @@ jobs:
             const errors=[];
             page.on('pageerror',e=>errors.push(e.message));
             page.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
-            await page.goto('http://127.0.0.1:4173/index.html?v=91.0',{waitUntil:'networkidle'});
+            await page.goto('http://127.0.0.1:4173/index.html?v=93.0',{waitUntil:'networkidle'});
             await page.waitForTimeout(3000);
             for(let i=0;i<4;i++){
               const b=page.locator('[data-intro-next]');
@@ -37,10 +37,12 @@ jobs:
               await page.waitForTimeout(100);
             }
             await page.waitForTimeout(500);
-            const state=await page.evaluate(()=>({health:window.VillaPelon?.health,game:window.VillaPelon?.gameState,people:window.VillaPelon?.peopleVehicles,boot:document.getElementById('bootScreen')?.className}));
+            const state=await page.evaluate(()=>({health:window.VillaPelon?.health,game:window.VillaPelon?.gameState,people:window.VillaPelon?.peopleVehicles,render:window.VillaPelon?.renderCompositor,detail:window.VillaPelon?.buildingDetail}));
             if(!state.health?.ok) throw new Error('Healthcheck failed: '+JSON.stringify(state.health));
             if(!state.game?.started) throw new Error('Game did not start');
-            if(!state.people?.people || state.people.people<18) throw new Error('People layer missing');
+            if(!state.render?.singleRAF) throw new Error('Render compositor missing');
+            if(state.people?.npcOverlay!==false) throw new Error('NPC overlay duplication risk');
+            if(!state.detail?.distinctive) throw new Error('Building identity layer missing');
             const before=state.game.x;
             await page.keyboard.down('ArrowRight'); await page.waitForTimeout(500); await page.keyboard.up('ArrowRight');
             const after=await page.evaluate(()=>window.VillaPelon.gameState.x);
