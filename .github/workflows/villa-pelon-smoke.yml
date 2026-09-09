@@ -1,0 +1,67 @@
+name: Villa Pelón smoke test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright
+        run: npm install --no-save playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start static server
+        run: python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/villa-pelon-server.log 2>&1 &
+      - name: Execute browser smoke test
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1280,height:720}});
+            const errors=[];
+            page.on('pageerror',e=>errors.push(e.message));
+            page.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
+            await page.goto('http://127.0.0.1:4173/index.html?v=91.0',{waitUntil:'networkidle'});
+            await page.waitForTimeout(3000);
+            for(let i=0;i<4;i++){
+              const b=page.locator('[data-intro-next]');
+              if(await b.isVisible()) await b.click();
+              await page.waitForTimeout(100);
+            }
+            await page.waitForTimeout(500);
+            const state=await page.evaluate(()=>({health:window.VillaPelon?.health,game:window.VillaPelon?.gameState,people:window.VillaPelon?.peopleVehicles,boot:document.getElementById('bootScreen')?.className}));
+            if(!state.health?.ok) throw new Error('Healthcheck failed: '+JSON.stringify(state.health));
+            if(!state.game?.started) throw new Error('Game did not start');
+            if(!state.people?.people || state.people.people<18) throw new Error('People layer missing');
+            const before=state.game.x;
+            await page.keyboard.down('ArrowRight'); await page.waitForTimeout(500); await page.keyboard.up('ArrowRight');
+            const after=await page.evaluate(()=>window.VillaPelon.gameState.x);
+            if(after===before) throw new Error('Player did not move');
+            await page.locator('#save').click();
+            await page.waitForTimeout(100);
+            const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('villa_pelon_save')||'null'));
+            if(!saved) throw new Error('Save missing');
+            await page.reload({waitUntil:'networkidle'}); await page.waitForTimeout(3000);
+            const restored=await page.evaluate(()=>({x:window.VillaPelon?.gameState?.x,savedAt:window.VillaPelon?.gameState?.savedAt,health:window.VillaPelon?.health}));
+            if(Math.abs((restored.x??NaN)-after)>0.01) throw new Error('Save/reload position mismatch');
+            if(errors.length) throw new Error('Browser errors: '+errors.join(' | '));
+            await page.screenshot({path:'villa-pelon-smoke.png',fullPage:true});
+            console.log('VILLA PELON SMOKE OK',JSON.stringify({before,after,restored,health:state.health}));
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - name: Upload smoke screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: villa-pelon-smoke
+          path: villa-pelon-smoke.png
+          if-no-files-found: ignore
