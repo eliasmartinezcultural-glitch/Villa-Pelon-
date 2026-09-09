@@ -1,23 +1,22 @@
-/* VILLA PELÓN — VERGEL V90.2
+/* VILLA PELÓN — VERGEL V90.3
    Subsistema de territorio/productividad.
-   No crea un segundo motor ni reemplaza gameState: se acopla al estado real.
+   Estado de recursos persistente dentro del gameState para que guardado/recarga no desincronicen el mundo.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 const VERGEL=V.vergel=V.vergel||{};
-VERGEL.version='90.2';
+VERGEL.version='90.3';
 VERGEL.season=VERGEL.season||'verano';
 VERGEL.day=Number.isFinite(+VERGEL.day)?+VERGEL.day:1;
-VERGEL.resources=VERGEL.resources&&typeof VERGEL.resources==='object'?VERGEL.resources:{};
 VERGEL.zones=Array.isArray(VERGEL.zones)?VERGEL.zones:[
  {id:'huerta_01',x:5050,y:2300,w:600,h:260,kind:'huerta',yield:'verduras',yieldLabel:'Verduras',amount:4,label:'Huerta del valle'},
  {id:'chacra_01',x:6650,y:2880,w:260,h:380,kind:'chacra',yield:'fruta',yieldLabel:'Fruta',amount:6,label:'Chacra 01'},
  {id:'chacra_02',x:7150,y:2820,w:420,h:300,kind:'chacra',yield:'fruta',yieldLabel:'Fruta',amount:6,label:'Chacra 02'}
 ];
-function state(){return V.gameState||(V.gameState={inventory:[],stats:{}})}
+function state(){const S=V.gameState||(V.gameState={inventory:[],stats:{}});S.vergelResources=S.vergelResources&&typeof S.vergelResources==='object'?S.vergelResources:{};return S}
 function key(z,day){return z.id+':'+day}
 function seasonFor(day){return ['verano','otoño','invierno','primavera'][Math.max(0,(day-1)%4)]}
-function sync(){const S=state(),day=Math.max(1,+S.day||1);VERGEL.day=day;VERGEL.season=seasonFor(day);VERGEL.zones.forEach(z=>{const k=key(z,day);if(!VERGEL.resources[k])VERGEL.resources[k]={ready:true,amount:z.amount,initial:z.amount}});return VERGEL}
+function sync(){const S=state(),day=Math.max(1,+S.day||1);VERGEL.day=day;VERGEL.season=seasonFor(day);VERGEL.resources=S.vergelResources;VERGEL.zones.forEach(z=>{const k=key(z,day);if(!VERGEL.resources[k])VERGEL.resources[k]={ready:true,amount:z.amount,initial:z.amount}});return VERGEL}
 function nearest(S){let best=null,bd=Infinity;VERGEL.zones.forEach(z=>{const d=Math.hypot((+S.x||0)-(z.x+z.w/2),(+S.y||0)-(z.y+z.h/2));if(d<bd){bd=d;best=z}});return bd<=190?best:null}
 function addInventory(S,item){S.inventory=Array.isArray(S.inventory)?S.inventory:[];S.inventory.push(item);S.vergelInventory=S.vergelInventory&&typeof S.vergelInventory==='object'?S.vergelInventory:{};S.vergelInventory[item]=(S.vergelInventory[item]||0)+1}
 VERGEL.inspect=function(){const S=state();sync();const z=nearest(S);if(!z)return{ok:false,reason:'lejos'};const r=VERGEL.resources[key(z,VERGEL.day)];return{ok:true,zone:z.id,kind:z.kind,item:z.yield,label:z.yieldLabel,amount:r.amount,season:VERGEL.season,distance:Math.round(Math.hypot((+S.x||0)-(z.x+z.w/2),(+S.y||0)-(z.y+z.h/2)))}}
