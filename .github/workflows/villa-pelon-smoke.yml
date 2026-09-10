@@ -29,7 +29,7 @@ jobs:
             const errors=[];
             page.on('pageerror',e=>errors.push(e.message));
             page.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
-            await page.goto('http://127.0.0.1:4173/index.html?v=95.8',{waitUntil:'networkidle'});
+            await page.goto('http://127.0.0.1:4173/index.html?v=95.9',{waitUntil:'networkidle'});
             await page.waitForTimeout(3000);
             for(let i=0;i<4;i++){
               const b=page.locator('[data-intro-next]');
@@ -58,9 +58,29 @@ jobs:
             if(afterVergel.energy!==beforeVergel.energy-4) throw new Error('VERGEL interaction priority failed: '+JSON.stringify({beforeVergel,afterVergel}));
             if(!afterVergel.inventory.includes('verduras')) throw new Error('VERGEL harvest did not enter inventory');
 
+            /* Educational campaign contract: lost DNI -> Picada 21 -> beautiful memory event. */
+            await page.evaluate(()=>{const s=window.VillaPelon.gameState;s.missionId='dni_01';s.missionStep=0;s.missionFlags={};s.flags={};s.inventory=[];s.dialogue=false;s.x=1280;s.y=470});
+            await page.keyboard.press('e');
+            await page.waitForTimeout(120);
+            const dni=await page.evaluate(()=>({missionId:window.VillaPelon.gameState.missionId,step:window.VillaPelon.gameState.missionStep,inventory:[...window.VillaPelon.gameState.inventory]}));
+            if(dni.missionId!=='dni_01'||dni.step!==1||!dni.inventory.includes('DNI extraviado')) throw new Error('DNI pickup failed: '+JSON.stringify(dni));
+            await page.evaluate(()=>{const s=window.VillaPelon.gameState;s.x=7600;s.y=2250;s.dialogue=false});
+            await page.waitForTimeout(150);
+            const reached=await page.evaluate(()=>({missionId:window.VillaPelon.gameState.missionId,step:window.VillaPelon.gameState.missionStep}));
+            if(reached.missionId!=='dni_01'||reached.step!==2) throw new Error('Picada 21 reach objective failed: '+JSON.stringify(reached));
+            await page.keyboard.press('e');
+            await page.waitForTimeout(120);
+            const delivered=await page.evaluate(()=>({missionId:window.VillaPelon.gameState.missionId,step:window.VillaPelon.gameState.missionStep,inventory:[...window.VillaPelon.gameState.inventory],dialogue:window.VillaPelon.gameState.dialogue}));
+            if(delivered.missionId!=='picada21_memory'||delivered.step!==0||delivered.inventory.includes('DNI extraviado')||!delivered.dialogue) throw new Error('DNI delivery event failed: '+JSON.stringify(delivered));
+            for(let i=0;i<6;i++){await page.keyboard.press('e');await page.waitForTimeout(40)}
+            await page.keyboard.press('e');
+            await page.waitForTimeout(120);
+            const memory=await page.evaluate(()=>({missionId:window.VillaPelon.gameState.missionId,step:window.VillaPelon.gameState.missionStep,history:window.VillaPelon.gameState.missionHistory.map(x=>x.id)}));
+            if(memory.missionId!=='bridges_01'||memory.step!==0||!memory.history.includes('dni_01')||!memory.history.includes('picada21_memory')) throw new Error('Picada 21 memory objective failed: '+JSON.stringify(memory));
+
             await page.keyboard.down('ArrowRight'); await page.waitForTimeout(500); await page.keyboard.up('ArrowRight');
             const after=await page.evaluate(()=>window.VillaPelon.gameState.x);
-            if(after===5350) throw new Error('Player did not move');
+            if(after===7600) throw new Error('Player did not move');
             await page.locator('#save').click();
             await page.waitForTimeout(100);
             const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('villa_pelon_save')||'null'));
@@ -73,12 +93,12 @@ jobs:
             await page.screenshot({path:'villa-pelon-smoke.png',fullPage:true});
             const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true});
             const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));mobile.on('console',m=>{if(m.type()==='error')mobileErrors.push(m.text())});
-            await mobile.goto('http://127.0.0.1:4173/index.html?v=95.8',{waitUntil:'networkidle'});await mobile.waitForTimeout(2500);
+            await mobile.goto('http://127.0.0.1:4173/index.html?v=95.9',{waitUntil:'networkidle'});await mobile.waitForTimeout(2500);
             const mobileState=await mobile.evaluate(()=>({started:!!window.VillaPelon?.gameState?.started,health:window.VillaPelon?.health?.ok,integrity:window.VillaPelon?.integrity?.ok,canvas:!!document.getElementById('world'),legacyDetail:!!document.getElementById('detailLayer')}));
             if(!mobileState.started||!mobileState.health||!mobileState.integrity||!mobileState.canvas||mobileState.legacyDetail) throw new Error('Mobile smoke failed: '+JSON.stringify(mobileState));
             if(mobileErrors.length) throw new Error('Mobile browser errors: '+mobileErrors.join(' | '));
             await mobile.close();
-            console.log('VILLA PELON SMOKE OK',JSON.stringify({after,restored,mobileState,health:state.health,integrity:state.integrity,route:'picada21_route',vergel:'harvest_ok'}));
+            console.log('VILLA PELON SMOKE OK',JSON.stringify({after,restored,mobileState,health:state.health,integrity:state.integrity,route:'picada21_route',vergel:'harvest_ok',educationalMission:'dni_picada21_memory_ok'}));
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
