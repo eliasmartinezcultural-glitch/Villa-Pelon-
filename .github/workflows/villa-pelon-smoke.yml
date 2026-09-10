@@ -44,7 +44,7 @@ jobs:
             if(!state.render?.singleRAF) throw new Error('Render compositor missing');
             if(state.people?.npcOverlay!==false) throw new Error('NPC overlay duplication risk');
             if(!state.detail?.distinctive) throw new Error('Building identity layer missing');
-            if(state.stability?.version!=='95.0') throw new Error('Stability gate missing');
+            if(state.stability?.version!=='95.1') throw new Error('Stability gate missing');
             const before=state.game.x;
             await page.keyboard.down('ArrowRight'); await page.waitForTimeout(500); await page.keyboard.up('ArrowRight');
             const after=await page.evaluate(()=>window.VillaPelon.gameState.x);
