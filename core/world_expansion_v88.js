@@ -1,4 +1,4 @@
-/* VILLA PELÓN — WORLD EXPANSION V89.1
+/* VILLA PELÓN — WORLD EXPANSION V89.2
    Extremo rural conectado orgánicamente con el pueblo.
    Fuente territorial única: 8200 x 4200.
 */
@@ -15,7 +15,7 @@ const additions=[
 ];
 const keys=new Set(G.buildings.map(b=>b.label));G.buildings.push(...additions.filter(b=>!keys.has(b.label)));
 /* Una sola ruta lógica para Picada 21. La calzada física vive en G.roads;
-   esta ruta sólo describe navegación/territorio y no crea otra capa visual. */
+   esta ruta describe navegación/territorio y no crea otra capa visual. */
 G.routes=Array.isArray(G.routes)?G.routes:[];
 const route={id:'picada21_route',label:'CAMINO RURAL A PICADA 21',points:[
  {x:4580,y:2120},{x:5400,y:2120},{x:6500,y:2120},{x:7550,y:2120},{x:7900,y:2120}
@@ -42,12 +42,9 @@ G.crops=G.crops||[
 G.utilityPoles=G.utilityPoles||[
  {x:4750,y:2120},{x:5350,y:2120},{x:6030,y:2120},{x:6500,y:2120},{x:7200,y:2120},{x:7700,y:2120}
 ];
-G.vehicles=G.vehicles||[
- {id:'rural_bus_01',type:'bus',x:7550,y:2140,route:'picada21_route',speed:0,static:true},
- {id:'pickup_01',type:'pickup',x:5700,y:2120,route:'picada21_route',speed:18,phase:.2},
- {id:'tractor_01',type:'tractor',x:7000,y:3020,route:null,speed:0,static:true}
-];
+/* Vehicles belong exclusively to people_vehicles_v91.js; this layer only
+   declares territory data, preventing two registries from diverging. */
 V.worldManifest=V.worldManifest||{};
 V.worldManifest.picada21={x:6750,y:2050,w:1450,h:1100,route:'picada21_route',stop:'picada21_stop'};
-V.worldManifest.worldSize={w:8200,h:4200};V.worldManifest.version='89.1';
+V.worldManifest.worldSize={w:8200,h:4200};V.worldManifest.version='89.2';
 })();
