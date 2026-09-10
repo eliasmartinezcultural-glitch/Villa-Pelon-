@@ -1,47 +1,41 @@
-/* VILLA PELÓN — MISSION RUNTIME 96.1
-   Compatibilidad + eventos especiales de campaña.
+/* VILLA PELÓN — MISSION RUNTIME 97.0
+   Eventos especiales de campaña histórica.
    No crea motor, renderer ni ticker paralelo.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 const S=V.gameState||(V.gameState={});
-const M=V.missions;
-if(!M)return;
-M.ensure?.(S);
-try{
-  const raw=JSON.parse(localStorage.getItem('villa_pelon_missions')||'null');
-  if(raw&&typeof raw==='object'){
-    if(raw.missionId)S.missionId=raw.missionId;
-    if(Number.isFinite(+raw.missionStep))S.missionStep=Math.max(0,+raw.missionStep);
-    if(raw.missionFlags&&typeof raw.missionFlags==='object')S.missionFlags=raw.missionFlags;
-    if(Array.isArray(raw.missionHistory))S.missionHistory=raw.missionHistory;
-  }
-}catch(_){}
-const R={version:'96.1',regions:{rural:{x:4900,y:0,w:3300,h:4200},winery:{x:5500,y:300,w:1900,h:1800},plaza:{x:0,y:400,w:1050,h:450},picada21:{x:6750,y:2050,w:1450,h:1100}},complete:()=>false,points:{dni:{x:1280,y:470},picada21:{x:7600,y:2350},memory:{x:7600,y:2350},archive:{x:2080,y:520}}};
-V.missionRuntime=R;
+const M=V.missions;if(!M)return;M.ensure?.(S);
+const R={version:'97.0',regions:{rural:{x:4900,y:0,w:3300,h:4200},winery:{x:5500,y:300,w:1900,h:1800},plaza:{x:0,y:400,w:1050,h:450},picada21:{x:6750,y:2050,w:1450,h:1100}},points:{
+ dni:{x:1280,y:470},picada21:{x:7600,y:2350},memory:{x:7600,y:2350},archive:{x:2080,y:520},
+ name_marker:{x:1500,y:470},school_archive:{x:430,y:520},irrigation_marker:{x:5000,y:910},pelon_marker:{x:5900,y:1460},
+ founding_marker:{x:2050,y:470},irrigation_timeline:{x:5100,y:1030},school_archive_2:{x:430,y:570},worker_marker:{x:1500,y:1080},
+ territory_map:{x:2450,y:1460},source_lab:{x:2450,y:1400},research_question:{x:2500,y:1510},archive_final:{x:2080,y:520}
+}};V.missionRuntime=R;
 function distance(p){return Math.hypot((+S.x||0)-p.x,(+S.y||0)-p.y)}
 function toast(text){const e=document.getElementById('missionToast');if(!e)return;e.textContent=text;e.classList.add('show');clearTimeout(R.toastTimer);R.toastTimer=setTimeout(()=>e.classList.remove('show'),2200)}
 function say(title,lines){S.dialogue=true;const d=document.getElementById('dialogue');if(!d)return;d.classList.remove('hidden');d.dataset.lines=JSON.stringify(lines);d.dataset.i='0';const sp=document.getElementById('speaker'),tx=document.getElementById('dialogueText');if(sp)sp.textContent=title;if(tx)tx.textContent=lines[0]||''}
 function advance(key){const result=M.completeStep?.(S,key);if(!result)return false;if(result.reward)toast('MISIÓN COMPLETADA · +$'+result.reward);else toast('OBJETIVO COMPLETADO');window.dispatchEvent(new CustomEvent('villa-pelon-mission',{detail:{mission:M.status(S)}}));return true}
+function fact(title,lines,key){if(!distance(R.points[key]))return false;advance('inspect:'+key);say(title,lines);return true}
 function specialInteract(){
-  if(S.dialogue)return false;
-  const o=M.objective(S);if(!o)return false;
-  if(o.type==='reach'&&o.target==='bridge'){
-    const bridges=Array.isArray(V.worldGeometry?.bridges)?V.worldGeometry.bridges:[];
-    if(bridges.some(b=>distance({x:+b.x+(+b.w||0)/2,y:+b.y+(+b.h||0)/2})<130)){advance('reach:bridge');return true}
-  }
-  if(o.type==='collect'&&o.target==='lost_dni'&&distance(R.points.dni)<105){
-    S.inventory=Array.isArray(S.inventory)?S.inventory:[];if(!S.inventory.includes('DNI extraviado'))S.inventory.push('DNI extraviado');S.flags=S.flags||{};S.flags.lostDni=true;advance('collect:lost_dni');
-    say('PUNTO DE ENCUENTRO',['Encontraste un DNI extraviado. No es tuyo: devolverlo es la misión.','El juego enseña una regla sencilla de convivencia: un objeto personal perdido debe volver a su dueño.','Ahora seguí el camino rural hacia Picada 21.']);return true;
-  }
-  if(o.type==='deliver'&&o.target==='dni_picada21'&&distance(R.points.picada21)<125){
-    if(!S.inventory?.includes('DNI extraviado')){say('MISIÓN',['Primero tenés que encontrar el DNI extraviado.']);return true}
-    S.inventory=S.inventory.filter(x=>x!=='DNI extraviado');S.flags=S.flags||{};S.flags.dniReturned=true;advance('deliver:dni_picada21');
-    say('PICADA 21 · UN ENCUENTRO',['—¿Vos encontraste mi DNI? —pregunta una mujer que venía mirando el camino.','Cuando se lo entregás, se le ilumina la cara. Te cuenta que pensó que lo había perdido para siempre.','Entonces saca una vieja fotografía de una familia frente a una chacra y te dice: «Las cosas pequeñas también guardan historias».','Te invita a mirar el paisaje unos segundos. El viento mueve los álamos, baja la tarde y el camino queda en silencio.','La historia de este encuentro es narrativa y fue creada especialmente para el juego: su enseñanza es real, pero el personaje y la escena son ficticios.']);return true;
-  }
-  if(o.type==='inspect'&&o.target==='picada21_memory'&&distance(R.points.memory)<125){advance('inspect:picada21_memory');say('MEMORIA DE PICADA 21',['La mujer ya se fue. Antes de irse dejó una frase en tu cuaderno: «Preguntá, escuchá y después buscá la fuente».','Aprendiste algo importante: la memoria oral puede abrir una investigación, pero una investigación responsable debe contrastar sus datos.','Villa Pelón no se aprende de golpe. Se aprende caminándolo, escuchando a su gente y preguntando por qué las cosas son como son.']);return true;}
-  if(o.type==='inspect'&&o.target==='archive'&&distance(R.points.archive)<120){advance('inspect:archive');say('CUADERNO DE INVESTIGACIÓN',['Regla de oro: una anécdota, una fotografía, un recuerdo y un documento pueden contar cosas distintas.','Cuando una misión te enseñe historia, buscá siempre la fuente antes de convertir el dato en una certeza.']);return true;}
-  return false;
+ if(S.dialogue)return false;const o=M.objective(S);if(!o)return false;
+ if(o.type==='reach'&&o.target==='bridge'){const bridges=Array.isArray(V.worldGeometry?.bridges)?V.worldGeometry.bridges:[];if(bridges.some(b=>distance({x:+b.x+(+b.w||0)/2,y:+b.y+(+b.h||0)/2})<130)){advance('reach:bridge');say('PUENTE',['Llegaste a un puente. El agua no es solamente un obstáculo: también organiza caminos, producción y vida cotidiana.']);return true}}
+ if(o.type==='collect'&&o.target==='lost_dni'&&distance(R.points.dni)<105){S.inventory=Array.isArray(S.inventory)?S.inventory:[];if(!S.inventory.includes('DNI extraviado'))S.inventory.push('DNI extraviado');S.flags=S.flags||{};S.flags.lostDni=true;advance('collect:lost_dni');say('PUNTO DE ENCUENTRO',['Encontraste un DNI extraviado. No es tuyo: devolverlo es la misión.','El juego enseña una regla sencilla de convivencia: un objeto personal perdido debe volver a su dueño.','Ahora seguí el camino rural hacia Picada 21.']);return true}
+ if(o.type==='deliver'&&o.target==='dni_picada21'&&distance(R.points.picada21)<125){if(!S.inventory?.includes('DNI extraviado')){say('MISIÓN',['Primero tenés que encontrar el DNI extraviado.']);return true}S.inventory=S.inventory.filter(x=>x!=='DNI extraviado');S.flags=S.flags||{};S.flags.dniReturned=true;advance('deliver:dni_picada21');say('PICADA 21 · UN ENCUENTRO',['—¿Vos encontraste mi DNI? —pregunta una mujer que venía mirando el camino.','Cuando se lo entregás, se le ilumina la cara. Te cuenta que pensó que lo había perdido para siempre.','Entonces saca una vieja fotografía de una familia frente a una chacra y te dice: «Las cosas pequeñas también guardan historias».','Te invita a mirar el paisaje unos segundos. El viento mueve los álamos, baja la tarde y el camino queda en silencio.','La historia de este encuentro es narrativa y fue creada especialmente para el juego: su enseñanza es real, pero el personaje y la escena son ficticios.']);return true}
+ if(o.type==='inspect'&&o.target==='picada21_memory'&&distance(R.points.memory)<125){advance('inspect:picada21_memory');say('MEMORIA DE PICADA 21',['La mujer ya se fue. Antes de irse dejó una frase en tu cuaderno: «Preguntá, escuchá y después buscá la fuente».','Aprendiste algo importante: la memoria oral puede abrir una investigación, pero una investigación responsable debe contrastar sus datos.','Villa Pelón no se aprende de golpe. Se aprende caminándolo, escuchando a su gente y preguntando por qué las cosas son como son.']);return true}
+ if(o.type==='inspect'&&o.target==='name_marker')return fact('TOPÓNIMO · UNA PISTA',['El nombre San Patricio se vincula con San Patricio, patrono de Campofilone, localidad italiana asociada a la familia Gasparri. «Chañar» remite al nombre histórico del paraje y al árbol conocido como chañar.','No memorices solamente: anotá la fuente. La Municipalidad de San Patricio del Chañar conserva una reseña histórica sobre estas capas de identidad.','En Villa Pelón, esta misión transforma el dato en una pregunta: ¿cuántas historias puede contener un nombre?'],'name_marker');
+ if(o.type==='inspect'&&o.target==='school_archive')return fact('ESCUELA 273 · FICHA 01',['La cronología histórica consultada registra que la Escuela Nº 273 comenzó a funcionar el 1 de marzo de 1975 y la identifica como la primera escuela de la localidad.','Fuente de referencia para el juego: cronología de San Patricio del Chañar publicada por Más Neuquén.','El personaje Julia es ficticio; el dato histórico no.'],'school_archive');
+ if(o.type==='inspect'&&o.target==='irrigation_marker')return fact('RIEGO · FICHA 01',['La cronología local registra una primera bocatoma en Picada 13 en 1971 y una segunda en 1972. El riego es una de las claves para entender la transformación productiva del valle.','Fuente de referencia: cronología de San Patricio del Chañar, Más Neuquén.'],'irrigation_marker');
+ if(o.type==='inspect'&&o.target==='pelon_marker')return fact('PELÓN · FICHA 01',['La primera Fiesta Provincial del Pelón se realizó el 1 de marzo de 1985. Con el tiempo se incorporó un homenaje al trabajador rural.','La celebración permite estudiar producción, trabajo, cultura y memoria al mismo tiempo.','Fuente de referencia: cronología de San Patricio del Chañar, Más Neuquén.'],'pelon_marker');
+ if(o.type==='inspect'&&o.target==='founding_marker')return fact('FUNDACIÓN · FICHA 01',['La localidad fue creada el 21 de mayo de 1973 mediante el Decreto Provincial 1339. La Comisión de Fomento comenzó a funcionar formalmente al año siguiente, según fuentes oficiales y cronologías locales.','El juego enseña una diferencia importante: fecha de creación, puesta en funciones y crecimiento posterior no son necesariamente el mismo acontecimiento.','Fuentes de referencia: Municipalidad de San Patricio del Chañar y documentación provincial.'],'founding_marker');
+ if(o.type==='inspect'&&o.target==='irrigation_timeline')return fact('RIEGO · SECUENCIA',['1971 → primera bocatoma en Picada 13.','1972 → segunda bocatoma.','La pregunta histórica es qué cambió después: para responderla necesitás cruzar agua, tierra, producción y población.','Fuente de referencia: cronología de San Patricio del Chañar, Más Neuquén.'],'irrigation_timeline');
+ if(o.type==='inspect'&&o.target==='school_archive_2')return fact('ESCUELA · FICHA 02',['Una escuela conserva documentos, nombres, fotografías, actos y recuerdos. Pero un recuerdo no reemplaza automáticamente a un documento.','Tu tarea es aprender a formular una pregunta y después buscar la evidencia adecuada.'],'school_archive_2');
+ if(o.type==='inspect'&&o.target==='worker_marker')return fact('TRABAJO RURAL · FICHA',['La Fiesta Provincial del Pelón nació en 1985 como celebración ligada a una producción característica. Desde 1999 se incorporó la Fiesta del Trabajador Rural.','La producción puede cambiar; la memoria del trabajo también merece ser documentada.','Fuente de referencia: cronología de San Patricio del Chañar y prensa regional.'],'worker_marker');
+ if(o.type==='inspect'&&o.target==='territory_map')return fact('MAPA · LEER EL TERRITORIO',['Un mapa no es solamente un dibujo: muestra relaciones. En este mundo podés seguir agua, caminos, puentes, producción, viviendas y lugares de memoria.','Regla de investigación: anotá qué representa el mapa, qué fecha tiene y quién lo produjo antes de usarlo como evidencia.'],'territory_map');
+ if(o.type==='inspect'&&o.target==='source_lab')return fact('LABORATORIO DE FUENTES',['FUENTE INSTITUCIONAL: puede aportar decretos, reseñas y datos oficiales.','CRONOLOGÍA PERIODÍSTICA: puede ordenar acontecimientos y ofrecer contexto.','MEMORIA ORAL: aporta experiencias y preguntas, pero requiere contraste cuando afirma un hecho histórico.','Tu objetivo no es elegir una fuente «favorita»: es aprender qué pregunta puede responder cada una.'],'source_lab');
+ if(o.type==='inspect'&&o.target==='research_question')return fact('PREGUNTA DE INVESTIGACIÓN',['Pregunta: ¿qué relación existe entre agua, producción y crecimiento comunitario?','Respuesta de trabajo: el riego es una pieza clave para comprender la transformación del territorio, pero una conclusión histórica seria necesita más de una evidencia.','Marcá en tu cuaderno: AFIRMACIÓN → FUENTE → CONTRASTE → CONCLUSIÓN.'],'research_question');
+ if(o.type==='inspect'&&o.target==='archive'||o.type==='inspect'&&o.target==='archive_final'){const k=o.target;const p=R.points[k];if(distance(p)>=120)return false;advance('inspect:'+k);say('CUADERNO DE INVESTIGACIÓN',['Tu ficha queda cerrada con cuatro campos: qué afirmás, qué fuente consultaste, qué otra fuente la contrasta y qué todavía no sabés.','Esta regla protege al jugador de convertir una leyenda o un recuerdo en una falsa certeza.','Primer ciclo histórico completado. Ahora Villa Pelón queda abierto para nuevas investigaciones.']);return true}
+ return false;
 }
 window.addEventListener('keydown',e=>{if(!['e',' '].includes(String(e.key).toLowerCase())||S.dialogue)return;if(specialInteract())e.stopImmediatePropagation()},{capture:true});
 document.getElementById('interact')?.addEventListener('pointerup',e=>{if(S.dialogue)return;if(specialInteract()){e.preventDefault();e.stopImmediatePropagation()}},{capture:true});
