@@ -29,7 +29,7 @@ jobs:
             const errors=[];
             page.on('pageerror',e=>errors.push(e.message));
             page.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
-            await page.goto('http://127.0.0.1:4173/index.html?v=95.3',{waitUntil:'networkidle'});
+            await page.goto('http://127.0.0.1:4173/index.html?v=95.5',{waitUntil:'networkidle'});
             await page.waitForTimeout(3000);
             for(let i=0;i<4;i++){
               const b=page.locator('[data-intro-next]');
@@ -47,10 +47,21 @@ jobs:
             if(state.stability?.version!=='95.1') throw new Error('Stability gate missing');
             if(state.world?.w!==8200||state.world?.h!==4200) throw new Error('World size mismatch');
             if(!state.geometry?.routes?.some(r=>r?.id==='picada21_route')) throw new Error('Picada 21 route missing');
-            const before=state.game.x;
+            if(document.getElementById('detailLayer')) throw new Error('Legacy detail renderer still mounted');
+
+            /* VERGEL contract: E must harvest when inside a valid zone. */
+            await page.evaluate(()=>{const s=window.VillaPelon.gameState;s.x=5350;s.y=2430;s.energy=100;s.dialogue=false;s.inventory=[]});
+            const beforeVergel=await page.evaluate(()=>({energy:window.VillaPelon.gameState.energy,inventory:[...window.VillaPelon.gameState.inventory]}));
+            await page.keyboard.press('e');
+            await page.waitForTimeout(100);
+            const afterVergel=await page.evaluate(()=>({energy:window.VillaPelon.gameState.energy,inventory:[...window.VillaPelon.gameState.inventory]}));
+            if(afterVergel.energy!==beforeVergel.energy-4) throw new Error('VERGEL interaction priority failed: '+JSON.stringify({beforeVergel,afterVergel}));
+            if(!afterVergel.inventory.includes('verduras')) throw new Error('VERGEL harvest did not enter inventory');
+
+            const before=afterVergel;
             await page.keyboard.down('ArrowRight'); await page.waitForTimeout(500); await page.keyboard.up('ArrowRight');
             const after=await page.evaluate(()=>window.VillaPelon.gameState.x);
-            if(after===before) throw new Error('Player did not move');
+            if(after===5350) throw new Error('Player did not move');
             await page.locator('#save').click();
             await page.waitForTimeout(100);
             const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('villa_pelon_save')||'null'));
@@ -63,12 +74,12 @@ jobs:
             await page.screenshot({path:'villa-pelon-smoke.png',fullPage:true});
             const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true});
             const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));mobile.on('console',m=>{if(m.type()==='error')mobileErrors.push(m.text())});
-            await mobile.goto('http://127.0.0.1:4173/index.html?v=95.3',{waitUntil:'networkidle'});await mobile.waitForTimeout(2500);
-            const mobileState=await mobile.evaluate(()=>({started:!!window.VillaPelon?.gameState?.started,health:window.VillaPelon?.health?.ok,integrity:window.VillaPelon?.integrity?.ok,canvas:!!document.getElementById('world')}));
-            if(!mobileState.started||!mobileState.health||!mobileState.integrity||!mobileState.canvas) throw new Error('Mobile smoke failed: '+JSON.stringify(mobileState));
+            await mobile.goto('http://127.0.0.1:4173/index.html?v=95.5',{waitUntil:'networkidle'});await mobile.waitForTimeout(2500);
+            const mobileState=await mobile.evaluate(()=>({started:!!window.VillaPelon?.gameState?.started,health:window.VillaPelon?.health?.ok,integrity:window.VillaPelon?.integrity?.ok,canvas:!!document.getElementById('world'),legacyDetail:!!document.getElementById('detailLayer')}));
+            if(!mobileState.started||!mobileState.health||!mobileState.integrity||!mobileState.canvas||mobileState.legacyDetail) throw new Error('Mobile smoke failed: '+JSON.stringify(mobileState));
             if(mobileErrors.length) throw new Error('Mobile browser errors: '+mobileErrors.join(' | '));
             await mobile.close();
-            console.log('VILLA PELON SMOKE OK',JSON.stringify({before,after,restored,mobileState,health:state.health,integrity:state.integrity,route:'picada21_route'}));
+            console.log('VILLA PELON SMOKE OK',JSON.stringify({before,after,restored,mobileState,health:state.health,integrity:state.integrity,route:'picada21_route',vergel:'harvest_ok'}));
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
