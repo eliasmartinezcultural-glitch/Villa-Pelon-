@@ -1,13 +1,23 @@
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
-function start(){const s=document.getElementById('storyIntro');if(!s)return;const pages=[
- ['DONDE EMPIEZA EL CAMINO','Un pueblo entre chacras, río, calles y cordillera. Villa Pelón se recorre caminando, mirando y escuchando.'],
- ['EL VALLE TRABAJA','Acequias, viñedos, galpones, tractores y caminos rurales forman parte de la vida cotidiana. El paisaje también cuenta.'],
- ['UN PUEBLO TIENE MEMORIA','Escuela, hospital, biblioteca, bomberos, radio, comercios y vecinos construyen una historia que podés descubrir conversando.'],
- ['AHORA TE TOCA RECORRERLO','Entrá al mundo, conocé a su gente, seguí las pistas y llegá por el camino rural hasta Picada 21.']
- ];let i=0;const title=s.querySelector('[data-intro-title]'),text=s.querySelector('[data-intro-text]'),btn=s.querySelector('[data-intro-next]'),scene=s.querySelector('.story-scene'),dots=[...s.querySelectorAll('.story-dot')];
- function paint(){title.textContent=pages[i][0];text.textContent=pages[i][1];btn.textContent=i===pages.length-1?'ENTRAR AL MUNDO':'CONTINUAR';s.dataset.page=i;if(scene){scene.className='story-scene scene-'+(i+1)}dots.forEach((d,n)=>d.classList.toggle('active',n===i))}
- function close(){s.classList.add('hidden');if(V.gameState)V.gameState.intro=false}
- btn.addEventListener('click',()=>{if(i<pages.length-1){i++;paint()}else close()});s.addEventListener('click',e=>{if(e.target===s)close()});if(V.gameState)V.gameState.intro=true;s.classList.remove('hidden');paint()}
+function start(){
+  const s=document.getElementById('storyIntro');
+  if(!s)return;
+  const pages=[
+   ['DONDE EMPIEZA EL CAMINO','Un pueblo entre chacras, río, calles y cordillera. Villa Pelón se recorre caminando, mirando y escuchando.'],
+   ['EL VALLE TRABAJA','Acequias, viñedos, galpones, tractores y caminos rurales forman parte de la vida cotidiana. El paisaje también cuenta.'],
+   ['UN PUEBLO TIENE MEMORIA','Escuela, hospital, biblioteca, bomberos, radio, comercios y vecinos construyen una historia que podés descubrir conversando.'],
+   ['AHORA TE TOCA RECORRERLO','Entrá al mundo, conocé a su gente, seguí las pistas y llegá por el camino rural hasta Picada 21.']
+  ];
+  let i=0;
+  const title=s.querySelector('[data-intro-title]'),text=s.querySelector('[data-intro-text]'),btn=s.querySelector('[data-intro-next]'),scene=s.querySelector('.story-scene'),dots=[...s.querySelectorAll('.story-dot')];
+  function paint(){title.textContent=pages[i][0];text.textContent=pages[i][1];btn.textContent=i===pages.length-1?'ENTRAR AL MUNDO':'CONTINUAR';s.dataset.page=i;if(scene)scene.className='story-scene scene-'+(i+1);dots.forEach((d,n)=>d.classList.toggle('active',n===i))}
+  function close(){s.classList.add('hidden');if(V.gameState){V.gameState.intro=false;V.gameState.dialogue=false}}
+  btn.addEventListener('click',()=>{if(i<pages.length-1){i++;paint()}else close()});
+  s.addEventListener('click',e=>{if(e.target===s)close()});
+  if(V.gameState){V.gameState.intro=true;V.gameState.dialogue=true}
+  s.classList.remove('hidden');
+  paint();
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,300));else setTimeout(start,300);
 })();
