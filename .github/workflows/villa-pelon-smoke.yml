@@ -29,7 +29,7 @@ jobs:
             const errors=[];
             page.on('pageerror',e=>errors.push(e.message));
             page.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
-            await page.goto('http://127.0.0.1:4173/index.html?v=93.0',{waitUntil:'networkidle'});
+            await page.goto('http://127.0.0.1:4173/index.html?v=95.0',{waitUntil:'networkidle'});
             await page.waitForTimeout(3000);
             for(let i=0;i<4;i++){
               const b=page.locator('[data-intro-next]');
@@ -37,12 +37,14 @@ jobs:
               await page.waitForTimeout(100);
             }
             await page.waitForTimeout(500);
-            const state=await page.evaluate(()=>({health:window.VillaPelon?.health,game:window.VillaPelon?.gameState,people:window.VillaPelon?.peopleVehicles,render:window.VillaPelon?.renderCompositor,detail:window.VillaPelon?.buildingDetail}));
+            const state=await page.evaluate(()=>({health:window.VillaPelon?.health,integrity:window.VillaPelon?.integrity,game:window.VillaPelon?.gameState,people:window.VillaPelon?.peopleVehicles,render:window.VillaPelon?.renderCompositor,detail:window.VillaPelon?.buildingDetail,stability:window.VillaPelon?.stability}));
             if(!state.health?.ok) throw new Error('Healthcheck failed: '+JSON.stringify(state.health));
+            if(!state.integrity?.ok) throw new Error('Integrity failed: '+JSON.stringify(state.integrity));
             if(!state.game?.started) throw new Error('Game did not start');
             if(!state.render?.singleRAF) throw new Error('Render compositor missing');
             if(state.people?.npcOverlay!==false) throw new Error('NPC overlay duplication risk');
             if(!state.detail?.distinctive) throw new Error('Building identity layer missing');
+            if(state.stability?.version!=='95.0') throw new Error('Stability gate missing');
             const before=state.game.x;
             await page.keyboard.down('ArrowRight'); await page.waitForTimeout(500); await page.keyboard.up('ArrowRight');
             const after=await page.evaluate(()=>window.VillaPelon.gameState.x);
@@ -52,11 +54,19 @@ jobs:
             const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('villa_pelon_save')||'null'));
             if(!saved) throw new Error('Save missing');
             await page.reload({waitUntil:'networkidle'}); await page.waitForTimeout(3000);
-            const restored=await page.evaluate(()=>({x:window.VillaPelon?.gameState?.x,savedAt:window.VillaPelon?.gameState?.savedAt,health:window.VillaPelon?.health}));
+            const restored=await page.evaluate(()=>({x:window.VillaPelon?.gameState?.x,savedAt:window.VillaPelon?.gameState?.savedAt,health:window.VillaPelon?.health,integrity:window.VillaPelon?.integrity}));
             if(Math.abs((restored.x??NaN)-after)>0.01) throw new Error('Save/reload position mismatch');
+            if(!restored.health?.ok||!restored.integrity?.ok) throw new Error('Post-reload health/integrity failed');
             if(errors.length) throw new Error('Browser errors: '+errors.join(' | '));
             await page.screenshot({path:'villa-pelon-smoke.png',fullPage:true});
-            console.log('VILLA PELON SMOKE OK',JSON.stringify({before,after,restored,health:state.health}));
+            const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true});
+            const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));mobile.on('console',m=>{if(m.type()==='error')mobileErrors.push(m.text())});
+            await mobile.goto('http://127.0.0.1:4173/index.html?v=95.0',{waitUntil:'networkidle'});await mobile.waitForTimeout(2500);
+            const mobileState=await mobile.evaluate(()=>({started:!!window.VillaPelon?.gameState?.started,health:window.VillaPelon?.health?.ok,integrity:window.VillaPelon?.integrity?.ok,canvas:!!document.getElementById('world')}));
+            if(!mobileState.started||!mobileState.health||!mobileState.integrity||!mobileState.canvas) throw new Error('Mobile smoke failed: '+JSON.stringify(mobileState));
+            if(mobileErrors.length) throw new Error('Mobile browser errors: '+mobileErrors.join(' | '));
+            await mobile.close();
+            console.log('VILLA PELON SMOKE OK',JSON.stringify({before,after,restored,mobileState,health:state.health,integrity:state.integrity}));
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
