@@ -1,12 +1,11 @@
-/* VILLA PELÓN — STABILITY GATE V95
-   Última capa de runtime: normaliza estado, recupera guardados y evita
-   que una partida válida quede visualmente bloqueada por una capa de arranque.
-   No crea game loops ni reemplaza sistemas de gameplay.
+/* VILLA PELÓN — STABILITY GATE V95.1
+   Última capa de runtime: normaliza estado y recupera guardados sólo cuando
+   corresponde. No pisa una partida activa ni crea loops adicionales.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 const ST=V.stability=V.stability||{};
-ST.version='95.0';
+ST.version='95.1';
 const WORLD={w:8200,h:4200};
 function finite(n,f){return Number.isFinite(Number(n))?Number(n):f}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
@@ -27,18 +26,25 @@ function normalizeState(){
   S.stats.steps=Math.max(0,Math.floor(finite(S.stats.steps,0)));
   S.stats.interactions=Math.max(0,Math.floor(finite(S.stats.interactions,0)));
   S.stats.harvests=Math.max(0,Math.floor(finite(S.stats.harvests,0)));
+  if(S.dialogue && !document.getElementById('dialogue')?.classList.contains('hidden')) return S;
   S.dialogue=false;
   return S;
 }
-function repairSave(){
+function recoverSaveOnce(){
+  if(ST.saveRecovered||!V.gameState)return false;
+  ST.saveRecovered=true;
+  /* El motor ya carga localStorage durante su inicialización. Esta capa sólo
+     rescata un save si el motor quedó sin posición válida; nunca lo pisa si
+     existe una partida activa, evitando regresiones de progreso. */
+  const S=V.gameState;
+  if(S.started && Number.isFinite(+S.x) && Number.isFinite(+S.y))return false;
   try{
-    const raw=localStorage.getItem('villa_pelon_save');if(!raw)return false;
-    const save=JSON.parse(raw);if(!save||typeof save!=='object')throw new Error('invalid save');
-    const old=V.gameState||{};
-    const merged=Object.assign({},old,save,{dialogue:false});
-    V.gameState=merged;
+    const raw=localStorage.getItem('villa_pelon_save');
+    if(!raw)return false;
+    const save=JSON.parse(raw);
+    if(!save||typeof save!=='object'||!Number.isFinite(+save.x)||!Number.isFinite(+save.y))return false;
+    Object.assign(S,save,{dialogue:false});
     normalizeState();
-    localStorage.setItem('villa_pelon_save',JSON.stringify(Object.assign({},V.gameState,{dialogue:false})));
     return true;
   }catch(err){console.warn('[Villa Pelón] save recovery skipped',err);return false}
 }
@@ -55,13 +61,13 @@ function reconcile(){
 }
 ST.normalize=normalizeState;
 ST.reconcile=reconcile;
-ST.recoverSave=repairSave;
-function ready(){setTimeout(()=>{repairSave();reconcile()},0)}
-window.addEventListener('villa-pelon-engine-ready',ready,{once:false});
-window.addEventListener('villa-pelon-world-ready',ready,{once:false});
-window.addEventListener('villa-pelon-integrity',ready,{once:false});
-window.addEventListener('villa-pelon-health',ready,{once:false});
+ST.recoverSave=recoverSaveOnce;
+function ready(){setTimeout(()=>{recoverSaveOnce();reconcile()},0)}
+window.addEventListener('villa-pelon-engine-ready',ready,{once:true});
+window.addEventListener('villa-pelon-world-ready',reconcile,{once:true});
+window.addEventListener('villa-pelon-integrity',reconcile,{once:true});
+window.addEventListener('villa-pelon-health',reconcile,{once:true});
 window.addEventListener('pageshow',()=>setTimeout(reconcile,50));
 window.addEventListener('error',e=>{ST.lastError={message:e.message||'runtime error',source:e.filename||'',line:e.lineno||0,time:Date.now()};console.error('[Villa Pelón stability]',ST.lastError)});
-setTimeout(()=>{repairSave();reconcile()},2200);
+setTimeout(()=>{recoverSaveOnce();reconcile()},2200);
 })();
