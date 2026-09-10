@@ -1,5 +1,6 @@
-/* VILLA PELÓN — PRESENTATION RUNTIME 93.1
-   Sólo actualiza el panel de misión. Los avisos de gameplay pertenecen al motor.
+/* VILLA PELÓN — PRESENTATION RUNTIME 93.2
+   Sólo actualiza el panel de misión cuando cambia el estado.
+   El motor conserva la actualización de HUD durante el juego.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
@@ -10,6 +11,6 @@ function render(){
   if(q)q.textContent=m.objective||m.title;
   if(p)p.textContent=m.total?'Paso '+Math.min(m.step+1,m.total)+' de '+m.total+' · Recompensa $'+m.reward:'Exploración libre · Ruta principal completada';
 }
-setInterval(render,350);
 window.addEventListener('villa-pelon-mission',render);
+window.addEventListener('villa-pelon-engine-ready',()=>setTimeout(render,0),{once:true});
 })();
