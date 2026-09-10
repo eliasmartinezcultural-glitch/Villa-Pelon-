@@ -1,4 +1,4 @@
-/* VILLA PELÓN — INTEGRATION 93.2
+/* VILLA PELÓN — INTEGRATION 93.3
    Puente único entre motor, territorio, guardado y VERGEL.
    Esta capa sólo consume E/ESPACIO o interacción táctil cuando el jugador
    está realmente dentro de una zona VERGEL y el recurso puede cosecharse.
@@ -8,11 +8,11 @@ const V=window.VillaPelon||(window.VillaPelon={});
 const G=V.worldGeometry||(V.worldGeometry={});
 const M=V.worldManifest||(V.worldManifest={});
 const S=()=>V.gameState||(V.gameState={});
-const WORLD={w:8200,h:4200,version:'93.2'};
+const WORLD={w:8200,h:4200,version:'93.3'};
 V.world=Object.assign(V.world||{},WORLD);
 M.worldSize={w:WORLD.w,h:WORLD.h};
-M.version='93.2';
-G.version='93.2';
+M.version='93.3';
+G.version='93.3';
 G.buildings=Array.isArray(G.buildings)?G.buildings:[];
 G.bridges=Array.isArray(G.bridges)?G.bridges:[];
 G.roads=Array.isArray(G.roads)?G.roads:[];
@@ -34,9 +34,9 @@ function ensureTerritoryPoints(){
 }
 ensureTerritoryPoints();
 M.picada21=Object.assign({},M.picada21||{}, {x:6750,y:2050,w:1450,h:1100,route:'picada21_route',stop:'picada21_stop'});
-G.integrity={version:'93.2',worldSize:{w:WORLD.w,h:WORLD.h},picada21:{stop:{x:7550,y:2350},route:'picada21_route'},checkedAt:Date.now()};
+G.integrity={version:'93.3',worldSize:{w:WORLD.w,h:WORLD.h},picada21:{stop:{x:7550,y:2350},route:'picada21_route'},checkedAt:Date.now()};
 V.worldApi=V.worldApi||{};
-V.worldApi.version='93.2';
+V.worldApi.version='93.3';
 V.worldApi.getPlayer=()=>{const s=S();return{x:+s.x||0,y:+s.y||0,day:+s.day||1,energy:+s.energy||0}};
 V.worldApi.save=()=>{const s=S();try{localStorage.setItem('villa_pelon_save',JSON.stringify({...s,dialogue:false,savedAt:Date.now()}));s.saved=true;return true}catch(_){return false}};
 V.saveGame=V.worldApi.save;
@@ -65,7 +65,7 @@ window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   if(k==='e'||e.key===' '){harvestIfAvailable(e)}
 },true);
-document.addEventListener('pointerdown',e=>{
+document.addEventListener('pointerup',e=>{
   if(e.target?.id==='interact')harvestIfAvailable(e);
 },true);
 window.addEventListener('villa-pelon-engine-ready',()=>{
