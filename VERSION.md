@@ -1,11 +1,11 @@
 # Villa Pelón — control de versiones
 
 ## Versión activa
-**95.7 — Matriz consolidada**
+**95.8 — Matriz consolidada + producción refrescada**
 
 ## Objetivo de esta versión
 
-Consolidar el runtime web alrededor de una única matriz territorial, una única autoridad de interacción VERGEL, una única capa secundaria de composición visual y un único contrato de guardado.
+Consolidar el runtime web alrededor de una única matriz territorial, una única autoridad de interacción VERGEL, una única capa secundaria de composición visual y un único contrato de guardado, manteniendo además el cache-busting de producción sincronizado con el smoke test.
 
 ## Capas activas
 
@@ -41,7 +41,7 @@ Consolidar el runtime web alrededor de una única matriz territorial, una única
 - El healthcheck detecta la existencia de capas de detalle antiguas y deriva territorial.
 - El Integrity Gate verifica la ruta y puntos canónicos de Picada 21.
 - Se retiraron módulos históricos que ya no participan del runtime activo.
-- El cache-busting de producción quedó unificado en `95.7`.
+- El cache-busting de producción y el smoke test quedaron sincronizados en `95.8`.
 
 ## Verificación automática
 
