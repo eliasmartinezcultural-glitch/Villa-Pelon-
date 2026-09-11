@@ -29,11 +29,11 @@ jobs:
             const errors=[];
             page.on('pageerror',e=>errors.push(e.message));
             page.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
-            await page.goto('http://127.0.0.1:4173/index.html?v=98.3',{waitUntil:'networkidle'});
+            await page.goto('http://127.0.0.1:4173/index.html?v=99.1',{waitUntil:'networkidle'});
             await page.waitForTimeout(3000);
             for(let i=0;i<4;i++){const b=page.locator('[data-intro-next]');if(await b.isVisible()) await b.click();await page.waitForTimeout(100)}
             await page.waitForTimeout(500);
-            const state=await page.evaluate(()=>({health:window.VillaPelon?.health,integrity:window.VillaPelon?.integrity,game:window.VillaPelon?.gameState,people:window.VillaPelon?.peopleVehicles,render:window.VillaPelon?.renderCompositor,detail:window.VillaPelon?.buildingDetail,stability:window.VillaPelon?.stability,world:window.VillaPelon?.world,geometry:window.VillaPelon?.worldGeometry,engine:window.VillaPelon?.engine}));
+            const state=await page.evaluate(()=>({health:window.VillaPelon?.health,integrity:window.VillaPelon?.integrity,game:window.VillaPelon?.gameState,people:window.VillaPelon?.peopleVehicles,render:window.VillaPelon?.renderCompositor,detail:window.VillaPelon?.buildingDetail,stability:window.VillaPelon?.stability,world:window.VillaPelon?.world,geometry:window.VillaPelon?.worldGeometry,engine:window.VillaPelon?.engine,architecture:window.VillaPelon?.architectureContract}));
             if(!state.health?.ok) throw new Error('Healthcheck failed: '+JSON.stringify(state.health));
             if(!state.integrity?.ok) throw new Error('Integrity failed: '+JSON.stringify(state.integrity));
             if(!state.game?.started) throw new Error('Game did not start');
@@ -45,16 +45,13 @@ jobs:
             if(!state.geometry?.routes?.some(r=>r?.id==='picada21_route')) throw new Error('Picada 21 route missing');
             if(state.integrity?.buildingOverlaps?.length) throw new Error('Building overlaps: '+JSON.stringify(state.integrity.buildingOverlaps));
             if(state.engine?.health?.().singleBuildingRenderer!==true) throw new Error('Duplicate building renderer risk');
+            if(state.architecture?.singleBuildingRenderer!==true) throw new Error('Architecture contract missing');
             if(document.getElementById('detailLayer')) throw new Error('Legacy detail renderer still mounted');
-
-            /* VERGEL contract. */
             await page.evaluate(()=>{const s=window.VillaPelon.gameState;s.x=5350;s.y=2430;s.energy=100;s.dialogue=false;s.inventory=[]});
             const beforeVergel=await page.evaluate(()=>({energy:window.VillaPelon.gameState.energy,inventory:[...window.VillaPelon.gameState.inventory]}));
             await page.keyboard.press('e'); await page.waitForTimeout(100);
             const afterVergel=await page.evaluate(()=>({energy:window.VillaPelon.gameState.energy,inventory:[...window.VillaPelon.gameState.inventory]}));
             if(afterVergel.energy!==beforeVergel.energy-4||!afterVergel.inventory.includes('verduras')) throw new Error('VERGEL contract failed: '+JSON.stringify({beforeVergel,afterVergel}));
-
-            /* Historical campaign contract: early source chain. */
             await page.evaluate(()=>{const s=window.VillaPelon.gameState;s.missionId='name_01';s.missionStep=0;s.missionFlags={};s.missionHistory=[];s.flags={};s.inventory=[];s.dialogue=false;s.x=1550;s.y=1150});
             await page.keyboard.press('e'); await page.waitForTimeout(120);
             const celso=await page.evaluate(()=>({id:window.VillaPelon.gameState.missionId,step:window.VillaPelon.gameState.missionStep,dialogue:window.VillaPelon.gameState.dialogue}));
@@ -64,8 +61,6 @@ jobs:
             await page.keyboard.press('e'); await page.waitForTimeout(120);
             const topo=await page.evaluate(()=>({id:window.VillaPelon.gameState.missionId,step:window.VillaPelon.gameState.missionStep,history:window.VillaPelon.gameState.missionHistory.map(x=>x.id)}));
             if(topo.id!=='community_01'||topo.step!==0||!topo.history.includes('name_01')) throw new Error('Toponym mission failed: '+JSON.stringify(topo));
-
-            /* DNI story contract. */
             await page.evaluate(()=>{const s=window.VillaPelon.gameState;s.missionId='dni_01';s.missionStep=0;s.missionFlags={};s.flags={};s.inventory=[];s.dialogue=false;s.x=1280;s.y=470});
             await page.keyboard.press('e'); await page.waitForTimeout(120);
             const dni=await page.evaluate(()=>({missionId:window.VillaPelon.gameState.missionId,step:window.VillaPelon.gameState.missionStep,inventory:[...window.VillaPelon.gameState.inventory]}));
@@ -79,7 +74,6 @@ jobs:
             for(let i=0;i<6;i++){await page.keyboard.press('e');await page.waitForTimeout(40)} await page.keyboard.press('e'); await page.waitForTimeout(120);
             const memory=await page.evaluate(()=>({missionId:window.VillaPelon.gameState.missionId,step:window.VillaPelon.gameState.missionStep,history:window.VillaPelon.gameState.missionHistory.map(x=>x.id)}));
             if(memory.missionId!=='founding_01'||memory.step!==0||!memory.history.includes('dni_01')||!memory.history.includes('picada21_memory')) throw new Error('Picada 21 memory chain failed: '+JSON.stringify(memory));
-
             await page.locator('#save').click(); await page.waitForTimeout(100);
             const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('villa_pelon_save')||'null'));
             if(!saved||saved.missionId!=='founding_01') throw new Error('Mission progression not included in save');
@@ -91,12 +85,12 @@ jobs:
             await page.screenshot({path:'villa-pelon-smoke.png',fullPage:true});
             const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true});
             const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));mobile.on('console',m=>{if(m.type()==='error')mobileErrors.push(m.text())});
-            await mobile.goto('http://127.0.0.1:4173/index.html?v=98.3',{waitUntil:'networkidle'});await mobile.waitForTimeout(2500);
+            await mobile.goto('http://127.0.0.1:4173/index.html?v=99.1',{waitUntil:'networkidle'});await mobile.waitForTimeout(2500);
             const mobileState=await mobile.evaluate(()=>({started:!!window.VillaPelon?.gameState?.started,health:window.VillaPelon?.health?.ok,integrity:window.VillaPelon?.integrity?.ok,canvas:!!document.getElementById('world'),legacyDetail:!!document.getElementById('detailLayer')}));
             if(!mobileState.started||!mobileState.health||!mobileState.integrity||!mobileState.canvas||mobileState.legacyDetail) throw new Error('Mobile smoke failed: '+JSON.stringify(mobileState));
             if(mobileErrors.length) throw new Error('Mobile browser errors: '+mobileErrors.join(' | '));
             await mobile.close();
-            console.log('VILLA PELON SMOKE OK',JSON.stringify({restored,mobileState,integrity:state.integrity,route:'picada21_route',vergel:'harvest_ok',campaign:'historical_97_ok',singleBuildingRenderer:true}));
+            console.log('VILLA PELON SMOKE OK',JSON.stringify({restored,mobileState,integrity:state.integrity,route:'picada21_route',vergel:'harvest_ok',campaign:'historical_97_ok',singleBuildingRenderer:true,architectureContract:'99.1'}));
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
