@@ -1,42 +1,48 @@
 # Villa Pelón — control de versiones
 
 ## Versión activa
-**100.1 — Consolidación estructural del mundo vivo**
+**100.2 — Limpieza de autoridades y mundo vivo funcional**
 
-## Decisión de diseño
-Se mantiene la integración selectiva de `stable/v62-worldplay-core`: se recuperan únicamente rutinas, movimiento, tránsito, fauna y riqueza visual que fortalecen el juego actual. No se restaura V62 como arquitectura paralela.
+## Objetivo de esta versión
+Prioridad: que Villa Pelón sea jugable rápidamente sin seguir acumulando capas que se pisan entre sí.
 
-## Consolidación V100.1
-- La simulación de vida del pueblo queda en una única función `V.villageLife.tick` periódica.
-- Se elimina el `requestAnimationFrame` independiente de la simulación de vida: el compositor visual conserva su único RAF.
-- Personas, vehículos y fauna siguen siendo datos de las autoridades actuales y no crean un renderer propio.
-- El contrato arquitectónico valida la autoridad visual existente (`render_compositor_v93`) sin depender de condiciones circunstanciales del DOM.
-- Se mantiene un único motor, un único renderer visual, un único sistema de misiones y un único guardado de partida.
-- El mundo continúa en 8200×4200 con sus reglas territoriales, río, puentes, caminos, Picada 21, VERGEL y campaña histórica.
-
-## Recuperado de V62 que permanece
-- Rutinas autónomas por horario.
-- Destinos: casa, plaza, escuela, radio, trabajo rural y servicios.
-- Movimiento autónomo.
-- Tránsito urbano/rural.
-- Fauna rural.
-- Personajes con variedad visual, movimiento y detalles pixel-art.
-
-## No recuperado
-No se reincorporan el antiguo motor V62, `life.js`, el renderer V47 ni la geometría reducida de 3200×2000. Tampoco se crean sistemas alternativos de guardado o simulación.
+## Cambios V100.2
+- `village_life_v99.js` deja de mover NPC principales: el motor único conserva esa autoridad.
+- La vida autónoma conserva tránsito, fauna, horarios, eventos contextuales y encuentros observables.
+- Los encuentros entre NPC se registran como memoria del mundo y pueden producir conversaciones cuando el jugador está cerca.
+- La vida ya no mantiene un `localStorage` separado: su estado viaja dentro de `gameState` y se guarda con la partida.
+- Se conserva un solo ticker de simulación de vida y ningún RAF adicional.
+- El contrato arquitectónico ahora comprueba renderer único, vida única y autoridad única de guardado.
+- Se mantiene el mundo 8200×4200, Picada 21, VERGEL, campaña histórica, intro interactiva y estética RPG 2D pixel art.
 
 ## Arquitectura vigente
-- `core/v90_engine.js` — motor único de exploración y reglas.
+- `core/v90_engine.js` — motor único de exploración, movimiento, interacción, tiempo, colisiones y guardado.
 - `core/world_manifest.js` — geometría territorial.
-- `core/mission_system.js` — misiones y progresión.
+- `core/mission_system.js` — catálogo y progresión de misiones.
+- `core/mission_runtime.js` — objetivos especiales y campaña histórica.
 - `core/world_vergel_v90.js` — agricultura.
-- `core/village_life_v99.js` — simulación autónoma consolidada.
-- `core/people_vehicles_v91.js` — población, tránsito y fauna.
+- `core/village_life_v99.js` — vida autónoma contextual, tránsito, fauna y encuentros.
+- `core/people_vehicles_v91.js` — datos de población, tránsito y fauna.
 - `core/render_compositor_v93.js` — único compositor visual.
+- `core/soft_intro.js` — intro interactiva de cuatro escenas.
 - `core/architecture_contract_v99.js` — contrato estructural.
 
-## Próxima dirección
-El siguiente salto no será sumar sistemas aislados. Será conectar la vida autónoma con acciones observables, encuentros entre personajes, conversaciones contextuales, pistas y consecuencias de misión: **mundo → leyes → personas → horarios → lugares → acciones → encuentros → pistas → misiones → consecuencias → historia**.
+## ADN recuperado de V62
+Se conservan únicamente rutinas, destinos, movimiento autónomo del motor, tránsito, fauna y riqueza visual que mejoran el mundo actual. No se restaura V62 como arquitectura paralela.
+
+## Eliminado / evitado
+- Segundo motor.
+- Segundo renderer.
+- RAF paralelo para vida.
+- Guardado paralelo de vida.
+- Antiguo `life.js`.
+- Renderer V47.
+- Geometría reducida 3200×2000.
+
+## Dirección de gameplay
+**mundo → leyes → personas → horarios → lugares → acciones → encuentros → pistas → misiones → consecuencias → historia**
+
+La siguiente prioridad es convertir cada zona en un lugar con algo que hacer, ver o descubrir, sin romper el motor central.
 
 ## Backup
-`backup/v62-selective-integration-20260911` conserva la integración selectiva antes de las nuevas evoluciones.
+`backup/v62-selective-integration-20260911` conserva la integración selectiva anterior.
