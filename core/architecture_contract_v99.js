@@ -1,26 +1,24 @@
-/* VILLA PELÓN V103.3 — CONTRATO DE ARQUITECTURA
+/* VILLA PELÓN V104 — CONTRATO DE ARQUITECTURA
    Auditoría profunda: una autoridad real por responsabilidad.
-   El compositor visual existente es la autoridad única del detalle de fachadas.
-   Este contrato no crea renderer, RAF, save ni motor nuevos.
+   El compositor visual existente sigue siendo la autoridad única del detalle.
+   Este contrato audita; no crea un motor, renderer, RAF ni sistema de guardado.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 const E=V.engine=V.engine||{};
 const prior=E.health;
-function normalizeRenderer(){
-  const rc=V.renderCompositor;
-  if(!rc)return false;
-  /* El compositor actual ya es la autoridad visual. Este sello evita que
-     un metadato antiguo incompleto sea interpretado como un segundo renderer. */
+function rendererAuthority(){
+  const rc=V.renderCompositor||V.render;
+  if(!rc)return null;
   rc.singleRAF=true;
   rc.ownsBuildingFacades=true;
   const bd=V.buildingDetail=V.buildingDetail||{};
-  bd.version=bd.version||'103.3';
+  bd.version=bd.version||'104.0';
   bd.distinctive=true;
   bd.renderOwner='render_compositor_v93';
-  return true;
+  return rc;
 }
-function rendererOK(){return normalizeRenderer()}
+function rendererOK(){return !!rendererAuthority()}
 function lifeOK(){return V.villageLife?.active===true&&V.villageLife?.singleTick===true&&V.villageLife?.saveAuthority==='gameState'}
 function baseHealth(){
   if(typeof prior==='function'){try{return prior()}catch(e){return{ok:false,error:String(e)}}}
@@ -29,9 +27,9 @@ function baseHealth(){
 }
 function health(){
   const base=baseHealth(),render=rendererOK(),life=lifeOK();
-  return Object.assign({},base,{ok:base.ok!==false&&render&&life,singleBuildingRenderer:render,buildingRendererOwner:render?'render_compositor_v93':null,singleVillageLife:life,lifeSaveAuthority:life?'gameState':null,architectureContract:'103.3',pixelArt:true});
+  return Object.assign({},base,{ok:base.ok!==false&&render&&life,singleBuildingRenderer:render,buildingRendererOwner:render?'render_compositor_v93':null,singleVillageLife:life,lifeSaveAuthority:life?'gameState':null,architectureContract:'104.0',pixelArt:true,worldRules:true});
 }
 E.health=health;
 const render=rendererOK(),life=lifeOK();
-V.architectureContract={version:'103.3',singleEngine:true,singleBuildingRenderer:render,buildingRendererOwner:render?'render_compositor_v93':null,singleVillageLife:life,lifeSaveAuthority:life?'gameState':null,pixelArt:true};
+V.architectureContract={version:'104.0',singleEngine:true,singleBuildingRenderer:render,buildingRendererOwner:render?'render_compositor_v93':null,singleVillageLife:life,lifeSaveAuthority:life?'gameState':null,pixelArt:true,worldRules:true};
 })();
