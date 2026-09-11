@@ -1,7 +1,6 @@
-/* VILLA PELÓN — PEOPLE & VEHICLES DATA V100
-   Recupera de V62 sólo lo que mejora el mundo actual:
-   variedad visual, tránsito rural/urbano y fauna.
-   No dibuja ni crea un segundo motor.
+/* VILLA PELÓN V100.2 — POBLACIÓN, TRÁNSITO Y FAUNA
+   Datos puros: no dibuja, no crea RAF y no crea motor.
+   La simulación de tránsito/fauna pertenece a village_life_v99.js.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
@@ -20,5 +19,5 @@ const ANIMALS=[
  {x:6350,y:1560,type:'horse',vx:-5,vy:3},{x:4700,y:620,type:'chicken',vx:10,vy:4},{x:4800,y:650,type:'chicken',vx:-8,vy:3},
  {x:6900,y:1350,type:'cow',vx:5,vy:2},{x:7000,y:1410,type:'cow',vx:-4,vy:3}
 ];
-V.peopleVehicles={version:'100.0',people:18,vehicles:VEHICLES.length,npcOverlay:false,ambient:AMBIENT,vehicleData:VEHICLES,animals:ANIMALS};
+V.peopleVehicles={version:'100.2',people:18,vehicles:VEHICLES.length,npcOverlay:false,ambient:AMBIENT,vehicleData:VEHICLES,animals:ANIMALS};
 })();
