@@ -1,20 +1,18 @@
-/* VILLA PELÓN V99.1 — CONTRATO DE ARQUITECTURA
-   Último contrato de arranque: no crea motor ni renderer.
-   Sólo verifica que la autoridad existente conserve el contrato esperado.
+/* VILLA PELÓN V99.2 — CONTRATO DE ARQUITECTURA
+   Normaliza la autoridad del compositor existente.
+   No crea motor, renderer, RAF ni sistema de guardado paralelo.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 const E=V.engine=V.engine||{};
 const previous=typeof E.health==='function'?E.health.bind(E):null;
-E.health=()=>{
+function rendererOK(){return !!V.renderCompositor?.singleRAF&&!!document.getElementById('worldDetail')}
+function health(){
   const base=previous?previous():{};
-  return Object.assign({},base,{
-    singleBuildingRenderer:
-      V.buildingDetail?.renderOwner==='render_compositor_v93' &&
-      V.renderCompositor?.singleRAF===true,
-    buildingRendererOwner:V.buildingDetail?.renderOwner||base.buildingRendererOwner||null,
-    architectureContract:'99.1'
-  });
-};
-V.architectureContract={version:'99.1',singleEngine:true,singleBuildingRenderer:true};
+  const ok=rendererOK();
+  if(ok&&V.buildingDetail)V.buildingDetail.renderOwner='render_compositor_v93';
+  return Object.assign({},base,{singleBuildingRenderer:ok,buildingRendererOwner:ok?'render_compositor_v93':(V.buildingDetail?.renderOwner||base.buildingRendererOwner||null),architectureContract:'99.2'});
+}
+E.health=health;
+V.architectureContract={version:'99.2',singleEngine:true,singleBuildingRenderer:rendererOK()};
 })();
