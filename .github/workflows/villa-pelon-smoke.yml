@@ -47,7 +47,7 @@ jobs:
             if(state.engine?.health?.().singleBuildingRenderer!==true) throw new Error('Duplicate building renderer risk');
             if(state.architecture?.singleBuildingRenderer!==true) throw new Error('Architecture contract missing');
             if(state.architecture?.buildingRendererOwner!=='render_compositor_v93') throw new Error('Renderer authority mismatch');
-            if(state.architecture?.version!=='106.5') throw new Error('Architecture contract version mismatch');
+            if(state.architecture?.version!=='106.6') throw new Error('Architecture contract version mismatch');
             if(state.architecture?.worldRules!==true||state.architecture?.worldAuthority!==true) throw new Error('World-law authority contract missing');
             if(!state.geometry?.geometryContract?.noBuildingOnRoads||!state.geometry?.geometryContract?.noBuildingInRiver) throw new Error('Geometry contract missing');
             if(document.getElementById('detailLayer')) throw new Error('Legacy detail renderer still mounted');
