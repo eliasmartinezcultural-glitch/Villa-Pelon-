@@ -1,6 +1,7 @@
-/* VILLA PELÓN — WORLD EXPANSION V89.2
+/* VILLA PELÓN — WORLD EXPANSION V106.4
    Extremo rural conectado orgánicamente con el pueblo.
    Fuente territorial única: 8200 x 4200.
+   Este módulo amplía datos; no reemplaza la autoridad del manifest.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
@@ -14,8 +15,6 @@ const additions=[
  B(7480,3260,210,150,'GALPÓN RURAL PICADA 21','rural',{area:'picada21'})
 ];
 const keys=new Set(G.buildings.map(b=>b.label));G.buildings.push(...additions.filter(b=>!keys.has(b.label)));
-/* Una sola ruta lógica para Picada 21. La calzada física vive en G.roads;
-   esta ruta describe navegación/territorio y no crea otra capa visual. */
 G.routes=Array.isArray(G.routes)?G.routes:[];
 const route={id:'picada21_route',label:'CAMINO RURAL A PICADA 21',points:[
  {x:4580,y:2120},{x:5400,y:2120},{x:6500,y:2120},{x:7550,y:2120},{x:7900,y:2120}
@@ -46,5 +45,8 @@ G.utilityPoles=G.utilityPoles||[
    declares territory data, preventing two registries from diverging. */
 V.worldManifest=V.worldManifest||{};
 V.worldManifest.picada21={x:6750,y:2050,w:1450,h:1100,route:'picada21_route',stop:'picada21_stop'};
-V.worldManifest.worldSize={w:8200,h:4200};V.worldManifest.version='89.2';
+/* Nunca degradar la autoridad del manifest. El tamaño/version se conserva
+   desde world_manifest.js; este módulo sólo agrega expansión territorial. */
+V.worldManifest.worldSize={w:8200,h:4200};
+V.worldManifest.version=V.worldManifest.version||'106.4';
 })();
