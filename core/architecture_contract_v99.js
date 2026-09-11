@@ -1,6 +1,6 @@
-/* VILLA PELÓN V100.3 — CONTRATO DE ARQUITECTURA
-   Auditoría: las autoridades se validan por referencia real, no por supuestos del DOM.
-   No crea motor, renderer, RAF ni almacenamiento paralelo.
+/* VILLA PELÓN V103 — CONTRATO DE ARQUITECTURA
+   Auditoría: las autoridades se validan por referencia real.
+   El contrato conserva una única API callable para engine.health aunque una capa anterior haya dejado metadata como objeto.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
@@ -15,8 +15,8 @@ function baseHealth(){
 }
 function health(){
   const base=baseHealth(),render=rendererOK(),life=lifeOK();
-  return Object.assign({},base,{ok:base.ok!==false&&render,singleBuildingRenderer:render,buildingRendererOwner:render?'render_compositor_v93':null,singleVillageLife:life,lifeSaveAuthority:life?'gameState':null,architectureContract:'100.3'});
+  return Object.assign({},base,{ok:base.ok!==false&&render&&life,singleBuildingRenderer:render,buildingRendererOwner:render?'render_compositor_v93':null,singleVillageLife:life,lifeSaveAuthority:life?'gameState':null,architectureContract:'103.0'});
 }
 E.health=health;
-V.architectureContract={version:'100.3',singleEngine:true,singleBuildingRenderer:rendererOK(),buildingRendererOwner:rendererOK()?'render_compositor_v93':null,singleVillageLife:lifeOK(),lifeSaveAuthority:lifeOK()?'gameState':null};
+V.architectureContract={version:'103.0',singleEngine:true,singleBuildingRenderer:rendererOK(),buildingRendererOwner:rendererOK()?'render_compositor_v93':null,singleVillageLife:lifeOK(),lifeSaveAuthority:lifeOK()?'gameState':null};
 })();
