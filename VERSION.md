@@ -1,23 +1,20 @@
 # Villa Pelón — control de versiones
 
 ## Versión activa
-**98.3 — Auditoría estructural y recuperación del gate de salud**
+**99.0 — Vida del pueblo y eventos contextuales**
 
 ## Objetivo
 Villa Pelón es un RPG 2D pixel art educativo donde el territorio se aprende mediante recorridos, personajes, objetos, fuentes, preguntas, acciones y misiones.
 
 ## Avance de esta etapa
 
-- Se consolidó el compositor visual único en V98.
-- Las fachadas, NPC, vehículos y objetos patrimoniales se dibujan en una sola capa visual secundaria y un único RAF de composición.
-- Se incorporó `core/historical_world_v98.js` con objetos de patrimonio jugable: placas, archivos, acequias, herramientas, mapas, fotografías, cuadernos, hitos y señalética.
-- Se incorporó `core/historical_campaign_v98.js` con acciones nuevas: fotografiar, comparar fuentes, examinar herramientas y observar el paisaje.
-- La campaña avanza desde la investigación documental hacia la observación directa del territorio.
-- La misión `history_01` desemboca en un bloque adicional de investigación antes de `free_explore`.
-- Se mantiene la separación entre hechos respaldados por fuentes y personajes/escenas ficticias.
-- Se mantiene la arquitectura de motor único, sin renderer paralelo de edificios ni sistema alternativo de guardado.
-- Se corrigió el contrato entre `runtime.js` y los gates de integridad/salud: ahora el runtime expone explícitamente quién posee el renderer de edificios y el healthcheck puede verificarlo.
-- Se actualizó el cache-busting global a V98.3 para evitar cargar JavaScript antiguo desde GitHub Pages.
+- Se incorporó `core/village_life_v99.js` como capa de gameplay contextual sobre el motor existente.
+- El pueblo ahora genera situaciones según hora, día y ubicación del jugador.
+- La plaza, escuela, radio, riego, bodegas y Picada 21 tienen ventanas de actividad diferenciadas.
+- Se incorporó un evento de llegada del colectivo rural a la parada de Picada 21.
+- Los eventos diarios quedan registrados y persisten localmente sin crear un segundo sistema de guardado del juego.
+- Las situaciones utilizan el sistema de diálogo existente y no crean un renderer ni un loop visual paralelo.
+- Se actualizó el cache-busting global a V99.0.
 
 ## Campaña educativa
 
@@ -49,6 +46,7 @@ La campaña trabaja identidad, comunidad, escuela, riego, producción, pelón, t
 - `core/soft_intro.js` — introducción.
 - `core/integrity_v94.js` — integridad.
 - `core/stability_v95.js` — estabilidad.
+- `core/village_life_v99.js` — eventos vivos contextuales y memoria diaria.
 
 ## Regla estructural
 
