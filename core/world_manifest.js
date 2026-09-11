@@ -1,10 +1,10 @@
-/* VILLA PELÓN — WORLD MANIFEST V104
+/* VILLA PELÓN — WORLD MANIFEST V106.3
    Geometría + leyes territoriales + contrato visual.
    Este archivo define el mundo; no dibuja ni mueve entidades.
 */
 (()=>{'use strict';
  const V=window.VillaPelon||(window.VillaPelon={});
- V.world=Object.assign(V.world||{},{w:8200,h:4200,version:'104.0'});
+ V.world=Object.assign(V.world||{},{w:8200,h:4200,version:'106.3'});
  const B=(x,y,w,h,label,type,extra={})=>({x,y,w,h,label,type,...extra});
  const buildings=[
   B(300,300,360,220,'ESCUELA PRIMARIA','school'), B(760,300,250,180,'JARDÍN','school'),
@@ -38,7 +38,7 @@
   {id:'rural_south',x:4900,y:2200,w:3300,h:2000,kind:'rural',density:'low'}
  ];
  const worldRules={
-  version:'104.0',
+  version:'106.3',
   boundaries:{margin:45,waterY:820,waterHeight:22},
   water:{riverCrossing:'bridge_only',bridgeTolerance:15,shoreBuffer:20},
   buildings:{collisionPadding:18,neverOccupyRoads:true,identityByType:true},
@@ -48,12 +48,23 @@
   rendering:{authority:'render_compositor_v93',pixelArt:true,smoothing:false,detailScale:'fine',silhouetteFirst:true}
  };
  const pixelArt={
-  version:'104.0',grid:1,hardEdges:true,smoothing:false,
+  version:'106.3',grid:1,hardEdges:true,smoothing:false,
   layers:['terrain','roads','water','structures','vegetation','props','characters','vehicles','effects'],
   palette:{grass:'#8d9667',earth:'#9b805c',road:'#b8a174',water:'#668d91',wood:'#6a503b',roof:'#62463b',wall:'#c5a57b',shadow:'#283128',accent:'#d0b36c'},
   density:{urban:0.72,rural:0.58,productive:0.82,route:0.34},
   rule:'cada objeto debe tener silueta, borde duro, sombra y función territorial'
  };
- V.worldGeometry={...(V.worldGeometry||{}),buildings,bridges,roads,zones,worldRules,pixelArt,version:'104.0'};
- V.worldManifest={version:'104.0',urban:{x:0,y:0,w:4900,h:1900},rural:{x:4900,y:0,w:3300,h:4200},river:{x:0,y:820,w:8200,h:22},bridges,zones,worldRules,pixelArt};
+ /* Índices derivados: reducen ambigüedad entre geometría y reglas sin crear otra autoridad. */
+ const roadIds=new Set(roads.map(r=>r.id));
+ const zoneIds=new Set(zones.map(z=>z.id));
+ const bridgeIds=new Set(bridges.map(b=>b.label));
+ const buildingTypes=[...new Set(buildings.map(b=>b.type))];
+ const geometryContract={
+  worldSize:[8200,4200],roadIds:[...roadIds],zoneIds:[...zoneIds],bridgeIds:[...bridgeIds],buildingTypes,
+  river:{y:820,height:22,crossing:'bridge_only'},
+  noBuildingOnRoads:true,noBuildingInRiver:true,
+  visual:{grid:1,hardEdges:true,smoothing:false,authority:'render_compositor_v93'}
+ };
+ V.worldGeometry={...(V.worldGeometry||{}),buildings,bridges,roads,zones,worldRules,pixelArt,geometryContract,version:'106.3'};
+ V.worldManifest={version:'106.3',urban:{x:0,y:0,w:4900,h:1900},rural:{x:4900,y:0,w:3300,h:4200},river:{x:0,y:820,w:8200,h:22},bridges,zones,worldRules,pixelArt,geometryContract};
 })();
