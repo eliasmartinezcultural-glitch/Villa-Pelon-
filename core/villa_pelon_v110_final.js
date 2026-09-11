@@ -1,0 +1,111 @@
+/* VILLA PELÓN V110 — GEOMETRÍA TERRITORIAL FINAL
+   Una sola fuente de verdad para la disposición del mundo.
+   Principio: urbano compacto -> transición vacía -> rural -> río -> Picada 21.
+   No se agregan elementos decorativos sin función territorial o jugable.
+*/
+(()=>{'use strict';
+ const V=window.VillaPelon||(window.VillaPelon={});
+ const G=V.worldGeometry||(V.worldGeometry={});
+ const W=V.world||(V.world={});
+ const WID=8200,HGT=4200;
+ const B=(id,x,y,w,h,label,type,extra={})=>({id,x,y,w,h,label,type,...extra,static:true});
+ const R=(id,x,y,w,h,name,kind='street')=>({id,x,y,w,h,name,kind});
+ const Z=(id,x,y,w,h,kind,density)=>({id,x,y,w,h,kind,density});
+ /* 1. CENTRO URBANO: compacto y reconocible. */
+ const buildings=[
+  B('school_273',520,620,420,250,'ESCUELA 273','school',{educationalId:'school'}),
+  B('plaza_civic',1080,620,520,300,'PLAZA CENTRAL','community',{landmark:true,interactive:true}),
+  B('municipality',1760,620,360,250,'MUNICIPALIDAD','municipality'),
+  B('library',2280,620,340,240,'BIBLIOTECA POPULAR','library'),
+  B('health',2780,620,400,260,'CENTRO DE SALUD','hospital'),
+  B('fire',3320,620,300,250,'BOMBEROS','fire_station'),
+  B('home_01',520,1120,250,175,'CASA 01','home'),B('home_02',840,1120,250,175,'CASA 02','home'),
+  B('home_03',1160,1120,250,175,'CASA 03','home'),B('home_04',1480,1120,250,175,'CASA 04','home'),
+  B('home_05',1800,1120,250,175,'CASA 05','home'),B('home_06',2120,1120,250,175,'CASA 06','home'),
+  B('home_07',2440,1120,250,175,'CASA 07','home'),B('home_08',2760,1120,250,175,'CASA 08','home'),
+  B('home_09',3080,1120,250,175,'CASA 09','home'),
+  B('radio_oasis',620,1640,400,240,'RADIO OASIS','radio'),
+  B('club_ocarina',1160,1640,360,230,'CLUB OCARINA','culture'),
+  B('market',1660,1640,340,220,'ALMACÉN','shop'),
+  B('hardware',2140,1640,360,220,'FERRETERÍA','shop'),
+  B('workshop',2640,1640,360,230,'TALLER','service'),
+  B('bakery',3140,1640,360,220,'PANADERÍA','shop'),
+  B('community',3660,620,300,250,'SALÓN COMUNITARIO','community'),
+  B('chapel',3660,1120,300,240,'CAPILLA','chapel'),
+  /* 2. SECTOR RURAL: empieza recién después de una franja de transición. */
+  B('rural_galpon_north',5000,620,480,280,'GALPÓN RURAL','rural'),
+  B('winery_north',5700,560,520,320,'BODEGA DEL VALLE','winery'),
+  B('winery_south',6500,700,500,300,'BODEGA SUR','winery'),
+  B('harvest_shed',7300,600,430,270,'GALPÓN DE COSECHA','rural'),
+  B('farm_01',5050,1180,430,270,'CHACRA 01','rural'),B('farm_02',5650,1180,430,270,'CHACRA 02','rural'),
+  B('farm_03',6250,1180,430,270,'CHACRA 03','rural'),B('farm_04',6850,1180,430,270,'CHACRA 04','rural'),
+  B('farm_05',7450,1180,430,270,'CHACRA 05','rural'),
+  B('family_winery',5200,1740,500,300,'BODEGA FAMILIAR','winery'),
+  B('tool_shed',5900,1740,450,270,'GALPÓN DE HERRAMIENTAS','rural'),
+  B('rural_home',6600,1740,300,210,'VIVIENDA RURAL','home'),
+  B('farm_06',7150,1740,500,280,'CHACRA 06','rural'),
+  B('quinta_01',5050,2260,500,280,'QUINTA','rural'),
+  B('corral_01',5800,2260,420,250,'CORRAL','rural'),
+  B('rural_house_02',6450,2260,300,210,'CASA DE CHACRA','home'),
+  B('shed_02',7000,2260,460,270,'GALPÓN DE PRODUCCIÓN','rural')
+ ];
+ /* 3. RED VIAL FINAL: ningún edificio ocupa una calle. */
+ const roads=[
+  R('urban_north',300,500,3660,90,'Avenida Norte'),
+  R('urban_mid',300,980,3660,90,'Avenida Central'),
+  R('urban_south',300,1500,3660,90,'Avenida Sur'),
+  R('urban_service',300,2050,3660,90,'Camino de Servicios'),
+  R('urban_west',300,500,90,1640,'Calle Oeste'),
+  R('urban_school',1000,500,80,1640,'Calle Escuela'),
+  R('urban_civic',1700,500,80,1640,'Calle Cívica'),
+  R('urban_library',2240,500,80,1640,'Calle Biblioteca'),
+  R('urban_health',2740,500,80,1640,'Calle Salud'),
+  R('urban_east',3580,500,80,1640,'Calle Este'),
+  /* franja de transición sin casas */
+  R('transition',3960,980,1040,100,'Camino de Transición','route'),
+  R('rural_north',5000,1080,3000,90,'Camino Rural Norte','rural_road'),
+  R('rural_middle',5000,1570,3000,90,'Camino de Chacras','rural_road'),
+  R('rural_south',5000,2150,3000,90,'Camino Rural Sur','rural_road'),
+  R('river_west_access',5000,2850,500,90,'Acceso Puente Oeste','route'),
+  R('river_east_access',6800,2850,200,90,'Acceso Puente Este','route'),
+  R('picada_21_access',5200,3330,2800,100,'Acceso a Picada 21','rural_road'),
+  R('picada21_road',5200,3650,2800,150,'PICADA 21','route')
+ ];
+ const river={x:5000,y:3070,w:3200,h:90,label:'RÍO',crossing:'bridge_only'};
+ const bridges=[
+  {id:'bridge_west',x:5100,y:3035,w:300,h:160,label:'PUENTE OESTE'},
+  {id:'bridge_east',x:6900,y:3035,w:300,h:160,label:'PUENTE ESTE'}
+ ];
+ const plaza={id:'plaza_central',x:1080,y:620,w:520,h:300,label:'PLAZA CENTRAL',kind:'public_space',landmark:true,interactive:true};
+ const zones=[
+  Z('urban_core',300,420,3660,1800,'urban','high'),
+  Z('transition_buffer',3960,420,1040,2500,'transition','very_low'),
+  Z('rural_north',5000,420,3200,700,'rural','low'),
+  Z('productive_rural',5000,1120,3200,1580,'productive','medium'),
+  Z('river_buffer',4800,2700,3400,600,'river','very_low'),
+  Z('picada21',5000,3350,3000,500,'route','very_low')
+ ];
+ const routeNetwork={version:'110.0-final',nodes:[
+  {id:'plaza',x:1340,y:770,zone:'urban_core'},
+  {id:'urban_exit',x:3960,y:1025,zone:'transition_buffer'},
+  {id:'rural_gate',x:5000,y:1125,zone:'rural_north'},
+  {id:'productive',x:6200,y:1615,zone:'productive_rural'},
+  {id:'river_west_bridge',x:5250,y:3070,zone:'river_buffer'},
+  {id:'river_east_bridge',x:7050,y:3070,zone:'river_buffer'},
+  {id:'picada_gate',x:6200,y:3380,zone:'picada21'},
+  {id:'picada21',x:6600,y:3725,zone:'picada21'}
+ ],edges:[['plaza','urban_exit'],['urban_exit','rural_gate'],['rural_gate','productive'],['productive','river_west_bridge'],['productive','river_east_bridge'],['river_west_bridge','picada_gate'],['river_east_bridge','picada_gate'],['picada_gate','picada21']],rule:'urban compact -> transition -> rural -> river -> Picada 21'};
+ const worldRules={version:'110.0-final',worldSize:[WID,HGT],zones:{urbanFarFromPicada21:true,urbanFarFromRiver:true,ruralFarFromUrban:true,transitionBuffer:true},water:{x:river.x,y:river.y,w:river.w,h:river.h,crossing:'bridge_only'},buildings:{neverOccupyRoads:true,neverOccupyRiver:true,static:true},rendering:{authority:'single_master_geometry',pixelArt:true,smoothing:false},scale:{player:{w:18,h:34},home:{w:250,h:175},public:{w:300,h:210},large:{w:520,h:300}},priority:['urban_core','transition_buffer','rural','river','picada21']};
+ G.buildings=buildings;G.plaza=plaza;G.roads=roads;G.bridges=bridges;G.river=river;G.zones=zones;G.routeNetwork=routeNetwork;G.worldRules=worldRules;
+ G.landmarks=[plaza,...buildings.filter(b=>['school','municipality','library','hospital','fire_station','winery'].includes(b.type)).map(b=>({id:b.id,x:b.x,y:b.y,w:b.w,h:b.h,label:b.label,kind:b.type}))];
+ V.routeGraph=routeNetwork;V.worldRules=worldRules;
+ V.worldManifest={version:'110.0-final',worldSize:[WID,HGT],urban:{x:300,y:420,w:3660,h:1800},transition:{x:3960,y:420,w:1040,h:2500},rural:{x:5000,y:420,w:3200,h:2380},river,picada21:{x:5000,y:3350,w:3000,h:500},zones,bridges,roads,worldRules};
+ V.world={...W,w:WID,h:HGT,version:'110.0-final',waterY:river.y,waterHeight:river.h};
+ /* sincronización de vida: todos los vehículos/animales deben vivir en la geometría final. */
+ const PV=V.peopleVehicles||{};
+ if(Array.isArray(PV.vehicleData))PV.vehicleData.forEach((v,i)=>{const rural=i>=Math.ceil(PV.vehicleData.length*.45);v.routeId=rural?'rural_middle':'urban_mid';v.axis='x';v.minX=rural?5050:360;v.maxX=rural?7900:3500;v.laneY=rural?1615:1025;v.x=Math.min(v.maxX,Math.max(v.minX,Number(v.x)||v.minX));v.y=v.laneY});
+ if(Array.isArray(PV.animals))PV.animals.forEach((a,i)=>{a.zone=i%2?'productive_rural':'rural_north';a.x=a.zone==='productive_rural'?5300+(i*190)%2400:5100+(i*230)%2700;a.y=a.zone==='productive_rural'?1260+(i*85)%700:650+(i*75)%280});
+ V.educationalRule='Villa Pelón es una reconstrucción RPG educativa inspirada en San Patricio del Chañar. Los hechos históricos deben distinguirse de la ficción del juego.';
+ V.finalWorldContract={version:'110.0-final',singleGeometryAuthority:true,buildingsStatic:true,roadsStatic:true,riverBridgeOnly:true,urbanSeparated:true,ruralSeparated:true,picada21Last:true,noDecorativeFiller:true};
+ window.dispatchEvent(new CustomEvent('villa-pelon-world-final',{detail:{version:'110.0-final',worldSize:[WID,HGT],priority:V.worldManifest.priority||worldRules.priority}}));
+})();
