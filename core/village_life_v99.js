@@ -1,84 +1,28 @@
-/* VILLA PELÓN V100.2 — VIDA DEL PUEBLO
-   Autoridad única de vida autónoma.
-   - El motor principal conserva movimiento/interacción de NPC.
-   - Esta capa conserva tránsito, fauna, horarios contextuales, encuentros y consecuencias.
-   - El estado de vida viaja dentro de gameState: no existe un segundo guardado.
-   - Un solo ticker de simulación, sin RAF paralelo.
+/* VILLA PELÓN V102 — VIDA DEL PUEBLO
+   Capa autónoma: horarios, tránsito, fauna, actividad de lugares, encuentros y memoria.
+   No reemplaza el motor principal ni crea otro guardado/RAF.
 */
 (()=>{'use strict';
-const V=window.VillaPelon||(window.VillaPelon={});
-const S=V.gameState;if(!S)return;
-const LIFE=V.villageLife=V.villageLife||{};
-LIFE.version='100.2';
-LIFE.events=LIFE.events||{};
-LIFE.history=Array.isArray(LIFE.history)?LIFE.history:[];
-LIFE.encounters=LIFE.encounters||{};
-S.lifeState=S.lifeState&&typeof S.lifeState==='object'?S.lifeState:{};
-if(S.lifeState.events&&typeof S.lifeState.events==='object')LIFE.events=S.lifeState.events;
-if(Array.isArray(S.lifeState.history))LIFE.history=S.lifeState.history;
-if(S.lifeState.encounters&&typeof S.lifeState.encounters==='object')LIFE.encounters=S.lifeState.encounters;
-const day=()=>Number(S.day)||1;
-const hour=()=>((Number(S.minutes)||0)/60)%24;
+const V=window.VillaPelon||(window.VillaPelon={});const S=V.gameState;if(!S)return;
+const LIFE=V.villageLife=V.villageLife||{};LIFE.version='102.0';LIFE.active=true;LIFE.singleTick=true;LIFE.saveAuthority='gameState';
+LIFE.events=LIFE.events||{};LIFE.history=Array.isArray(LIFE.history)?LIFE.history:[];LIFE.encounters=LIFE.encounters||{};
+S.lifeState=S.lifeState&&typeof S.lifeState==='object'?S.lifeState:{};LIFE.placeState=S.lifeState.placeState&&typeof S.lifeState.placeState==='object'?S.lifeState.placeState:{};
+if(S.lifeState.events)LIFE.events=S.lifeState.events;if(Array.isArray(S.lifeState.history))LIFE.history=S.lifeState.history;if(S.lifeState.encounters)LIFE.encounters=S.lifeState.encounters;
+const day=()=>Number(S.day)||1;const hour=()=>((Number(S.minutes)||0)/60)%24;const key=id=>day()+':'+id;
 const near=(x,y,r)=>Math.hypot((+S.x||0)-x,(+S.y||0)-y)<r;
-const key=(id)=>day()+':'+id;
 function toast(t){const e=document.getElementById('missionToast');if(!e)return;e.textContent=t;e.classList.add('show');clearTimeout(LIFE.toastTimer);LIFE.toastTimer=setTimeout(()=>e.classList.remove('show'),2200)}
 function dialogue(speaker,lines){const d=document.getElementById('dialogue');if(!d)return;S.dialogue=true;d.classList.remove('hidden');d.dataset.lines=JSON.stringify(lines);d.dataset.i='0';const sp=document.getElementById('speaker'),tx=document.getElementById('dialogueText');if(sp)sp.textContent=speaker;if(tx)tx.textContent=lines[0]||''}
-function remember(id,label,extra={}){LIFE.history.push({day:day(),id,label,time:Number(S.minutes)||0,...extra});if(LIFE.history.length>160)LIFE.history.shift()}
+function remember(id,label,extra={}){LIFE.history.push({day:day(),id,label,time:Number(S.minutes)||0,...extra});if(LIFE.history.length>200)LIFE.history.shift()}
 function once(id){const k=key(id);if(LIFE.events[k])return false;LIFE.events[k]=true;return true}
 function worldEvent(id,label,lines,extra){if(!once(id))return false;remember(id,label,extra);toast('VIDA DEL PUEBLO · '+label);if(lines)setTimeout(()=>{if(!S.dialogue)dialogue(label,lines)},220);return true}
-function sync(){S.lifeState={version:LIFE.version,events:LIFE.events,history:LIFE.history,encounters:LIFE.encounters};}
-function moveAmbient(dt){
-  const P=V.peopleVehicles;if(!P)return;
-  (P.vehicleData||[]).forEach(v=>{const speed=Number(v.speed)||40;v.x+=speed*dt*(v.dir||1);if(v.x>8100)v.x=-120;if(v.x<-120)v.x=8100;});
-  (P.animals||[]).forEach(a=>{a.x+=(Number(a.vx)||0)*dt;a.y+=(Number(a.vy)||0)*dt;if(a.x<4500||a.x>7400)a.vx*=-1;if(a.y<500||a.y>1950)a.vy*=-1;});
-}
-function targetAction(n,h){
-  if(h<6.5||h>=21)return 'descansando';
-  if(n.role==='comercio'&&h>=9&&h<20)return 'atendiendo el comercio';
-  if((n.role==='escuela'||n.role==='docente')&&h>=8&&h<16)return 'en la escuela';
-  if(n.role==='radio'&&h>=10&&h<18)return 'haciendo radio';
-  if(['rural','bodega','riego','trabajadora_rural'].includes(n.role)&&h>=7&&h<18)return 'trabajando en el sector rural';
-  if(n.role==='archivo'&&h>=9&&h<17)return 'consultando archivos';
-  if(n.role==='memoria'&&h>=9&&h<19)return 'reuniendo recuerdos';
-  return 'en la plaza';
-}
-function updateActions(){
-  const ns=Array.isArray(V.npcs)?V.npcs:[];const h=hour();
-  ns.forEach(n=>{n.lifeAction=targetAction(n,h);n.lifeHour=Math.floor(h);});
-}
-function encounterPair(){
-  const ns=Array.isArray(V.npcs)?V.npcs:[];if(ns.length<2)return;
-  for(let i=0;i<ns.length;i++)for(let j=i+1;j<ns.length;j++){
-    const a=ns[i],b=ns[j];
-    if(!a||!b||Math.hypot(a.x-b.x,a.y-b.y)>125)continue;
-    if(Math.hypot(S.x-(a.x+b.x)/2,S.y-(a.y+b.y)/2)>180)continue;
-    const id=[a.id,b.id].sort().join('_');
-    const stamp=key('encounter:'+id);
-    if(LIFE.encounters[stamp])continue;
-    LIFE.encounters[stamp]=true;
-    const la=a.lifeAction||'siguiendo su rutina',lb=b.lifeAction||'siguiendo su rutina';
-    remember('encounter:'+id,a.n+' y '+b.n+' se cruzan',{people:[a.id,b.id]});
-    toast('ENCUENTRO · '+a.n+' + '+b.n);
-    dialogue(a.n+' y '+b.n,[a.n+': '+b.n+', ¿cómo viene el día?',b.n+': Bien. Estoy '+lb+'.',a.n+': Yo estoy '+la+'. Después nos vemos en la plaza.', 'Escuchaste una conversación cotidiana. El pueblo también cuenta su historia a través de estos pequeños cruces.']);
-    return;
-  }
-}
-function contextualEvents(){
-  const h=hour();
-  if(h>=7.5&&h<8.5&&near(1160,390,220))worldEvent('morning_plaza','La plaza despierta',['PLAZA','Empieza otro día. Los vecinos salen, los comercios abren y el movimiento cambia.']);
-  if(h>=9&&h<11&&near(530,560,170))worldEvent('school_start','Entrada a la escuela',['ESCUELA','La mañana escolar modifica el ritmo de esta zona.']);
-  if(h>=10&&h<12&&near(1300,1230,190))worldEvent('radio_broadcast','Radio del pueblo',['RADIO','Las voces, el clima, los caminos y el trabajo también forman parte de la vida cotidiana.']);
-  if(h>=12&&h<15&&near(5200,980,260))worldEvent('irrigation_midday','Movimiento de riego',['RIEGO','El agua organiza buena parte del territorio productivo.']);
-  if(h>=15&&h<18&&near(5850,560,260))worldEvent('winery_afternoon','Actividad productiva',['BODEGAS','La producción genera trabajos, recorridos y conversaciones.']);
-  if(h>=17&&h<19&&near(7550,2350,260))worldEvent('picada_bus','Llega el colectivo a Picada 21',['PARADA RURAL','El camino conecta pequeñas historias con el núcleo del pueblo.']);
-  if(h>=20&&h<21&&near(1160,390,260))worldEvent('evening_plaza','La plaza cambia de ritmo',['PLAZA','Al caer el sol el pueblo cambia, no desaparece.']);
-}
-function tick(){
-  const now=performance.now(),dt=Math.min(.1,Math.max(0,(now-(LIFE.last||now))/1000));LIFE.last=now;
-  if(!S.started)return;
-  try{moveAmbient(dt);updateActions();contextualEvents();if(!S.dialogue)encounterPair();sync();}catch(e){console.error('[VillaPelon][life-100.2]',e)}
-}
-LIFE.tick=tick;LIFE.active=true;LIFE.singleTick=true;LIFE.saveAuthority='gameState';
-setInterval(tick,100);tick();
-V.engine=V.engine||{};V.engine.health=V.engine.health||function(){return{ok:true}};V.engine.health.villageLife='100.2';
+function sync(){S.lifeState={version:LIFE.version,events:LIFE.events,history:LIFE.history,encounters:LIFE.encounters,placeState:LIFE.placeState}}
+function setPlace(id,label,active,extra={}){const p=LIFE.placeState[id]||{id,label,visits:0,activityCount:0};p.label=label;p.active=!!active;p.hour=Math.floor(hour());p.day=day();Object.assign(p,extra);LIFE.placeState[id]=p;return p}
+function placeActivity(){const h=hour();setPlace('plaza','Plaza',h>=7&&h<22,{density:h>=17&&h<21?'alta':h>=9?'media':'baja'});setPlace('school','Escuela',h>=8&&h<16,{students:h>=8&&h<13});setPlace('radio','Radio',h>=10&&h<18,{broadcast:h>=10&&h<12});setPlace('irrigation','Riego',h>=7&&h<18,{waterFlow:h>=7&&h<17});setPlace('winery','Bodegas',h>=8&&h<18,{production:h>=9&&h<17});setPlace('rural','Sector rural',h>=6&&h<20,{work:h>=7&&h<18});setPlace('picada21','Picada 21',h>=6&&h<22,{bus:h>=17&&h<19});if(Math.floor(Number(S.minutes)||0)!==LIFE.lastMinute){LIFE.lastMinute=Math.floor(Number(S.minutes)||0);window.dispatchEvent(new CustomEvent('villa-pelon-place-pulse',{detail:LIFE.placeState}))}}
+function moveAmbient(dt){const P=V.peopleVehicles;if(!P)return;(P.vehicleData||[]).forEach(v=>{const speed=Number(v.speed)||40;v.x+=speed*dt*(v.dir||1);if(v.x>8100)v.x=-120;if(v.x<-120)v.x=8100});(P.animals||[]).forEach(a=>{a.x+=(Number(a.vx)||0)*dt;a.y+=(Number(a.vy)||0)*dt;if(a.x<4500||a.x>7400)a.vx*=-1;if(a.y<500||a.y>1950)a.vy*=-1})}
+function targetAction(n,h){if(h<6.5||h>=21)return 'descansando';if(n.role==='comercio'&&h>=9&&h<20)return 'atendiendo el comercio';if((n.role==='escuela'||n.role==='docente')&&h>=8&&h<16)return 'en la escuela';if(n.role==='radio'&&h>=10&&h<18)return 'haciendo radio';if(['rural','bodega','riego','trabajadora_rural'].includes(n.role)&&h>=7&&h<18)return 'trabajando en el sector rural';if(n.role==='archivo'&&h>=9&&h<17)return 'consultando archivos';if(n.role==='memoria'&&h>=9&&h<19)return 'reuniendo recuerdos';return 'en la plaza'}
+function updateActions(){const ns=Array.isArray(V.npcs)?V.npcs:[],h=hour();ns.forEach(n=>{n.lifeAction=targetAction(n,h);n.lifeHour=Math.floor(h);n.lifeActive=n.lifeAction!=='descansando'})}
+function encounterPair(){const ns=Array.isArray(V.npcs)?V.npcs:[];if(ns.length<2)return;for(let i=0;i<ns.length;i++)for(let j=i+1;j<ns.length;j++){const a=ns[i],b=ns[j];if(!a||!b||Math.hypot(a.x-b.x,a.y-b.y)>125)continue;if(Math.hypot(S.x-(a.x+b.x)/2,S.y-(a.y+b.y)/2)>180)continue;const id=[a.id,b.id].sort().join('_'),stamp=key('encounter:'+id);if(LIFE.encounters[stamp])continue;LIFE.encounters[stamp]=true;remember('encounter:'+id,a.n+' y '+b.n+' se cruzan',{people:[a.id,b.id]});toast('ENCUENTRO · '+a.n+' + '+b.n);dialogue(a.n+' y '+b.n,[a.n+': '+b.n+', ¿cómo viene el día?',b.n+': Bien. Estoy '+(b.lifeAction||'siguiendo mi rutina')+'.',a.n+': Yo estoy '+(a.lifeAction||'siguiendo mi rutina')+'. Después nos vemos en la plaza.','Escuchaste una conversación cotidiana. El pueblo también cuenta su historia en estos pequeños cruces.']);return}}
+function contextualEvents(){const h=hour();if(h>=7.5&&h<8.5&&near(1160,390,220))worldEvent('morning_plaza','La plaza despierta',['PLAZA','Empieza otro día. Comercios, vecinos y recorridos cambian el ritmo del centro.']);if(h>=9&&h<11&&near(530,560,170))worldEvent('school_start','Entrada a la escuela',['ESCUELA','La mañana escolar modifica el ritmo de esta zona.']);if(h>=10&&h<12&&near(1300,1230,190))worldEvent('radio_broadcast','Radio del pueblo',['RADIO','Las voces, el clima, los caminos y el trabajo también forman parte de la vida cotidiana.']);if(h>=12&&h<15&&near(5200,980,260))worldEvent('irrigation_midday','Movimiento de riego',['RIEGO','El agua organiza buena parte del territorio productivo.']);if(h>=15&&h<18&&near(5850,560,260))worldEvent('winery_afternoon','Actividad productiva',['BODEGAS','La producción genera trabajos, recorridos y conversaciones.']);if(h>=17&&h<19&&near(7550,2350,260))worldEvent('picada_bus','Llega el colectivo a Picada 21',['PARADA RURAL','El camino conecta pequeñas historias con el núcleo del pueblo.']);if(h>=20&&h<21&&near(1160,390,260))worldEvent('evening_plaza','La plaza cambia de ritmo',['PLAZA','Al caer el sol el pueblo cambia, no desaparece.'])}
+function tick(){const now=performance.now(),dt=Math.min(.1,Math.max(0,(now-(LIFE.last||now))/1000));LIFE.last=now;if(!S.started)return;try{moveAmbient(dt);updateActions();placeActivity();contextualEvents();if(!S.dialogue)encounterPair();sync()}catch(e){console.error('[VillaPelon][life-102]',e)}}
+LIFE.tick=tick;setInterval(tick,100);tick();V.engine=V.engine||{};V.engine.health=V.engine.health||function(){return{ok:true}};V.engine.health.villageLife='102.0';
 })();
