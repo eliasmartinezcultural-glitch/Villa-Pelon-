@@ -1,9 +1,10 @@
-/* VILLA PELÓN — WORLD MANIFEST V93
-   Geometría consolidada: edificios fuera de calzadas + identidad por tipo.
+/* VILLA PELÓN — WORLD MANIFEST V104
+   Geometría + leyes territoriales + contrato visual.
+   Este archivo define el mundo; no dibuja ni mueve entidades.
 */
 (()=>{'use strict';
  const V=window.VillaPelon||(window.VillaPelon={});
- V.world=Object.assign(V.world||{},{w:8200,h:4200,version:'93.0'});
+ V.world=Object.assign(V.world||{},{w:8200,h:4200,version:'104.0'});
  const B=(x,y,w,h,label,type,extra={})=>({x,y,w,h,label,type,...extra});
  const buildings=[
   B(300,300,360,220,'ESCUELA PRIMARIA','school'), B(760,300,250,180,'JARDÍN','school'),
@@ -29,6 +30,30 @@
   {x:4700,y:0,w:120,h:4200,id:'urban_rural_connector'}, {x:0,y:2120,w:4580,h:130,id:'rural_start'},
   {x:4580,y:2045,w:3320,h:150,id:'picada21_road'}
  ];
- V.worldGeometry={...(V.worldGeometry||{}),buildings,bridges,roads,version:'93.0'};
- V.worldManifest={version:'93.0',urban:{x:0,y:0,w:4900,h:1900},rural:{x:4900,y:0,w:3300,h:4200},river:{x:0,y:820,w:8200,h:22},bridges};
+ const zones=[
+  {id:'urban_core',x:0,y:0,w:4900,h:1900,kind:'urban',density:'high'},
+  {id:'rural_north',x:4900,y:0,w:3300,h:1080,kind:'rural',density:'medium'},
+  {id:'productive_rural',x:4900,y:1080,w:3300,h:1260,kind:'productive',density:'medium'},
+  {id:'picada21',x:4580,y:2045,w:3320,h:150,kind:'route',density:'low'},
+  {id:'rural_south',x:4900,y:2200,w:3300,h:2000,kind:'rural',density:'low'}
+ ];
+ const worldRules={
+  version:'104.0',
+  boundaries:{margin:45,waterY:820,waterHeight:22},
+  water:{riverCrossing:'bridge_only',bridgeTolerance:15,shoreBuffer:20},
+  buildings:{collisionPadding:18,neverOccupyRoads:true,identityByType:true},
+  roads:{walkable:true,buildingsForbidden:true,picada21Required:true},
+  rural:{acequiaNetwork:true,chacraRows:true,wineries:true,worksites:true},
+  simulation:{npcMovementAuthority:'v90_engine',lifeActivityAuthority:'village_life_v99',ambientDataAuthority:'people_vehicles_v91'},
+  rendering:{authority:'render_compositor_v93',pixelArt:true,smoothing:false,detailScale:'fine',silhouetteFirst:true}
+ };
+ const pixelArt={
+  version:'104.0',grid:1,hardEdges:true,smoothing:false,
+  layers:['terrain','roads','water','structures','vegetation','props','characters','vehicles','effects'],
+  palette:{grass:'#8d9667',earth:'#9b805c',road:'#b8a174',water:'#668d91',wood:'#6a503b',roof:'#62463b',wall:'#c5a57b',shadow:'#283128',accent:'#d0b36c'},
+  density:{urban:0.72,rural:0.58,productive:0.82,route:0.34},
+  rule:'cada objeto debe tener silueta, borde duro, sombra y función territorial'
+ };
+ V.worldGeometry={...(V.worldGeometry||{}),buildings,bridges,roads,zones,worldRules,pixelArt,version:'104.0'};
+ V.worldManifest={version:'104.0',urban:{x:0,y:0,w:4900,h:1900},rural:{x:4900,y:0,w:3300,h:4200},river:{x:0,y:820,w:8200,h:22},bridges,zones,worldRules,pixelArt};
 })();
