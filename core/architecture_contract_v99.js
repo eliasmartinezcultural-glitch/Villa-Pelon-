@@ -1,6 +1,10 @@
-/* VILLA PELÓN V100.1 — CONTRATO DE ARQUITECTURA
-   Una sola autoridad visual: render_compositor_v93.js.
-   Este contrato valida la arquitectura real sin crear otro motor, renderer, RAF ni guardado.
+/* VILLA PELÓN V100.2 — CONTRATO DE ARQUITECTURA
+   Autoridades únicas y verificables:
+   - un motor principal
+   - un compositor visual
+   - una simulación de vida
+   - un guardado persistente
+   No crea motor, renderer, RAF ni almacenamiento paralelo.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
@@ -9,22 +13,23 @@ const previous=typeof E.health==='function'?E.health.bind(E):null;
 function rendererOK(){
   const compositor=V.renderCompositor;
   const detail=document.getElementById('worldDetail');
-  const owner=V.buildingDetail?.renderOwner;
-  return !!detail && (compositor?.singleRAF===true || owner==='render_compositor_v93');
+  return !!detail && compositor?.singleRAF===true;
 }
+function lifeOK(){return V.villageLife?.active===true&&V.villageLife?.singleTick===true&&V.villageLife?.saveAuthority==='gameState';}
 function health(){
   const base=previous?previous():{};
-  const ok=rendererOK();
-  if(ok){
-    V.buildingDetail=V.buildingDetail||{};
-    V.buildingDetail.renderOwner='render_compositor_v93';
-  }
+  const render=rendererOK();
+  const life=lifeOK();
+  V.buildingDetail=V.buildingDetail||{};
+  if(render)V.buildingDetail.renderOwner='render_compositor_v93';
   return Object.assign({},base,{
-    singleBuildingRenderer:ok,
-    buildingRendererOwner:ok?'render_compositor_v93':(V.buildingDetail?.renderOwner||base.buildingRendererOwner||null),
-    architectureContract:'100.1'
+    singleBuildingRenderer:render,
+    buildingRendererOwner:render?'render_compositor_v93':(V.buildingDetail.renderOwner||base.buildingRendererOwner||null),
+    singleVillageLife:life,
+    lifeSaveAuthority:life?'gameState':null,
+    architectureContract:'100.2'
   });
 }
 E.health=health;
-V.architectureContract={version:'100.1',singleEngine:true,singleBuildingRenderer:rendererOK(),buildingRendererOwner:'render_compositor_v93'};
+V.architectureContract={version:'100.2',singleEngine:true,singleBuildingRenderer:rendererOK(),buildingRendererOwner:'render_compositor_v93',singleVillageLife:lifeOK(),lifeSaveAuthority:lifeOK()?'gameState':null};
 })();
