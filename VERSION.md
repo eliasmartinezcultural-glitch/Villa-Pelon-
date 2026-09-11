@@ -1,55 +1,35 @@
 # Villa Pelón — control de versiones
 
 ## Versión activa
-**99.1 — Vida del pueblo + contrato estructural de arranque**
+**100.0 — Integración selectiva V62 + mundo vivo**
 
-## Objetivo
-Villa Pelón es un RPG 2D pixel art educativo donde el territorio se aprende mediante recorridos, personajes, objetos, fuentes, preguntas, acciones y misiones.
+## Decisión de diseño
+Se revisó la rama estable `stable/v62-worldplay-core` y se recuperó únicamente lo que fortalece la orientación actual. No se restauró el V62 completo ni sus sistemas antiguos cuando duplicaban, simplificaban o desviaban la arquitectura actual.
 
-## Avance de esta etapa
+## Recuperado de V62
+- Rutinas autónomas por horario para los personajes existentes.
+- Destinos: casa, plaza, escuela, radio, trabajo rural y servicios.
+- Movimiento autónomo con respeto básico por edificios y límites del mundo.
+- Tránsito urbano/rural y vehículos con movimiento continuo.
+- Fauna rural: vacas, caballos y gallinas.
+- Lenguaje visual pixel-art más detallado para personajes: cuerpo, piernas, pies, pelo, ojos, boca, sombras y animación de caminata.
+- Variedad de colores y apariencia sin sustituir los datos actuales del pueblo.
 
-- Se incorporó `core/village_life_v99.js` como capa de gameplay contextual sobre el motor existente.
-- El pueblo genera situaciones según hora, día y ubicación del jugador.
-- La plaza, escuela, radio, riego, bodegas y Picada 21 tienen ventanas de actividad diferenciadas.
-- Se incorporó un evento de llegada del colectivo rural a la parada de Picada 21.
-- Los eventos diarios quedan registrados y persisten localmente sin crear un segundo sistema de guardado del juego.
-- Se incorporó `core/architecture_contract_v99.js` para verificar al final del arranque que el contrato de renderer único siga vigente.
-- Se corrigió el gate que estaba haciendo fallar el smoke test por el contrato `singleBuildingRenderer`.
-- Se actualizó el cache-busting global a V99.1.
+## No recuperado
+No se reincorporaron como autoridades independientes el antiguo motor V62, `life.js`, el renderer V47 ni la geometría reducida de 3200×2000. El mundo actual mantiene 8200×4200, sus reglas territoriales, Picada 21, VERGEL, misiones, fuentes históricas, guardado e integración actual.
 
-## Campaña educativa
-
-El ciclo pedagógico es:
-
-**MISIÓN → RECORRIDO → PERSONA → OBJETO → LUGAR → PREGUNTA → FUENTE → CONTRASTE → APRENDIZAJE**
-
-La campaña trabaja identidad, comunidad, escuela, riego, producción, pelón, trabajo rural, memoria oral, fundación, cartografía, fuentes, fotografía, observación del paisaje y Picada 21.
-
-## Arquitectura activa
-
-- `core/runtime.js` — ciclo de vida y contrato de salud.
-- `village_data.js` — datos base.
-- `core/world_manifest.js` — geometría territorial.
-- `core/world_expansion_v88.js` — expansión rural y Picada 21.
-- `core/world_vergel_v90.js` — VERGEL.
-- `core/mission_system.js` — catálogo y progresión.
+## Arquitectura
 - `core/v90_engine.js` — motor único.
-- `core/integration_v90.js` — integración territorial.
-- `core/people_vehicles_v91.js` — población y vehículos.
-- `core/building_detail_v92.js` — contrato de identidad de edificios.
-- `core/historical_world_v98.js` — objetos patrimoniales y visuales históricos.
-- `core/render_compositor_v93.js` — compositor único.
-- `core/healthcheck_v91.js` — salud.
-- `core/mission_runtime.js` — eventos especiales.
-- `core/historical_campaign_v98.js` — acciones investigativas adicionales.
-- `core/presentation_runtime.js` — misión/HUD.
-- `core/interface_v88.js` — interfaz.
-- `core/soft_intro.js` — introducción.
-- `core/integrity_v94.js` — integridad.
-- `core/stability_v95.js` — estabilidad.
-- `core/village_life_v99.js` — eventos vivos contextuales y memoria diaria.
-- `core/architecture_contract_v99.js` — contrato final de arquitectura durante el arranque.
+- `core/world_manifest.js` — geometría territorial actual.
+- `core/mission_system.js` — misiones y progresión.
+- `core/world_vergel_v90.js` — agricultura.
+- `core/village_life_v99.js` — ahora V100: simulación autónoma de vida.
+- `core/people_vehicles_v91.js` — ahora V100: población, tránsito y fauna.
+- `core/render_compositor_v93.js` — ahora V100: único compositor visual.
+- `core/architecture_contract_v99.js` — contrato de renderer único.
 
 ## Regla estructural
+Toda mejora recuperada debe reforzar el juego actual y conectarse a una autoridad existente. No se agregan motores paralelos, RAF secundarios, renderers duplicados ni sistemas alternativos de guardado.
 
-Toda nueva función debe conectarse a una autoridad existente. No se agregan motores paralelos, RAF secundarios de la misma capa, renderers duplicados, registros duplicados ni sistemas alternativos de guardado.
+## Backup
+`backup/v62-selective-integration-20260911` conserva esta integración selectiva antes de continuar con nuevas evoluciones del mundo vivo.
