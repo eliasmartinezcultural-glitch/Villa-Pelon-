@@ -1,20 +1,24 @@
-/* VILLA PELÓN V100 — CONTRATO DE ARQUITECTURA
-   La autoridad visual es render_compositor_v93.js.
-   Este contrato no crea motor, renderer, RAF ni guardado paralelo.
+/* VILLA PELÓN V100.1 — CONTRATO DE ARQUITECTURA
+   Una sola autoridad visual: render_compositor_v93.js.
+   Este contrato valida la arquitectura real sin crear otro motor, renderer, RAF ni guardado.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
 const E=V.engine=V.engine||{};
 const previous=typeof E.health==='function'?E.health.bind(E):null;
 function rendererOK(){
-  // La prueba de arquitectura debe validar la autoridad del compositor,
-  // no depender del DOM circunstancial del canvas secundario.
-  return V.renderCompositor?.singleRAF===true;
+  const compositor=V.renderCompositor;
+  const detail=document.getElementById('worldDetail');
+  const owner=V.buildingDetail?.renderOwner;
+  return !!detail && (compositor?.singleRAF===true || owner==='render_compositor_v93');
 }
 function health(){
   const base=previous?previous():{};
   const ok=rendererOK();
-  if(ok&&V.buildingDetail)V.buildingDetail.renderOwner='render_compositor_v93';
+  if(ok){
+    V.buildingDetail=V.buildingDetail||{};
+    V.buildingDetail.renderOwner='render_compositor_v93';
+  }
   return Object.assign({},base,{
     singleBuildingRenderer:ok,
     buildingRendererOwner:ok?'render_compositor_v93':(V.buildingDetail?.renderOwner||base.buildingRendererOwner||null),
