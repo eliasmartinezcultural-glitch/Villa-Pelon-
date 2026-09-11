@@ -29,7 +29,7 @@ jobs:
             const errors=[];
             page.on('pageerror',e=>errors.push(e.message));
             page.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
-            await page.goto('http://127.0.0.1:4173/index.html?v=106.5',{waitUntil:'networkidle'});
+            await page.goto('http://127.0.0.1:4173/index.html?v=106.6',{waitUntil:'networkidle'});
             await page.waitForTimeout(3000);
             for(let i=0;i<4;i++){const b=page.locator('[data-intro-next]');if(await b.isVisible()) await b.click();await page.waitForTimeout(100)}
             await page.waitForTimeout(500);
@@ -89,7 +89,7 @@ jobs:
             await page.screenshot({path:'villa-pelon-smoke.png',fullPage:true});
             const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true});
             const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));mobile.on('console',m=>{if(m.type()==='error')mobileErrors.push(m.text())});
-            await mobile.goto('http://127.0.0.1:4173/index.html?v=106.5',{waitUntil:'networkidle'});await mobile.waitForTimeout(2500);
+            await mobile.goto('http://127.0.0.1:4173/index.html?v=106.6',{waitUntil:'networkidle'});await mobile.waitForTimeout(2500);
             const mobileState=await mobile.evaluate(()=>({started:!!window.VillaPelon?.gameState?.started,health:window.VillaPelon?.health?.ok,integrity:window.VillaPelon?.integrity?.ok,canvas:!!document.getElementById('world'),legacyDetail:!!document.getElementById('detailLayer')}));
             if(!mobileState.started||!mobileState.health||!mobileState.integrity||!mobileState.canvas||mobileState.legacyDetail) throw new Error('Mobile smoke failed: '+JSON.stringify(mobileState));
             if(mobileErrors.length) throw new Error('Mobile browser errors: '+mobileErrors.join(' | '));
