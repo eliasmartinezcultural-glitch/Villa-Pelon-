@@ -1,0 +1,12 @@
+/* VILLA PELÓN V127 — ATMÓSFERA VISUAL */
+#game{position:relative;overflow:hidden}
+#worldAtmosphere{position:absolute;inset:0;pointer-events:none;z-index:8;opacity:1;transition:background .8s ease,opacity .8s ease;mix-blend-mode:multiply}
+#worldAtmosphere[data-phase="night"]{background:rgba(18,27,48,.34)}
+#worldAtmosphere[data-phase="dawn"]{background:linear-gradient(to bottom,rgba(214,177,125,.18),rgba(255,226,170,.06))}
+#worldAtmosphere[data-phase="day"]{background:rgba(255,245,215,.015)}
+#worldAtmosphere[data-phase="dusk"]{background:linear-gradient(to bottom,rgba(139,91,71,.20),rgba(54,54,77,.12))}
+#worldAtmosphere[data-weather="nublado"]{background-image:linear-gradient(rgba(105,110,111,.10),rgba(105,110,111,.04))}
+#worldAtmosphere[data-weather="lluvia"]{background-image:linear-gradient(rgba(78,101,113,.18),rgba(78,101,113,.08))}
+#worldAtmosphere[data-weather="viento"]{background-image:linear-gradient(110deg,rgba(205,199,164,.10),transparent 55%)}
+#worldAtmosphere[data-weather="frio"]{background-image:linear-gradient(rgba(180,202,211,.12),rgba(180,202,211,.04))}
+#worldAtmosphere[data-weather="calido"],#worldAtmosphere[data-weather="seco"]{background-image:linear-gradient(rgba(218,181,105,.08),rgba(218,181,105,.02))}
