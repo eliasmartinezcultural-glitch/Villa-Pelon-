@@ -1,48 +1,12 @@
 /* VILLA PELÓN V132 — AUTORIDAD VISUAL PIXEL ART
    Única guía visual para contenido derivado.
    El compositor sigue siendo el único dueño del frame.
-   V132 corrige el espacio de render: el contenido se dibuja en WORLD SPACE
-   dentro del compositor, por lo que ya no aplica cámara dos veces ni rompe profundidad.
+   Contenido en WORLD SPACE: la cámara se aplica una sola vez en el compositor.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={});
-const P={
- version:'V132',
- pixel:{grid:2,unit:'world-pixel',snap:true,integerCoordinates:true,antialias:false},
- palette:{
-  ink:'#202326',outline:'#34383a',shadow:'#3a342e',
-  dirt:'#9a7955',dirtDark:'#72583f',grass:'#6d8752',grassDark:'#4f683f',
-  water:'#547f8f',waterLight:'#739baa',waterDark:'#385e6b',
-  wood:'#76553f',woodLight:'#9b7656',woodDark:'#503a2e',
-  metal:'#657176',metalLight:'#89979a',metalDark:'#414a4d',
-  roof:'#51433d',roofLight:'#6b574d',
-  wall:'#c6a477',wallLight:'#d7bd91',wallDark:'#8b6b4d',
-  glass:'#71858a',glassLight:'#a9bdbe',
-  leaf:'#547448',leafLight:'#76945a',leafDark:'#3d5a38',
-  sign:'#c6a96f',signDark:'#44362f',
-  skin:'#c58c6b',skinLight:'#d9a17d',clothing:'#65764a',
-  road:'#716b61',roadLight:'#8b8579'
- },
- scale:{person:[16,34],animal:[18,14],lamp:[4,14],bench:[22,6],sign:[44,7],tree:[24,30],fence:10,gate:10,bus_stop:[36,20],worktable:[30,16],toolrack:[16,24],post:[4,18],trough:[28,10]},
- rules:{
-  outline:'1px dark pixel contour on every readable object',
-  shading:'maximum 3 tones per material; no gradients',
-  texture:'clusters, not noise; texture follows material direction',
-  lighting:'one global light direction; local highlights only when functional',
-  perspective:'flat top-down/isometric hybrid; never introduce a second perspective',
-  detail:'microdetail supports recognition and function, never clutter',
-  palette:'reuse canonical palette; no arbitrary colors',
-  depth:'cast shadow beneath solid objects; darker contact edge; preserve separation from ground',
-  text:'compact pixel font, high contrast, no anti-aliasing',
-  animation:'2–4 frame micro-loops only; no decorative continuous jitter',
-  hierarchy:'silhouette → material → function → microdetail'
- },
- families:{urban:{ground:'#716b61',accent:'#c6a96f'},residential:{wall:'#c6a477',roof:'#51433d'},institutional:{wall:'#d7bd91',accent:'#6d8752'},commercial:{wall:'#c6a477',accent:'#9b7656'},rural:{ground:'#9a7955',accent:'#6d8752'},productive:{ground:'#8b6b4d',accent:'#76553f'},historical:{accent:'#c6a96f'},natural:{ground:'#6d8752',accent:'#547448'},infrastructure:{metal:'#657176',accent:'#c6a96f'}},
- quality:{maxTextureClusters:18,minSilhouetteContrast:28,forbidGradient:true,forbidBlur:true,forbidRandomNoise:true}
-};
-const snap=n=>Math.round(Number(n)||0);
-function box(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(snap(x),snap(y),Math.max(1,snap(w)),Math.max(1,snap(h)))}
-function shadow(ctx,x,y,w,h){ctx.fillStyle=P.palette.shadow;for(let i=-2;i<=2;i++)box(ctx,x-w+i*2,y+i,w*2-i*2,1,P.palette.shadow)}
+const P={version:'V132',pixel:{grid:2,unit:'world-pixel',snap:true,integerCoordinates:true,antialias:false},palette:{ink:'#202326',outline:'#34383a',shadow:'#3a342e',dirt:'#9a7955',dirtDark:'#72583f',grass:'#6d8752',grassDark:'#4f683f',water:'#547f8f',waterLight:'#739baa',waterDark:'#385e6b',wood:'#76553f',woodLight:'#9b7656',woodDark:'#503a2e',metal:'#657176',metalLight:'#89979a',metalDark:'#414a4d',roof:'#51433d',roofLight:'#6b574d',wall:'#c6a477',wallLight:'#d7bd91',wallDark:'#8b6b4d',glass:'#71858a',glassLight:'#a9bdbe',leaf:'#547448',leafLight:'#76945a',leafDark:'#3d5a38',sign:'#c6a96f',signDark:'#44362f',skin:'#c58c6b',skinLight:'#d9a17d',clothing:'#65764a',road:'#716b61',roadLight:'#8b8579'},scale:{person:[16,34],animal:[18,14],lamp:[4,14],bench:[22,6],sign:[44,7],tree:[24,30],fence:10,gate:10,bus_stop:[36,20],worktable:[30,16],toolrack:[16,24],post:[4,18],trough:[28,10]},rules:{outline:'1px dark pixel contour',shading:'maximum 3 tones per material; no gradients',texture:'clusters, not noise',lighting:'one global light direction',perspective:'flat top-down/isometric hybrid',detail:'microdetail supports recognition and function',palette:'canonical palette only',depth:'contact shadow and y-sorted depth',text:'compact pixel font, high contrast',animation:'2–4 frame micro-loops only',hierarchy:'silhouette → material → function → microdetail'},families:{urban:{ground:'#716b61',accent:'#c6a96f'},residential:{wall:'#c6a477',roof:'#51433d'},institutional:{wall:'#d7bd91',accent:'#6d8752'},commercial:{wall:'#c6a477',accent:'#9b7656'},rural:{ground:'#9a7955',accent:'#6d8752'},productive:{ground:'#8b6b4d',accent:'#76553f'},historical:{accent:'#c6a96f'},natural:{ground:'#6d8752',accent:'#547448'},infrastructure:{metal:'#657176',accent:'#c6a96f'}},quality:{maxTextureClusters:18,minSilhouetteContrast:28,forbidGradient:true,forbidBlur:true,forbidRandomNoise:true}};
+const snap=n=>Math.round(Number(n)||0);function box(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(snap(x),snap(y),Math.max(1,snap(w)),Math.max(1,snap(h)))}function shadow(ctx,x,y,w,h){for(let i=-2;i<=2;i++)box(ctx,x-w+i*2,y+i,w*2-i*2,1,P.palette.shadow)}
 function tree(ctx,x,y,w,h){shadow(ctx,x+w/2,y+h,w*.32,2);box(ctx,x+w*.22,y+h*.45,w*.16,h*.45,P.palette.woodDark);box(ctx,x+w*.08,y+h*.18,w*.78,h*.42,P.palette.leafDark);box(ctx,x+w*.18,y+h*.05,w*.58,h*.42,P.palette.leaf);box(ctx,x+w*.33,y,w*.28,h*.24,P.palette.leafLight);box(ctx,x+w*.12,y+h*.25,w*.16,h*.12,P.palette.leafLight)}
 function bench(ctx,x,y,w,h){shadow(ctx,x+w/2,y+h+2,w*.45,2);box(ctx,x,y+h*.2,w,h*.28,P.palette.woodDark);box(ctx,x+2,y,w-4,h*.24,P.palette.woodLight);box(ctx,x+3,y+h*.5,4,h*.5,P.palette.woodDark);box(ctx,x+w-7,y+h*.5,4,h*.5,P.palette.woodDark)}
 function lamp(ctx,x,y){shadow(ctx,x+2,y+14,4,1);box(ctx,x,y+2,3,12,P.palette.metalDark);box(ctx,x-1,y,5,4,P.palette.metalLight);box(ctx,x,y,3,2,P.palette.sign)}
@@ -55,9 +19,7 @@ function worktable(ctx,x,y,w,h){shadow(ctx,x+w/2,y+h+2,w*.4,2);box(ctx,x,y,w,h*.
 function toolrack(ctx,x,y,w,h){box(ctx,x,y,w,h,P.palette.woodDark);box(ctx,x+2,y+2,w-4,3,P.palette.woodLight);for(let i=0;i<3;i++)box(ctx,x+4+i*5,y+7,2,h-9,i===1?P.palette.metalLight:P.palette.woodLight)}
 function busStop(ctx,x,y,w,h){box(ctx,x,y,w,h,P.palette.metalDark);box(ctx,x+2,y+2,w-4,3,P.palette.metalLight);box(ctx,x+3,y+7,w-6,2,P.palette.glass);box(ctx,x+4,y+h-5,w-8,3,P.palette.woodLight);box(ctx,x+2,y+h-2,3,2,P.palette.metalDark);box(ctx,x+w-5,y+h-2,3,2,P.palette.metalDark)}
 function drawObject(ctx,o){if(!o)return;const x=o.x,y=o.y,w=o.w||20,h=o.h||10;switch(o.type){case'tree':return tree(ctx,x,y,w,h);case'bench':return bench(ctx,x,y,w,h);case'lamp':return lamp(ctx,x,y);case'sign':return sign(ctx,x,y,w,h);case'fence':return fence(ctx,x,y,w,h);case'gate':return gate(ctx,x,y,w,h);case'post':return post(ctx,x,y,w,h);case'trough':return trough(ctx,x,y,w,h);case'worktable':return worktable(ctx,x,y,w,h);case'toolrack':return toolrack(ctx,x,y,w,h);case'bus_stop':return busStop(ctx,x,y,w,h)}}
-function contentItems(){const C=V.worldContent;if(!C||!Array.isArray(C.elements))return[];return C.elements.map(o=>({content:o,y:(o.y||0)+(o.h||0),fn:()=>drawObject(window.__VP_VISUAL_CTX__,o)}))}
-function drawContent(ctx){const C=V.worldContent;if(!C||!Array.isArray(C.elements))return;window.__VP_VISUAL_CTX__=ctx;const arr=C.elements.slice().sort((a,b)=>(a.y+a.h)-(b.y+b.h));for(const o of arr)drawObject(ctx,o);window.__VP_VISUAL_CTX__=null}
-V.visualAuthority={version:P.version,contract:P,drawContent,drawObject,contentItems,readOnlyGeometry:true,singleVisualLoop:true};
-V.visualAuthority.audit={ok:true,checks:['pixel-grid','palette','materials','silhouette','shadow','texture','depth','labels','animation','no-gradients','no-random-noise'],principle:'one world, one palette, one pixel language',space:'world-space',cameraAppliedBy:'render-compositor'};
-window.dispatchEvent(new CustomEvent('villa-pelon-visual-authority-ready',{detail:{version:P.version}}));
-})();
+function contentItems(ctx){const C=V.worldContent;if(!C||!Array.isArray(C.elements))return[];return C.elements.map(o=>({y:(o.y||0)+(o.h||0),fn:()=>drawObject(ctx,o)}))}
+function drawContent(ctx){for(const i of contentItems(ctx).sort((a,b)=>a.y-b.y))i.fn()}
+V.visualAuthority={version:P.version,contract:P,drawContent,drawObject,contentItems,readOnlyGeometry:true,singleVisualLoop:true};V.visualAuthority.audit={ok:true,checks:['pixel-grid','palette','materials','silhouette','shadow','texture','depth','labels','animation','no-gradients','no-random-noise'],principle:'one world, one pixel language',space:'world-space',cameraAppliedBy:'render-compositor'};
+window.dispatchEvent(new CustomEvent('villa-pelon-visual-authority-ready',{detail:{version:P.version}}));})();
