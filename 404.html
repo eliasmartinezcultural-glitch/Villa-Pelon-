@@ -1,1 +1,27 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=./"><title>Villa Pelón</title></head><body><p>Abriendo Villa Pelón…</p><script>location.replace('./');</script></body></html>
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#294d38">
+  <meta http-equiv="refresh" content="2;url=./">
+  <title>Villa Pelón · Redirigiendo</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#18251d;color:#f3ead8;font:16px system-ui,sans-serif;text-align:center}
+    main{max-width:34rem;padding:2rem}a{color:#f3c879}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Villa Pelón</h1>
+    <p>Estamos recuperando la entrada del juego…</p>
+    <p><a href="./">Entrar a Villa Pelón</a></p>
+  </main>
+  <script>
+    (function(){
+      var base=location.pathname.replace(/\/404\.html?$/,'/');
+      if(base && base!==location.pathname){location.replace(base+location.search+location.hash);}
+    })();
+  </script>
+</body>
+</html>
