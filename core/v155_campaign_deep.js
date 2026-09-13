@@ -1,9 +1,11 @@
 /* VILLA PELÓN V155 — CAMPAÑA PROFUNDA
-   Extiende el catálogo existente sin crear otro motor de misiones.
-   40 misiones encadenadas: territorio -> personas -> memoria -> investigación -> síntesis.
+   Autoridad única: mission_system + V154 + V155.
+   Consolida la cadena y desconecta el catálogo histórico paralelo para evitar misiones huérfanas.
 */
 (()=>{'use strict';
 const V=window.VillaPelon||(window.VillaPelon={}),M=V.missions;if(!M)return;
+const orphan=['territory_artifacts_01','source_03','rural_memory_02','landscape_01'];
+M.list=M.list.filter(m=>!orphan.includes(m.id));
 const deep=[
 {id:'camp21',chapter:'HUELLAS',title:'Volver a mirar',description:'Regresá al núcleo y comprobá cuánto cambió tu mirada después de conocer el territorio.',objectives:[{id:'marta21',type:'talk',target:'marta',label:'Volvé a hablar con Marta'},{id:'plaza21',type:'reach',target:'plaza',label:'Volvé a la plaza'}],reward:4200,next:'camp22'},
 {id:'camp22',chapter:'HUELLAS',title:'Celso y los nombres',description:'Contrastá una memoria del lugar con la pregunta que dejó abierta el topónimo.',objectives:[{id:'celso22',type:'talk',target:'celso',label:'Preguntale a Celso qué recuerda'},{id:'name22',type:'inspect',target:'name_marker',label:'Revisá nuevamente la ficha del nombre'}],reward:4400,next:'camp23'},
@@ -26,13 +28,11 @@ const deep=[
 {id:'camp39',chapter:'FUTURO',title:'Contar sin inventar',description:'Prepará una síntesis que distinga hechos documentados, testimonios y ficción narrativa.',objectives:[{id:'raul39',type:'talk',target:'raul',label:'Consultá a Raúl sobre cómo comunicar'},{id:'research39',type:'inspect',target:'research_question',label:'Revisá tu método de investigación'}],reward:7600,next:'camp40'},
 {id:'camp40',chapter:'FUTURO',title:'Villa Pelón queda abierta',description:'Cerrá la campaña profunda: no con una respuesta definitiva, sino con herramientas para seguir investigando.',objectives:[{id:'amalia40',type:'talk',target:'amalia',label:'Presentá tu investigación a Amalia'},{id:'archive40',type:'inspect',target:'archive_final',label:'Cerrá el archivo de campaña'}],reward:10000,next:'free_explore'}
 ];
-const ids=new Set(M.list.map(m=>m.id));
 const oldEnd=M.list.find(m=>m.id==='history_01');if(oldEnd)oldEnd.next='camp21';
-M.list=M.list.filter(m=>m.id!=='free_explore').concat(deep,M.list.filter(m=>m.id==='free_explore'));
-const D=V.campaignDirector||(V.campaignDirector={});D.version='155.0';D.sealed=true;D.deepCampaign=true;D.campaignLength=M.list.length;D.finalMission='camp40';D.authority='CAMPAIGN_CONTENT_V155';
+M.list=M.list.filter(m=>m.id!=='free_explore'&&!deep.some(d=>d.id===m.id)).concat(deep,M.list.filter(m=>m.id==='free_explore'));
+const D=V.campaignDirector||(V.campaignDirector={});D.version='155.1';D.sealed=true;D.deepCampaign=true;D.campaignLength=M.list.length;D.finalMission='camp40';D.authority='CAMPAIGN_CONTENT_V155';D.removedParallelMissions=orphan;
 D.missionLessons=Object.assign(D.missionLessons||{},Object.fromEntries(deep.map((m,i)=>[m.id,`Campaña profunda ${i+21}: ${m.description}`])));
 D.unlocks=Object.assign(D.unlocks||{},Object.fromEntries(deep.map((m,i)=>[m.id,[['community','school','water','production','work','river','picada21','sources','research','open'][i%10]]])));
-function audit(){const issues=[],list=M.list||[],set=new Set(list.map(m=>m.id));list.forEach(m=>{if(m.next&&!set.has(m.next))issues.push('broken-next:'+m.id+'>'+m.next);(m.objectives||[]).forEach(o=>{if(!o.id||!o.type||!o.target)issues.push('bad-objective:'+m.id);if(o.type==='inspect'&&!V.missionRuntime?.points?.[o.target])issues.push('missing-point:'+m.id+':'+o.target);if(o.type==='reach'&&!V.missionRuntime?.regions?.[o.target]&&o.target!=='bridge')issues.push('missing-region:'+m.id+':'+o.target)})});return{ok:issues.length===0,issues,total:list.length,deep:deep.length,first:'welcome',last:'free_explore',geometryAuthority:'V138'} }
-V.campaignAudit=audit();V.runtimeAudit=Object.assign(V.runtimeAudit||{},{deepCampaign:true,deepCampaignVersion:'155.0',campaignAudit:V.campaignAudit,geometryLocked:true});
-window.dispatchEvent(new CustomEvent('villa-pelon-deep-campaign-ready',{detail:V.campaignAudit}));
+function audit(){const issues=[],list=M.list||[],set=new Set(list.map(m=>m.id));list.forEach(m=>{if(m.next&&!set.has(m.next))issues.push('broken-next:'+m.id+'>'+m.next);(m.objectives||[]).forEach(o=>{if(!o.id||!o.type||!o.target)issues.push('bad-objective:'+m.id);if(o.type==='inspect'&&!V.missionRuntime?.points?.[o.target])issues.push('missing-point:'+m.id+':'+o.target);if(o.type==='reach'&&!V.missionRuntime?.regions?.[o.target]&&o.target!=='bridge')issues.push('missing-region:'+m.id+':'+o.target)})});return{ok:issues.length===0,issues,total:list.length,deep:deep.length,removedParallel:orphan.length,first:'welcome',last:'free_explore',geometryAuthority:'V138'} }
+V.campaignAudit=audit();V.runtimeAudit=Object.assign(V.runtimeAudit||{},{deepCampaign:true,deepCampaignVersion:'155.1',campaignAudit:V.campaignAudit,geometryLocked:true,parallelMissionAuthorityRemoved:true});window.dispatchEvent(new CustomEvent('villa-pelon-deep-campaign-ready',{detail:V.campaignAudit}));
 })();
