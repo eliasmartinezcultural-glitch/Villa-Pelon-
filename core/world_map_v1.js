@@ -1,88 +1,25 @@
-/* VILLA PELÓN — WORLD MAP V1
-   AUTHORITY LAYER: geography only.
-   This layer does not create buildings, missions, NPCs or decoration.
-   It receives the canonical geometry from v120_world_rebuild.js,
-   formalizes its hierarchy, validates it, and freezes the contract.
+/* VILLA PELÓN — WORLD MAP V1 / V159 CONSOLIDADO
+   Única autoridad de geografía: consume v120_world_rebuild.js y no redefine geometría.
+   Este archivo congela únicamente topología, secuencia de exploración y reglas de navegación.
 */
 (()=>{'use strict';
-const V=window.VillaPelon||(window.VillaPelon={});
-const G=V.worldGeometry||{};
-const WORLD={x:0,y:0,w:8200,h:4200};
-const zones=Array.isArray(G.zones)?G.zones:[];
-const urban=zones.find(z=>z.id==='urban_core');
-const rural=zones.find(z=>z.id==='transition_rural');
-const river=G.river;
-const picada=zones.find(z=>z.id==='picada21');
-const roads=Array.isArray(G.roads)?G.roads:[];
-const bridges=Array.isArray(G.bridges)?G.bridges:[];
-const buildings=Array.isArray(G.buildings)?G.buildings:[];
-
-const errors=[];
-const warn=[];
-const finiteRect=r=>r&&[r.x,r.y,r.w,r.h].every(Number.isFinite)&&r.w>0&&r.h>0;
-if(!finiteRect(WORLD))errors.push({type:'invalid-world'});
-if(!urban)errors.push({type:'missing-region',id:'urban_core'});
-if(!rural)errors.push({type:'missing-region',id:'transition_rural'});
-if(!river||river.y!==2700)errors.push({type:'invalid-river-anchor',expectedY:2700});
-if(!picada)errors.push({type:'missing-region',id:'picada21'});
-if(urban&&urban.w>WORLD.w*.5)warn.push({type:'urban-too-large'});
-if(picada&&river&&picada.y<=river.y)errors.push({type:'picada-not-beyond-river'});
-if(buildings.length===0)errors.push({type:'no-buildings'});
-
-const overlap=(a,b,p=0)=>a&&b&&a.x-p<b.x+b.w+p&&a.x+a.w+p>b.x-p&&a.y-p<b.y+b.h+p&&a.y+a.h+p>b.y-p;
-const inside=(a,b)=>a.x>=b.x&&a.y>=b.y&&a.x+a.w<=b.x+b.w&&a.y+a.h<=b.y+b.h;
-const mapAudit=[];
-for(const b of buildings){
-  if(!finiteRect(b)||!inside(b,WORLD))mapAudit.push({type:'building-out-of-world',id:b?.id});
-  for(const r of roads)if(overlap(b,r,18))mapAudit.push({type:'building-road-overlap',building:b.id,road:r.id});
-  if(overlap(b,river,18))mapAudit.push({type:'building-river-overlap',building:b.id});
-}
-for(const r of roads)if(!finiteRect(r)||!inside(r,WORLD))mapAudit.push({type:'road-out-of-world',id:r?.id});
-for(const b of bridges)if(!finiteRect(b)||!inside(b,WORLD))mapAudit.push({type:'bridge-out-of-world',id:b?.id});
-for(let i=0;i<buildings.length;i++)for(let j=i+1;j<buildings.length;j++)if(overlap(buildings[i],buildings[j],18))mapAudit.push({type:'building-building-overlap',a:buildings[i].id,b:buildings[j].id});
-
-const regionOrder=[
-  {id:'urban_core',role:'urban',sequence:1,description:'núcleo urbano compacto'},
-  {id:'transition_rural',role:'rural',sequence:2,description:'campo y producción'},
-  {id:'river_buffer',role:'river',sequence:3,description:'corredor y barrera del río'},
-  {id:'picada21',role:'remote',sequence:4,description:'territorio remoto de Picada 21'}
+const V=window.VillaPelon||(window.VillaPelon={});const G=V.worldGeometry||{};const WORLD={x:0,y:0,w:8200,h:4200};
+const zones=Array.isArray(G.zones)?G.zones:[],urban=zones.find(z=>z.id==='urban_core'),rural=zones.find(z=>z.id==='transition_rural'),river=G.river,picada=zones.find(z=>z.id==='picada21'),roads=Array.isArray(G.roads)?G.roads:[],bridges=Array.isArray(G.bridges)?G.bridges:[],buildings=Array.isArray(G.buildings)?G.buildings:[],plaza=G.plaza;
+const errors=[],warn=[];const finiteRect=r=>r&&[r.x,r.y,r.w,r.h].every(Number.isFinite)&&r.w>0&&r.h>0;const overlap=(a,b,p=0)=>a&&b&&a.x-p<b.x+b.w+p&&a.x+a.w+p>b.x-p&&a.y-p<b.y+b.h+p&&a.y+a.h+p>b.y-p;const inside=(a,b)=>a&&b&&a.x>=b.x&&a.y>=b.y&&a.x+a.w<=b.x+b.w&&a.y+a.h<=b.y+b.h;
+if(!urban)errors.push({type:'missing-region',id:'urban_core'});if(!rural)errors.push({type:'missing-region',id:'transition_rural'});if(!river||river.y!==2700)errors.push({type:'invalid-river-anchor',expectedY:2700});if(!picada)errors.push({type:'missing-region',id:'picada21'});if(picada&&river&&picada.y<=river.y)errors.push({type:'picada-not-beyond-river'});if(!G.worldRules?.roads?.riverCrossingOnlyAtBridges)errors.push({type:'missing-road-river-rule'});if(!G.worldRules?.publicSpaces?.roadsForbidden)errors.push({type:'missing-plaza-road-rule'});
+const mapAudit=[];for(const b of buildings){if(!finiteRect(b)||!inside(b,WORLD))mapAudit.push({type:'building-out-of-world',id:b?.id});for(const r of roads)if(overlap(b,r,18))mapAudit.push({type:'building-road-overlap',building:b.id,road:r.id});if(overlap(b,river,18))mapAudit.push({type:'building-river-overlap',building:b.id});if(plaza&&overlap(b,plaza,18))mapAudit.push({type:'building-plaza-overlap',building:b.id})}for(const r of roads){if(!finiteRect(r)||!inside(r,WORLD))mapAudit.push({type:'road-out-of-world',id:r?.id});if(plaza&&overlap(r,plaza,0))mapAudit.push({type:'road-through-plaza',road:r.id})}for(let i=0;i<buildings.length;i++)for(let j=i+1;j<buildings.length;j++)if(overlap(buildings[i],buildings[j],18))mapAudit.push({type:'building-building-overlap',a:buildings[i].id,b:buildings[j].id});
+const requiredRoads=['urban_north','urban_mid','urban_south','urban_east_exit','rural_north','rural_middle','rural_south','bridge_west_access','bridge_east_access','picada21_access','picada21_road'];requiredRoads.forEach(id=>{if(!roads.some(r=>r.id===id))errors.push({type:'missing-canonical-road',id})});
+const explorationZones=[
+ {id:'urban_core',order:1,role:'start',label:'Núcleo urbano',rule:'compacto; exploración inicial; plaza como punto de partida'},
+ {id:'transition_rural',order:2,role:'transition',label:'Campo y producción',rule:'salida única desde el núcleo; caminos rurales distribuyen la exploración'},
+ {id:'river_buffer',order:3,role:'boundary',label:'Corredor del río',rule:'zona abierta; cruce exclusivamente por puentes'},
+ {id:'picada21',order:4,role:'remote',label:'Picada 21',rule:'destino más lejano; baja densidad; acceso por camino'}
 ];
-const worldMapV1={
-  version:'WORLD_MAP_V1',locked:true,
-  world:{...WORLD,size:[WORLD.w,WORLD.h]},
-  geography:{
-    sequence:['urban_core','transition_rural','river_buffer','picada21'],
-    principle:'URBAN_COMPACT > RURAL_EXPANDED > RIVER_FAR > PICADA21_REMOTE',
-    urban:urban||null,rural:rural||null,river:river||null,picada21:picada||null
-  },
-  topology:{
-    riverCrossing:'bridge_only',
-    bridges:bridges.map(b=>b.id),
-    roads:roads.map(r=>r.id),
-    buildings:buildings.map(b=>b.id),
-    noBuildingOnRoads:true,
-    noBuildingInRiver:true,
-    singleGeometryAuthority:true
-  },
-  regionOrder,
-  audit:{ok:errors.length===0&&mapAudit.length===0,errors,mapAudit,warnings:warn}
-};
-
-V.worldMapV1=worldMapV1;
-V.worldMaster={version:'WORLD_MAP_V1',locked:true,authority:'core/v120_world_rebuild.js',integrity:'core/world_map_v1.js'};
-V.worldAudit=worldMapV1.audit;
-V.mapLock={
-  locked:true,version:'WORLD_MAP_V1',
-  freezeContent:true,
-  geographyOnly:true,
-  regionOrder:worldMapV1.geography.sequence,
-  river:{y:2700,crossing:'bridge_only',continuous:true},
-  picada21:{fartherThanRiver:true,remote:true},
-  rule:'No mission, NPC, vehicle, decoration or legacy layer may create or move world geometry.'
-};
-
-// Navigation contract: routes may consume the map, but may not redefine it.
-V.navigationContract={version:'WORLD_MAP_V1',worldSize:[WORLD.w,WORLD.h],riverCrossing:'bridge_only',roadsWalkable:true,buildingsSolid:true,picada21:true};
-V.geometryAuthority={version:'WORLD_MAP_V1',owner:'core/v120_world_rebuild.js',validator:'core/world_map_v1.js',consumers:['core/v90_engine.js','core/mission_runtime.js','core/mission_system.js']};
-window.dispatchEvent(new CustomEvent('villa-pelon-world-map-v1-ready',{detail:{version:'WORLD_MAP_V1',audit:worldMapV1.audit}}));
+const routeNetwork=G.routeNetwork||{nodes:[],edges:[]};const roadIds=new Set(roads.map(r=>r.id));const topologyAudit=[];
+const edgeRules=[['plaza','urban_exit'],['urban_exit','rural'],['rural','productive'],['productive','bridge_west'],['productive','bridge_east'],['bridge_west','picada_gate'],['bridge_east','picada_gate'],['picada_gate','picada21']];edgeRules.forEach(e=>{if(!routeNetwork.edges?.some(x=>x[0]===e[0]&&x[1]===e[1]))topologyAudit.push({type:'missing-route-edge',edge:e})});
+const roadKinds=roads.reduce((m,r)=>(m[r.kind]=(m[r.kind]||0)+1,m),{});
+const navigation={version:'V159',singleTopologyAuthority:'core/v120_world_rebuild.js',walkableRoads:[...roadIds],crossing:'bridge_only',sequence:explorationZones.map(z=>z.id),noRoadThroughPlaza:true,noBuildingOnRoads:true,noBuildingInRiver:true,picada21RequiresRoad:true};
+const worldMapV1={version:'WORLD_MAP_V1',locked:true,world:{...WORLD,size:[WORLD.w,WORLD.h]},geography:{sequence:explorationZones.map(z=>z.id),principle:'URBAN_COMPACT > RURAL_EXPANDED > RIVER_FAR > PICADA21_REMOTE',urban:urban||null,rural:rural||null,river:river||null,picada21:picada||null,plaza:plaza||null},explorationZones,topology:{riverCrossing:'bridge_only',bridges:bridges.map(b=>b.id),roads:[...roadIds],roadKinds,noBuildingOnRoads:true,noBuildingInRiver:true,singleGeometryAuthority:true},routeNetwork,navigation,audit:{ok:errors.length===0&&mapAudit.length===0&&topologyAudit.length===0,errors,mapAudit,topologyAudit,warnings:warn}};
+V.worldMapV1=worldMapV1;V.worldMaster={version:'CANONICAL_MAP_1',locked:true,authority:'core/v120_world_rebuild.js',integrity:'core/world_map_v1.js'};V.worldAudit=worldMapV1.audit;V.mapLock={locked:true,version:'WORLD_MAP_V1',freezeContent:true,geographyOnly:true,regionOrder:worldMapV1.geography.sequence,river:{y:2700,crossing:'bridge_only',continuous:true},picada21:{fartherThanRiver:true,remote:true},plaza:{open:true,noRoads:true,noBuildings:true},rule:'No misión, NPC, vehículo, decoración ni capa heredada puede crear o mover geometría ni alterar la red de caminos.'};V.navigationContract={version:'V159',worldSize:[WORLD.w,WORLD.h],riverCrossing:'bridge_only',roadsWalkable:true,buildingsSolid:true,picada21:true,explorationSequence:explorationZones.map(z=>z.id),topologyLocked:true};V.geometryAuthority={version:'WORLD_MAP_V1',owner:'core/v120_world_rebuild.js',validator:'core/world_map_v1.js',consumers:['core/v90_engine.js','core/mission_runtime.js','core/mission_system.js']};
+window.dispatchEvent(new CustomEvent('villa-pelon-world-map-v1-ready',{detail:{version:'WORLD_MAP_V1',audit:worldMapV1.audit,explorationZones}}));
 })();
