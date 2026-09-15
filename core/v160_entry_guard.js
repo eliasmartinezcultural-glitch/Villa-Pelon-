@@ -1,15 +1,16 @@
-/* VILLA PELÓN V160 — ENTRY GUARD
+/* VILLA PELÓN V160.3 — ENTRY GUARD
    Guardia de presentación. No crea motor, renderer, geometría ni loop.
    Contrato: PORTADA -> PRÓLOGO -> MUNDO, siempre por acción explícita del jugador.
 */
 (function(){
   'use strict';
-  const ENTRY_VERSION='160.2';
+  const ENTRY_VERSION='160.3';
   const startId='start', storyId='storyIntro', buttonId='presentationStart';
   let mode='presentation';
   let observer=null;
   let stopped=false;
   let syncing=false;
+  let activated=false;
 
   function nodes(){return {start:document.getElementById(startId),story:document.getElementById(storyId),button:document.getElementById(buttonId)};}
   function setMode(next){mode=next;document.documentElement.dataset.vpEntry=next;}
@@ -18,6 +19,7 @@
     if(stopped||mode!=='presentation'||syncing)return;
     const {start,story}=nodes(); if(!start||!story)return;
     syncing=true;
+    document.getElementById('bootScreen')?.classList.add('hidden');
     start.classList.remove('hidden');
     start.classList.add('vp-entry-presentation','vp-entry-visible');
     start.setAttribute('aria-hidden','false');
@@ -28,13 +30,20 @@
   }
 
   function beginPrologue(){
-    if(stopped)return;
+    if(stopped||activated)return;
+    activated=true;
     setMode('prologue');
     const {start,story}=nodes();
     if(start){start.classList.remove('vp-entry-presentation','vp-entry-visible');start.classList.add('hidden');start.setAttribute('aria-hidden','true');}
     if(story){story.classList.remove('hidden');story.classList.add('vp-entry-active');story.setAttribute('aria-hidden','false');}
-    // Soft intro remains the sole owner of scene progression/release.
-    setTimeout(function(){if(!stopped&&window.V?.ui?.entry){window.V.ui.entry.phase='prologue';}},0);
+    window.dispatchEvent(new CustomEvent('villa-pelon-open-intro',{detail:{source:'entry-guard',version:ENTRY_VERSION}}));
+    setTimeout(function(){if(!stopped&&window.V?.ui?.entry){window.V.ui.entry.phase='intro';}},0);
+  }
+
+  function activate(e){
+    if(stopped||activated)return;
+    if(e){e.preventDefault();e.stopPropagation();}
+    beginPrologue();
   }
 
   function finish(){
@@ -51,29 +60,23 @@
     observer=new MutationObserver(function(){
       if(stopped||syncing)return;
       if(mode==='presentation') forcePresentation();
-      else if(mode==='prologue'){
-        // During the prologue, only the story may remain active. Never resurrect the cover.
-        if(story.classList.contains('hidden')){
-          // soft_intro owns finishing; do not fight it when it explicitly releases the world.
-          if(window.V?.ui?.entry?.phase==='released') finish();
-        }
-      }
+      else if(mode==='prologue' && story.classList.contains('hidden') && window.V?.ui?.entry?.phase==='released') finish();
     });
     observer.observe(start,{attributes:true,attributeFilter:['class','style','aria-hidden']});
     observer.observe(story,{attributes:true,attributeFilter:['class','style','aria-hidden']});
 
-    if(button)button.addEventListener('click',function(){
-      beginPrologue();
-    },false);
+    if(button){
+      button.addEventListener('pointerdown',activate,true);
+      button.addEventListener('click',activate,true);
+      button.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){activate(e)}},true);
+    }
 
-    window.addEventListener('villa-pelon-intro-started',beginPrologue,{once:false});
+    window.addEventListener('villa-pelon-intro-started',function(){activated=true;setMode('prologue')});
     window.addEventListener('villa-pelon-world-entry-released',finish,{once:true});
-    window.addEventListener('villa-pelon-intro-finished',function(){setMode('prologue');},{once:false});
     return true;
   }
 
   function boot(){
-    // soft_intro is deferred and owns the canonical entry logic; this guard only seals visibility.
     if(install()){
       setTimeout(function(){if(!stopped&&mode==='presentation')forcePresentation();},80);
       setTimeout(function(){if(!stopped&&mode==='presentation')forcePresentation();},400);
